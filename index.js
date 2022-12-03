@@ -5,7 +5,7 @@ const client_id = process.env['client_id'];
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, GatewayIntentBits, REST, Collection, Routes, Events } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Collection, Routes } = require('discord.js');
 
 
 const client = new Client({
