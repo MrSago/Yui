@@ -3,11 +3,16 @@ require('dotenv').config();
 const token = process.env['token'];
 const client_id = process.env['client_id'];
 
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-const rest = new REST({ version: '9' }).setToken(token);
+const { REST, Routes } = require('discord.js');
+const rest = new REST({ version: '10' }).setToken(token);
+const fs = require('node:fs');
 
-const { commands } = require('./settings.js');
+const commands = [];
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	commands.push(command.data.toJSON());
+}
 
 (async () => {
     try {
