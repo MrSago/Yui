@@ -4,7 +4,9 @@ const token = process.env['token'];
 const client_id = process.env['client_id'];
 
 const fs = require('node:fs');
+const path = require('node:path');
 const { Client, GatewayIntentBits, REST, Collection, Routes, Events } = require('discord.js');
+
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds],
@@ -12,24 +14,47 @@ const client = new Client({
 });
 const rest = new REST({ version: '10' }).setToken(token);
 
-client.once(Events.ClientReady, c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-});
 
-client.commands = new Collection();
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-    if ('data' in command && 'execute' in command) {
-        commands.push(command.data.toJSON());
-		client.commands.set(command.data.name, command);
-        console.log(`[LOG] The command at ${file} is registered`);
-	} else {
-		console.error(`[WARNING] The command at ${file} is missing a required "data" or "execute" property.`);
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+
+    if (!('data' in command) || !('execute' in command)) {
+		console.error(`[WARNING] The command at "${file}" is missing a required "data" or "execute" property`);
+		continue;
 	}
 
+	commands.push(command.data.toJSON());
+	client.commands.set(command.data.name, command);
+	console.log(`[LOG] The command at "${file}" is registered`);
 }
+
+
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event = require(filePath);
+
+	if (!('name' in event) || !('once' in event)) {
+		console.error(`[WARNING] THe event at "${file}" is missing a "name" or "once" property`);
+		continue;
+	}
+
+	if (event.once) {
+		client.once(event.name, (...args) => event.execute(...args));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
+	}
+	console.log(`[LOG] The event at "${file}" is registered`);
+}
+
 
 (async () => {
     try {
@@ -45,24 +70,6 @@ for (const file of commandFiles) {
         console.error(error);
     }
 })();
-
-client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
-
-	const command = interaction.client.commands.get(interaction.commandName);
-
-	if (!command) {
-		console.error(`[WARNING] No command matching ${interaction.commandName} was found.`);
-		return;
-	}
-
-	try {
-		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-});
 
 
 module.exports = {
