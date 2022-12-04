@@ -10,7 +10,7 @@ const { Client, GatewayIntentBits, REST, Collection, Routes } = require('discord
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds],
-    partials: ['MESSAGE']
+    partials: ['MESSAGE', 'GUILDS']
 });
 const rest = new REST({ version: '10' }).setToken(token);
 
@@ -58,20 +58,17 @@ for (const file of eventFiles) {
 
 (async () => {
     try {
-        console.log(`[LOG] Started refreshing ${commands.length} application (/) commands.`);
+        console.log(`[LOG] Started refreshing ${commands.length} application (/) commands`);
 
         const data = await rest.put(
             Routes.applicationCommands(client_id),
             { body: commands },
         );
 
-        console.log(`[LOG] Successfully reloaded ${data.length} application (/) commands.`);
+        console.log(`[LOG] Successfully reloaded ${data.length} application (/) commands`);
     } catch (error) {
-        console.error(error);
+        console.error(`[ERROR] ${error}`);
     }
 })();
 
-
-module.exports = {
-    client: client
-};
+client.login(token);
