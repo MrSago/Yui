@@ -21,17 +21,17 @@ const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
 
     if (!('data' in command) || !('execute' in command)) {
-		console.error(`[WARNING] The command at "${file}" is missing a required "data" or "execute" property`);
-		continue;
-	}
+        console.error(`[WARNING] The command at "${file}" is missing a required "data" or "execute" property`);
+        continue;
+    }
 
-	commands.push(command.data.toJSON());
-	client.commands.set(command.data.name, command);
-	console.log(`[LOG] The command at "${file}" is registered`);
+    commands.push(command.data.toJSON());
+    client.commands.set(command.data.name, command);
+    console.log(`[LOG] The command at "${file}" is registered`);
 }
 
 
@@ -39,20 +39,20 @@ const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
-	const filePath = path.join(eventsPath, file);
-	const event = require(filePath);
+    const filePath = path.join(eventsPath, file);
+    const event = require(filePath);
 
-	if (!('name' in event) || !('once' in event)) {
-		console.error(`[WARNING] THe event at "${file}" is missing a "name" or "once" property`);
-		continue;
-	}
+    if (!('name' in event) || !('once' in event)) {
+        console.error(`[WARNING] THe event at "${file}" is missing a "name" or "once" property`);
+        continue;
+    }
 
-	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
-	} else {
-		client.on(event.name, (...args) => event.execute(...args));
-	}
-	console.log(`[LOG] The event at "${file}" is registered`);
+    if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+    } else {
+        client.on(event.name, (...args) => event.execute(...args));
+    }
+    console.log(`[LOG] The event at "${file}" is registered`);
 }
 
 
