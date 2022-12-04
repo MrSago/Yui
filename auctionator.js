@@ -76,7 +76,7 @@ setInterval(async () => {
         fs.mkdirSync(settingsPath);
     }
     fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
-}, delay * 1.5);
+}, delay);
 
 async function initNotifications(bot) {
     setInterval(async bot => {
