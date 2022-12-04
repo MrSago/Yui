@@ -7,13 +7,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, GatewayIntentBits, REST, Collection, Routes } = require('discord.js');
 
-
 const client = new Client({
     intents: [GatewayIntentBits.Guilds],
     partials: ['MESSAGE', 'GUILDS']
 });
 const rest = new REST({ version: '10' }).setToken(token);
-
 
 const commands = [];
 client.commands = new Collection();
@@ -25,7 +23,7 @@ for (const file of commandFiles) {
     const command = require(filePath);
 
     if (!('data' in command) || !('execute' in command)) {
-        console.error(`[WARNING] The command at "${file}" is missing a required "data" or "execute" property`);
+        console.log(`[WARNING] The command at "${file}" is missing a required "data" or "execute" property`);
         continue;
     }
 
@@ -33,7 +31,6 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
     console.log(`[LOG] The command at "${file}" is registered`);
 }
-
 
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -43,7 +40,7 @@ for (const file of eventFiles) {
     const event = require(filePath);
 
     if (!('name' in event) || !('once' in event)) {
-        console.error(`[WARNING] THe event at "${file}" is missing a "name" or "once" property`);
+        console.log(`[WARNING] The event at "${file}" is missing a "name" or "once" property`);
         continue;
     }
 
@@ -54,7 +51,6 @@ for (const file of eventFiles) {
     }
     console.log(`[LOG] The event at "${file}" is registered`);
 }
-
 
 (async () => {
     try {
@@ -67,9 +63,11 @@ for (const file of eventFiles) {
 
         console.log(`[LOG] Successfully reloaded ${data.length} application (/) commands`);
     } catch (error) {
-        console.error(`[ERROR] ${error}`);
+        console.error(error);
     }
 })();
+
+require('./auctionator.js').initNotifications(client);
 
 client.login(token);
 

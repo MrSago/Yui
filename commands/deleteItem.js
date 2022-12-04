@@ -8,7 +8,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
     async execute(interaction) {
-        interaction.reply('Work in progress');
+        await interaction.reply('Work in progress');
     },
 };
 

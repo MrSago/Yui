@@ -25,17 +25,16 @@ module.exports = {
         const realm_id = interaction.options.getInteger('realm_id');
         const item_id = interaction.options.getInteger('item_id');
 
-        const guildItems = await addItem(guild_id, realm_id, item_id)
+        const addedItem = await addItem(guild_id, realm_id, item_id)
             .catch(error => {
-                interaction.reply(error.message);
+                console.error(error);
+                interaction.reply({ content: error.message, ephemeral: true });
             });
-        if (guildItems === undefined) {
+        if (addedItem === undefined) {
             return;
         }
 
-        const addedItem = guildItems[realm_id][item_id];
-
-        const message = `${addedItem.name} (${item_id}) from ${realmIdToString(realm_id)} ` +
+        const message = `${addedItem.name} with id ${item_id} from ${realmIdToString(realm_id)} ` +
                         `successfully added to list\nCurrent average price: ${addedItem.price}`;
         await interaction.reply(message);
     }

@@ -5,18 +5,18 @@ const { setAucChannel } = require('../auctionator.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setaucchannel')
-        .setDescription('Set discord channel for auction\'s notifications')
+        .setDescription('Set discord channel for auction notifications')
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
         .addChannelOption(option =>
             option.setName('channel')
-                .setDescription('Channel to set for auction\'s notifications')
+                .setDescription('Channel to set for auction notifications')
                 .setRequired(true)),
 
     async execute(interaction) {
         const guild = interaction.guild;
         const channel = interaction.options.getChannel('channel');
         setAucChannel(guild.id, channel.id);
-        await interaction.reply(`Channel ${channel} is set for auction\'s notifications`);
+        await interaction.reply(`Channel ${channel} is set for auction notifications`);
     },
 };
 
