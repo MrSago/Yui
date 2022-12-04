@@ -19,3 +19,4 @@ module.exports = {
         await interaction.reply(`Channel ${channel} is set for auction\'s notifications`);
     },
 };
+
