@@ -38,9 +38,9 @@ async function getDataItem(realm_id, item_id) {
     }).then(response => {
         data = response.data;
     }).catch(error => {
-        const throwMsg = `Item id ${item_id} from realm ${realmIdToString(realm_id)} not found in data base`;
+        const throwMsg = `Предмет с Id ${item_id} из реалма ${realmIdToString(realm_id)} в базе не найден`;
         console.error(error);
-        console.log(`[WARNING] ${throwMsg}`)
+        // console.log(`[WARNING] ${throwMsg}`)
         throw new Error(throwMsg);
     });
     

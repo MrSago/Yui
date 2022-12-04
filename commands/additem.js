@@ -5,11 +5,11 @@ const { realmIdToString, addItem } = require('../auctionator.js');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('additem')
-        .setDescription('Add item to list')
+        .setDescription('Добавить предмет в список')
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
         .addIntegerOption(option =>
             option.setName('realm_id')
-                .setDescription('Realm')
+                .setDescription('Выберите реалм')
                 .setRequired(true)
                 .setChoices(
                     { name: 'Scourge x2', value: 9 },
@@ -17,7 +17,7 @@ module.exports = {
                     { name: 'Sirus x5', value: 57 }))
         .addIntegerOption(option =>
             option.setName('item_id')
-                .setDescription('Item ID')
+                .setDescription('Id предмета')
                 .setRequired(true)),
 
     async execute(interaction) {
@@ -34,8 +34,8 @@ module.exports = {
             return;
         }
 
-        const message = `${addedItem.name} with id ${item_id} from ${realmIdToString(realm_id)} ` +
-                        `successfully added to list\nCurrent average price: ${addedItem.price}`;
+        const message = `${addedItem.name} (id: ${item_id}) из реалма ${realmIdToString(realm_id)} ` +
+                        `успешно добавлен в список\nТекущая средняя цена: ${addedItem.price}`;
         await interaction.reply(message);
     }
 };
