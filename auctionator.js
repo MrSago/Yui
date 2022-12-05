@@ -1,4 +1,5 @@
 
+const { bot } = require('./index.js');
 const axios = require('axios');
 const fs = require('fs');
 
@@ -28,37 +29,6 @@ try {
     console.log(`[WARNING] Can't parse ${settingsFile}`);
 }
 
-async function getDataItem(realm_id, item_id) {
-    const itemUrl = baseUrl + apiItemPath + item_id + '/' + realm_id;
-    let data = undefined;
-
-    await axios.get(itemUrl, {
-        headers: { 'accept-encoding': null },
-        cache: true
-    }).then(response => {
-        data = response.data;
-    }).catch(error => {
-        const throwMsg = `Предмет с Id ${item_id} из реалма ${realmIdToString(realm_id)} в базе не найден`;
-        console.error(error);
-        console.log(`[WARNING] ${throwMsg}`)
-        throw new Error(throwMsg);
-    });
-    
-    return data;
-}
-
-function parseData(data) {
-    let name = data['item']['name'];
-    let price = undefined;
-    try {
-        price = (Math.round(data['auctionhouse']['avg'] / 100) / 100).toString();
-    } catch {
-        console.log(`[WARNING] No data from auction for item ${name} (${data['item']['entry']})`);
-        price = 'Not available';
-    }
-    return { name: name, price: price };
-}
-
 setInterval(async () => {
     for (const guild_id in itemsBase) {
         for (const realm_id in itemsBase[guild_id]) {
@@ -78,35 +48,68 @@ setInterval(async () => {
     fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
 }, delay);
 
-async function initNotifications(bot) {
-    setInterval(async bot => {
-        for (const guild_id in itemsBase) {
-            const channel_id = itemsBase[guild_id].channel_id;
-            if (channel_id === undefined) {
-                continue;
-            }
-
-            const message = JSON.stringify(itemsBase[guild_id], null, 4);
-            const channel = bot.channels.cache.get(channel_id);
-
-            await channel.messages.fetch({ limit: 1 })
-                .then(messages => {
-                    let lastMessage = messages.first();
-                    if (lastMessage.author.id === bot.user.id) {
-                        lastMessage.edit(message);
-                    } else {
-                        channel.send(message);
-                    }
-                }).catch(console.error);
+setInterval(async () => {
+    for (const guild_id in itemsBase) {
+        const channel_id = itemsBase[guild_id].channel_id;
+        if (channel_id === undefined) {
+            continue;
         }
-    }, delay, bot);
+
+        const message = JSON.stringify(itemsBase[guild_id], null, 4);
+        const channel = bot.channels.cache.get(channel_id);
+
+        await channel.messages.fetch({ limit: 1 })
+            .then(messages => {
+                let lastMessage = messages.first();
+                if (lastMessage.author.id === bot.user.id) {
+                    lastMessage.edit(message);
+                } else {
+                    channel.send(message);
+                }
+            }).catch(console.error);
+    }
+}, delay);
+
+async function getDataItem(realm_id, item_id) {
+    const itemUrl = baseUrl + apiItemPath + item_id + '/' + realm_id;
+    let data = undefined;
+
+    await axios.get(itemUrl, {
+        headers: { 'accept-encoding': null },
+        cache: true
+    }).then(response => {
+        data = response.data;
+    }).catch(error => {
+        const throwMsg = `Предмет с Id ${item_id} из реалма ${realmIdToString(realm_id)} в базе не найден`;
+        console.error(error.message);
+        console.log(`[WARNING] ${throwMsg}`)
+        throw new Error(throwMsg);
+    });
+    
+    return data;
 }
 
-async function setAucChannel(guild_id, channel_id) {
+function parseData(data) {
+    let name = data['item']['name'];
+    let price = undefined;
+    try {
+        price = (Math.round(data['auctionhouse']['avg'] / 100) / 100).toString();
+    } catch {
+        console.log(`[WARNING] No data from auction for item ${name} (${data['item']['entry']})`);
+        price = 'Not available';
+    }
+    return { name: name, price: price };
+}
+
+function getChannelId(guild_id) {
     if (itemsBase[guild_id] === undefined) {
         itemsBase[guild_id] = {};
+        return undefined;
     }
-    itemsBase[guild_id].channel_id = channel_id;
+    if (itemsBase[guild_id].channel_id === undefined) {
+        return undefined;;
+    }
+    return itemsBase[guild_id].channel_id;
 }
 
 function realmIdToString(realm_id) {
@@ -114,6 +117,13 @@ function realmIdToString(realm_id) {
         return realmIdString[realm_id];
     }
     return "";
+}
+
+async function setAucChannel(guild_id, channel_id) {
+    if (itemsBase[guild_id] === undefined) {
+        itemsBase[guild_id] = {};
+    }
+    itemsBase[guild_id].channel_id = channel_id;
 }
 
 async function addItem(guild_id, realm_id, item_id) {
@@ -132,9 +142,9 @@ async function addItem(guild_id, realm_id, item_id) {
 
 
 module.exports = {
-    initNotifications : initNotifications,
-    setAucChannel: setAucChannel,
+    getChannelId: getChannelId,
     realmIdToString: realmIdToString,
+    setAucChannel: setAucChannel,
     addItem: addItem
 };
 

@@ -8,7 +8,7 @@ const path = require('node:path');
 const { Client, GatewayIntentBits, REST, Collection, Routes } = require('discord.js');
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
     partials: ['MESSAGE', 'GUILDS']
 });
 const rest = new REST({ version: '10' }).setToken(token);
@@ -67,7 +67,10 @@ for (const file of eventFiles) {
     }
 })();
 
-require('./auctionator.js').initNotifications(client);
-
 client.login(token);
+
+
+module.exports = {
+    bot: client
+};
 
