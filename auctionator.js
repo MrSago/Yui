@@ -1,5 +1,4 @@
 
-const { bot } = require('./index.js');
 const axios = require('axios');
 const fs = require('fs');
 
@@ -48,27 +47,29 @@ setInterval(async () => {
     fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
 }, delay);
 
-setInterval(async () => {
-    for (const guild_id in itemsBase) {
-        const channel_id = itemsBase[guild_id].channel_id;
-        if (channel_id === undefined) {
-            continue;
+async function initNotifications(bot) {
+    setInterval(async bot => {
+        for (const guild_id in itemsBase) {
+            const channel_id = itemsBase[guild_id].channel_id;
+            if (channel_id === undefined) {
+                continue;
+            }
+
+            const message = JSON.stringify(itemsBase[guild_id], null, 4);
+            const channel = bot.channels.cache.get(channel_id);
+
+            await channel.messages.fetch({ limit: 1 })
+                .then(messages => {
+                    let lastMessage = messages.first();
+                    if (lastMessage.author.id === bot.user.id) {
+                        lastMessage.edit(message);
+                    } else {
+                        channel.send(message);
+                    }
+                }).catch(console.error);
         }
-
-        const message = JSON.stringify(itemsBase[guild_id], null, 4);
-        const channel = bot.channels.cache.get(channel_id);
-
-        await channel.messages.fetch({ limit: 1 })
-            .then(messages => {
-                let lastMessage = messages.first();
-                if (lastMessage.author.id === bot.user.id) {
-                    lastMessage.edit(message);
-                } else {
-                    channel.send(message);
-                }
-            }).catch(console.error);
-    }
-}, delay);
+    }, delay, bot);
+}
 
 async function getDataItem(realm_id, item_id) {
     const itemUrl = baseUrl + apiItemPath + item_id + '/' + realm_id;
@@ -142,6 +143,7 @@ async function addItem(guild_id, realm_id, item_id) {
 
 
 module.exports = {
+    initNotifications: initNotifications,
     getChannelId: getChannelId,
     realmIdToString: realmIdToString,
     setAucChannel: setAucChannel,
