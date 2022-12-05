@@ -1,6 +1,7 @@
 
 const axios = require('axios');
 const fs = require('fs');
+const { EmbedBuilder } = require('discord.js');
 
 const baseUrl = 'https://www.sirus.su';
 const apiItemPath = '/api/base/item/';
@@ -8,7 +9,7 @@ const apiItemPath = '/api/base/item/';
 const settingsPath = './settings/';
 const settingsFile = settingsPath + 'auctionator.json';
 
-const delay = 60000;
+const delay = 5000;
 
 const realmIdString = {
     9: "Scourge x2",
@@ -55,16 +56,44 @@ async function initNotifications(bot) {
                 continue;
             }
 
-            const message = JSON.stringify(itemsBase[guild_id], null, 4);
+            const date = new Date();
+            const currentTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+            const exampleEmbed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setTitle('Сводка аукциона')
+                .setDescription(`Последнее обновление: ${currentTime}`);
+
+            for (const realm_id in itemsBase[guild_id]) {
+                if (realm_id === 'channel_id') { continue; }
+
+                let item_string = '';
+                let item_price = '';
+                for (const item_id in itemsBase[guild_id][realm_id]) {
+                    item_string += itemsBase[guild_id][realm_id][item_id].name + '\n';
+                    item_price += itemsBase[guild_id][realm_id][item_id].price + '\n';
+                }
+
+                try {
+                    exampleEmbed.addFields(
+                        { name: realmIdToString(realm_id), value: item_string, inline: true },
+                        { name: 'Средняя цена', value: item_price, inline: true },
+                        { name: '\u200B', value: '\u200B' }
+                    );
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
             const channel = bot.channels.cache.get(channel_id);
 
             await channel.messages.fetch({ limit: 1 })
                 .then(messages => {
                     let lastMessage = messages.first();
                     if (lastMessage.author.id === bot.user.id) {
-                        lastMessage.edit(message);
+                        lastMessage.edit({ embeds: [exampleEmbed] });
                     } else {
-                        channel.send(message);
+                        channel.send({ embeds: [exampleEmbed] });
                     }
                 }).catch(console.error);
         }

@@ -10,12 +10,10 @@ module.exports = {
         if (reaction.partial) {
             try {
                 await reaction.fetch();
-  
             } catch (error) {
                 console.error(`Something went wrong when fetching the message:${error}`);
                 return;
             }
-
         }
 
         const auc_channel_id = getChannelId(reaction.message.guild.id);
