@@ -40,7 +40,7 @@ async function getDataItem(realm_id, item_id) {
     }).catch(error => {
         const throwMsg = `Предмет с Id ${item_id} из реалма ${realmIdToString(realm_id)} в базе не найден`;
         console.error(error);
-        // console.log(`[WARNING] ${throwMsg}`)
+        console.log(`[WARNING] ${throwMsg}`)
         throw new Error(throwMsg);
     });
     
@@ -53,7 +53,7 @@ function parseData(data) {
     try {
         price = (Math.round(data['auctionhouse']['avg'] / 100) / 100).toString();
     } catch {
-        // console.log(`[WARNING] No data from auction for item ${name} (${data['item']['entry']})`);
+        console.log(`[WARNING] No data from auction for item ${name} (${data['item']['entry']})`);
         price = 'Not available';
     }
     return { name: name, price: price };
@@ -86,7 +86,7 @@ async function initNotifications(bot) {
                 continue;
             }
 
-            const message = JSON.stringify(itemsBase, null, 4);
+            const message = JSON.stringify(itemsBase[guild_id], null, 4);
             const channel = bot.channels.cache.get(channel_id);
 
             await channel.messages.fetch({ limit: 1 })
@@ -117,8 +117,6 @@ function realmIdToString(realm_id) {
 }
 
 async function addItem(guild_id, realm_id, item_id) {
-    let data = await getDataItem(realm_id, item_id);
-
     if (itemsBase[guild_id] === undefined) {
         itemsBase[guild_id] = {};
     }
@@ -126,6 +124,7 @@ async function addItem(guild_id, realm_id, item_id) {
         itemsBase[guild_id][realm_id] = {};
     }
 
+    const data = await getDataItem(realm_id, item_id);
     const parsed = parseData(data);
     itemsBase[guild_id][realm_id][item_id] = parsed;
     return parsed;
