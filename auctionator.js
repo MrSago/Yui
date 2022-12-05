@@ -64,7 +64,10 @@ async function initNotifications(bot) {
                 .setTitle('Сводка аукциона')
                 .setDescription(`Последнее обновление: ${currentTime}`);
 
+            const count = Object.keys(itemsBase[guild_id]).length;
+            let index = 0;
             for (const realm_id in itemsBase[guild_id]) {
+                index += 1;
                 if (realm_id === 'channel_id') { continue; }
 
                 let item_string = '';
@@ -78,10 +81,13 @@ async function initNotifications(bot) {
                     exampleEmbed.addFields(
                         { name: realmIdToString(realm_id), value: item_string, inline: true },
                         { name: 'Средняя цена', value: item_price, inline: true },
-                        { name: '\u200B', value: '\u200B' }
                     );
+                    if (index < count - 1) {
+                        exampleEmbed.addFields({ name: '\u200B', value: '\u200B' });
+                    }
                 } catch (error) {
                     console.error(error);
+                    return;
                 }
             }
 
