@@ -1,6 +1,6 @@
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { realmIdToString, addItem } = require('../auctionator.js');
+const { updateEmbed, realmIdToString, addItem } = require('../auctionator.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,6 +33,8 @@ module.exports = {
         if (addedItem === undefined) {
             return;
         }
+
+        updateEmbed();
 
         const message = `${addedItem.name} (id: ${item_id}) из реалма ${realmIdToString(realm_id)} ` +
                         `успешно добавлен в список\nТекущая средняя цена: ${addedItem.price}`;

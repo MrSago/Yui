@@ -67,7 +67,7 @@ for (const file of eventFiles) {
     }
 })();
 
-require('./auctionator.js').initNotifications(client);
+require('./auctionator.js').initAuctionator(client);
 
 client.login(token);
 
