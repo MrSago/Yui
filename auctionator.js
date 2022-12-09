@@ -102,17 +102,20 @@ async function updateEmbed() {
             }
         }
 
-        const channel = bot.channels.cache.get(channel_id);
-
-        await channel.messages.fetch({ limit: 1 })
-            .then(messages => {
-                let lastMessage = messages.first();
-                if (lastMessage.author.id === bot.user.id) {
-                    lastMessage.edit({ embeds: [embedMessage] });
-                } else {
-                    channel.send({ embeds: [embedMessage] });
-                }
-            }).catch(console.error);
+        try {
+            const channel = bot.channels.cache.get(channel_id);
+            await channel.messages.fetch({ limit: 1 })
+                .then(messages => {
+                    let lastMessage = messages.first();
+                    if (lastMessage.author.id === bot.user.id) {
+                        lastMessage.edit({ embeds: [embedMessage] });
+                    } else {
+                        channel.send({ embeds: [embedMessage] });
+                    }
+                });
+        } catch (error) {
+            console.error (error);
+        }
     }
 }
 
