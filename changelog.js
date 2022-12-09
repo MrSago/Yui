@@ -9,7 +9,7 @@ const settingsPath = './settings/';
 const settingsFile = settingsPath + 'changelog.json';
 const logFile = 'log.json';
 
-const delay = 10000;
+const delay = 600000;
 
 var logs = [];
 var settings = {};
@@ -39,6 +39,8 @@ function initChangeLog(client) {
         console.log(`[WARNING] Can't parse ${logFile}`);
     }
 
+    updateChangelog();
+
     setInterval(updateChangelog, delay);
 }
 
@@ -49,7 +51,8 @@ function setLogChannel(guild_id, channel_id) {
 }
 
 async function updateChangelog() {
-    let data = undefined; 
+    let data = undefined;
+
     await axios.get(changeLogUrl, {
         headers: { 'accept-encoding': null },
         cache: true
@@ -83,11 +86,15 @@ async function updateChangelog() {
         for (let j = i; j < i + 5 && j < cnt; ++j) {
             msg += data[j].message + (j == cnt - 1 ? '' : '\n\n');
         }
-        const embedMessage = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setTitle('Новые изменения на сервере Sirus.su')
-            .addFields( { name: new Date().toLocaleString(), value: msg } );
-        sendChangeLog(embedMessage);
+        try {
+            const embedMessage = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setTitle('Новые изменения на сервере Sirus.su')
+                .addFields( { name: new Date().toLocaleString(), value: msg } );
+            sendChangeLog(embedMessage);
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), 'utf8');
