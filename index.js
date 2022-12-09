@@ -68,6 +68,7 @@ for (const file of eventFiles) {
 })();
 
 require('./auctionator.js').initAuctionator(client);
+require('./changelog.js').initChangeLog(client);
 
 client.login(token);
 
