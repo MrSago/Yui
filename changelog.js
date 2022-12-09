@@ -40,7 +40,6 @@ function initChangeLog(client) {
     }
 
     updateChangelog();
-
     setInterval(updateChangelog, delay);
 }
 
