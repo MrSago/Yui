@@ -9,7 +9,7 @@ const settingsPath = './settings/';
 const settingsFile = settingsPath + 'changelog.json';
 const logFile = 'log.json';
 
-const delay = 600000;
+const delay = 300000;
 
 var logs = [];
 var settings = {};
@@ -39,7 +39,6 @@ function initChangeLog(client) {
         console.log(`[WARNING] Can't parse ${logFile}`);
     }
 
-    updateChangelog();
     setInterval(updateChangelog, delay);
 }
 

@@ -57,7 +57,6 @@ function initAuctionator(client) {
         fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
     }, delay);
 
-    updateEmbed();
     setInterval(updateEmbed, delay);
 }
 
