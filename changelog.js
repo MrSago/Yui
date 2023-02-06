@@ -11,7 +11,6 @@ const logFile = 'log.json';
 
 const delay = 300000;
 
-var logs = [];
 var settings = {};
 var bot = undefined;
 
@@ -30,39 +29,28 @@ function initChangeLog(client) {
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
 
-    console.log(`[LOG] Load logs from ${logFile}`);
-    try {
-        logs = JSON.parse(fs.readFileSync(logFile, 'utf8'))
-        console.log(`[LOG] Logs successfully loaded from ${logFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't parse ${logFile}`);
-    }
-
     setInterval(updateChangelog, delay);
 }
 
 function setLogChannel(guild_id, channel_id) {
     settings[guild_id] = channel_id;
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), 'utf8');
-
 }
 
 async function updateChangelog() {
+    let logs = undefined;
     let data = undefined;
 
-    await axios.get(changeLogUrl, {
-        headers: { 'accept-encoding': null },
-        cache: true
-    }).then(response => {
+    try {
+        logs = JSON.parse(fs.readFileSync(logFile, 'utf8'));
+        response = await axios.get(changeLogUrl, {
+            headers: { 'accept-encoding': null },
+            cache: true
+        });
         data = response.data.data;
-    }).catch(error => {
-        const throwMsg = `Ошибка обновления списка изменений`;
-        console.error(error.message);
-        console.log(`[WARNING] ${throwMsg}`)
-    });
-
-    if (data === undefined) { return; }
+    } catch (error) {
+        return;
+    }
 
     let cnt = 0;
     for (let i = 0; i < data.length; ++i) {
@@ -88,11 +76,9 @@ async function updateChangelog() {
             const embedMessage = new EmbedBuilder()
                 .setColor(0x0099FF)
                 .setTitle('Новые изменения на сервере Sirus.su')
-                .addFields( { name: new Date().toLocaleString(), value: msg } );
+                .addFields({ name: new Date().toLocaleString(), value: msg });
             sendChangeLog(embedMessage);
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error) { }
     }
 
     fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), 'utf8');
