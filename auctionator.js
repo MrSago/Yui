@@ -1,7 +1,7 @@
 
+const { EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
-const { EmbedBuilder } = require('discord.js');
 
 const apiItemUrl = 'https://www.sirus.su/api/base/item/';
 
@@ -16,8 +16,8 @@ const realmIdString = {
     57: "Sirus x5"
 };
 
-var itemsBase = {};
 var bot = undefined;
+var itemsBase = {};
 
 function initAuctionator(client) {
     bot = client;

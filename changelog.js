@@ -1,7 +1,7 @@
 
+const { EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
-const { EmbedBuilder } = require('discord.js');
 
 const changeLogUrl = 'https://sirus.su/api/statistic/changelog';
 
@@ -11,8 +11,8 @@ const logFile = 'log.json';
 
 const delay = 300000;
 
-var settings = {};
 var bot = undefined;
+var settings = {};
 
 function initChangeLog(client) {
     bot = client;

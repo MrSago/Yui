@@ -11,7 +11,6 @@ module.exports = {
             try {
                 await reaction.fetch();
             } catch (error) {
-                console.error(`Something went wrong when fetching the message:${error}`);
                 return;
             }
         }
@@ -22,8 +21,7 @@ module.exports = {
         }
 
         if (reaction.message.channel.id === auc_channel_id) { 
-                reaction.message.reactions.removeAll()
-                    .catch(console.error);
+                reaction.message.reactions.removeAll();
         }
     },
 };
