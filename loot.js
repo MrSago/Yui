@@ -188,7 +188,7 @@ async function refreshLoot() {
         cache: true
     }).then(response => {
         Promise.all(response.data.data.map(record => getExtraInfoWrapper(record)))
-            .then(() => {fs.writeFileSync(recordsFile, JSON.stringify(records))});
+            .then(() => { fs.writeFileSync(recordsFile, JSON.stringify(records, null, 4), 'utf8') });
     }).catch(console.log);
 }
 
