@@ -9,7 +9,7 @@ const settingsPath = './settings/';
 const settingsFile = settingsPath + 'changelog.json';
 const logFile = 'log.json';
 
-const delay = 300000;
+const intervalUpdate = 300000;
 
 var bot = undefined;
 var settings = {};
@@ -29,7 +29,7 @@ function initChangeLog(client) {
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
 
-    setInterval(updateChangelog, delay);
+    setInterval(updateChangelog, intervalUpdate);
 }
 
 function setLogChannel(guild_id, channel_id) {

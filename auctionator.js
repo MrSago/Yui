@@ -8,7 +8,7 @@ const apiItemUrl = 'https://www.sirus.su/api/base/item/';
 const settingsPath = './settings/';
 const settingsFile = settingsPath + 'auctionator.json';
 
-const delay = 300000;
+const intervalUpdate = 300000;
 
 const realmIdString = {
     9: "Scourge x2",
@@ -34,32 +34,34 @@ function initAuctionator(client) {
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
 
-    setInterval(async () => {
-        for (const guild_id in itemsBase) {
-            for (const realm_id in itemsBase[guild_id]) {
-                if (realm_id === 'channel_id') {
-                    continue;
-                }
+    setInterval(updateData, intervalUpdate);
+    setInterval(updateEmbed, intervalUpdate);
+}
 
-                for (const item_id in itemsBase[guild_id][realm_id]) {
-                    fetchItem(realm_id, item_id)
-                        .then(response => {
-                            itemsBase[guild_id][realm_id][item_id] = parseData(response.data);
-                        }).catch(() => { });
-                }
+async function updateData() {
+    for (const guild_id in itemsBase) {
+        for (const realm_id in itemsBase[guild_id]) {
+            if (realm_id === 'channel_id') {
+                continue;
+            }
+
+            for (const item_id in itemsBase[guild_id][realm_id]) {
+                fetchItem(realm_id, item_id)
+                    .then(response => {
+                        itemsBase[guild_id][realm_id][item_id] = parseData(response.data);
+                    }).catch(() => { });
             }
         }
+    }
 
-        if (!fs.existsSync(settingsPath)) {
-            fs.mkdirSync(settingsPath);
-        }
-        fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
-    }, delay);
-
-    setInterval(updateEmbed, delay);
+    if (!fs.existsSync(settingsPath)) {
+        fs.mkdirSync(settingsPath);
+    }
+    fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
 }
 
 async function updateEmbed() {
+    let lastUpdate = new Date().toLocaleTimeString();
     for (const guild_id in itemsBase) {
         const channel_id = itemsBase[guild_id].channel_id;
         if (channel_id === undefined) {
@@ -69,7 +71,7 @@ async function updateEmbed() {
         const embedMessage = new EmbedBuilder()
             .setColor(0x0099FF)
             .setTitle('Сводка аукциона')
-            .setDescription(`Последнее обновление: ${new Date().toLocaleTimeString()}`);
+            .setDescription(`Последнее обновление: ${lastUpdate}`);
 
         const count = Object.keys(itemsBase[guild_id]).length;
         let index = 0;
@@ -94,7 +96,7 @@ async function updateEmbed() {
                 if (index < count - 1) {
                     embedMessage.addFields({ name: '\u200B', value: '\u200B' });
                 }
-            } catch (error) {
+            } catch {
                 return;
             }
         }
@@ -110,7 +112,7 @@ async function updateEmbed() {
                         channel.send({ embeds: [embedMessage] });
                     }
                 });
-        } catch (error) { }
+        } catch { }
     }
 }
 

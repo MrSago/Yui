@@ -17,7 +17,7 @@ module.exports = {
     
         try {
             await command.execute(interaction);
-        } catch (error) {
+        } catch {
             await interaction.reply({ content: 'Ошибка при выполнении команды!', ephemeral: true });
         }
 	},

@@ -10,7 +10,7 @@ module.exports = {
         if (reaction.partial) {
             try {
                 await reaction.fetch();
-            } catch (error) {
+            } catch {
                 return;
             }
         }

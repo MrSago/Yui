@@ -4,4 +4,5 @@ node_modules
 package-lock.json
 settings
 log.json
+records.json
 
