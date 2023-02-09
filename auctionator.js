@@ -1,14 +1,15 @@
 
-const { EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
+const { EmbedBuilder } = require('discord.js');
 
-const apiItemUrl = 'https://www.sirus.su/api/base/item/';
+const baseUrl = 'https://www.sirus.su';
+const apiItemPath = '/api/base/item/';
 
 const settingsPath = './settings/';
 const settingsFile = settingsPath + 'auctionator.json';
 
-const intervalUpdate = 300000;
+const delay = 300000;
 
 const realmIdString = {
     9: "Scourge x2",
@@ -16,8 +17,8 @@ const realmIdString = {
     57: "Sirus x5"
 };
 
-var bot = undefined;
 var itemsBase = {};
+var bot = undefined;
 
 function initAuctionator(client) {
     bot = client;
@@ -33,35 +34,33 @@ function initAuctionator(client) {
         console.error(error);
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
-
-    setInterval(updateData, intervalUpdate);
-    setInterval(updateEmbed, intervalUpdate);
-}
-
-async function updateData() {
-    for (const guild_id in itemsBase) {
-        for (const realm_id in itemsBase[guild_id]) {
-            if (realm_id === 'channel_id') {
-                continue;
-            }
-
-            for (const item_id in itemsBase[guild_id][realm_id]) {
-                fetchItem(realm_id, item_id)
-                    .then(response => {
-                        itemsBase[guild_id][realm_id][item_id] = parseData(response.data);
-                    }).catch(() => { });
+    
+    setInterval(async () => {
+        for (const guild_id in itemsBase) {
+            for (const realm_id in itemsBase[guild_id]) {
+                if (realm_id === 'channel_id') {
+                    continue;
+                }
+                
+                for (const item_id in itemsBase[guild_id][realm_id]) {
+                    await getDataItem(realm_id, item_id)
+                        .then(data => {
+                            itemsBase[guild_id][realm_id][item_id] = parseData(data);
+                        }).catch(console.error);
+                }
             }
         }
-    }
+    
+        if (!fs.existsSync(settingsPath)) {
+            fs.mkdirSync(settingsPath);
+        }
+        fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
+    }, delay);
 
-    if (!fs.existsSync(settingsPath)) {
-        fs.mkdirSync(settingsPath);
-    }
-    fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
+    setInterval(updateEmbed, delay);
 }
 
 async function updateEmbed() {
-    let lastUpdate = new Date().toLocaleTimeString();
     for (const guild_id in itemsBase) {
         const channel_id = itemsBase[guild_id].channel_id;
         if (channel_id === undefined) {
@@ -71,7 +70,7 @@ async function updateEmbed() {
         const embedMessage = new EmbedBuilder()
             .setColor(0x0099FF)
             .setTitle('Сводка аукциона')
-            .setDescription(`Последнее обновление: ${lastUpdate}`);
+            .setDescription(`Последнее обновление: ${new Date().toLocaleTimeString()}`);
 
         const count = Object.keys(itemsBase[guild_id]).length;
         let index = 0;
@@ -96,23 +95,23 @@ async function updateEmbed() {
                 if (index < count - 1) {
                     embedMessage.addFields({ name: '\u200B', value: '\u200B' });
                 }
-            } catch {
+            } catch (error) {
+                console.error(error);
                 return;
             }
         }
 
-        try {
-            const channel = bot.channels.cache.get(channel_id);
-            await channel.messages.fetch({ limit: 1 })
-                .then(messages => {
-                    let lastMessage = messages.first();
-                    if (lastMessage.author.id === bot.user.id) {
-                        lastMessage.edit({ embeds: [embedMessage] });
-                    } else {
-                        channel.send({ embeds: [embedMessage] });
-                    }
-                });
-        } catch { }
+        const channel = bot.channels.cache.get(channel_id);
+
+        await channel.messages.fetch({ limit: 1 })
+            .then(messages => {
+                let lastMessage = messages.first();
+                if (lastMessage.author.id === bot.user.id) {
+                    lastMessage.edit({ embeds: [embedMessage] });
+                } else {
+                    channel.send({ embeds: [embedMessage] });
+                }
+            }).catch(console.error);
     }
 }
 
@@ -134,14 +133,14 @@ function realmIdToString(realm_id) {
     return "";
 }
 
-function setAucChannel(guild_id, channel_id) {
+async function setAucChannel(guild_id, channel_id) {
     if (itemsBase[guild_id] === undefined) {
         itemsBase[guild_id] = {};
     }
     itemsBase[guild_id].channel_id = channel_id;
 }
 
-function addItem(guild_id, realm_id, item_id) {
+async function addItem(guild_id, realm_id, item_id) {
     if (itemsBase[guild_id] === undefined) {
         itemsBase[guild_id] = {};
     }
@@ -149,20 +148,25 @@ function addItem(guild_id, realm_id, item_id) {
         itemsBase[guild_id][realm_id] = {};
     }
 
-    const data = fetchItem(realm_id, item_id);
+    const data = await getDataItem(realm_id, item_id);
     const parsed = parseData(data);
     itemsBase[guild_id][realm_id][item_id] = parsed;
     return parsed;
 }
 
-function fetchItem(realm_id, item_id) {
-    const itemUrl = apiItemUrl + item_id + '/' + realm_id;
+async function getDataItem(realm_id, item_id) {
+    const itemUrl = baseUrl + apiItemPath + item_id + '/' + realm_id;
+    let data = undefined;
 
-    let data = axios.get(itemUrl, {
+    await axios.get(itemUrl, {
         headers: { 'accept-encoding': null },
         cache: true
+    }).then(response => {
+        data = response.data;
+    }).catch(error => {
+        throw new Error(error);
     });
-
+    
     return data;
 }
 
@@ -171,7 +175,7 @@ function parseData(data) {
     let price = undefined;
 
     try {
-        price = (data['auctionhouse']['avg'] / 10000).toString();
+        price = (Math.round(data['auctionhouse']['avg'] / 100) / 100).toString();
     } catch {
         price = 'Not available';
     }
@@ -188,4 +192,3 @@ module.exports = {
     setAucChannel: setAucChannel,
     addItem: addItem
 };
-
