@@ -101,17 +101,20 @@ async function updateEmbed() {
             }
         }
 
-        const channel = bot.channels.cache.get(channel_id);
-
-        await channel.messages.fetch({ limit: 1 })
-            .then(messages => {
-                let lastMessage = messages.first();
-                if (lastMessage.author.id === bot.user.id) {
-                    lastMessage.edit({ embeds: [embedMessage] });
-                } else {
-                    channel.send({ embeds: [embedMessage] });
-                }
-            }).catch(console.error);
+        try {
+            const channel = bot.channels.cache.get(channel_id);
+            await channel.messages.fetch({ limit: 1 })
+                .then(messages => {
+                    let lastMessage = messages.first();
+                    if (lastMessage.author.id === bot.user.id) {
+                        lastMessage.edit({ embeds: [embedMessage] });
+                    } else {
+                        channel.send({ embeds: [embedMessage] });
+                    }
+                });
+        } catch (error) {
+            console.error (error);
+        }
     }
 }
 
@@ -164,7 +167,10 @@ async function getDataItem(realm_id, item_id) {
     }).then(response => {
         data = response.data;
     }).catch(error => {
-        throw new Error(error);
+        const throwMsg = `Предмет с Id ${item_id} из реалма ${realmIdToString(realm_id)} в базе не найден`;
+        console.error(error.message);
+        console.log(`[WARNING] ${throwMsg}`)
+        throw new Error(throwMsg);
     });
     
     return data;
@@ -177,6 +183,7 @@ function parseData(data) {
     try {
         price = (Math.round(data['auctionhouse']['avg'] / 100) / 100).toString();
     } catch {
+        console.log(`[WARNING] No data from auction for item ${name} (${data['item']['entry']})`);
         price = 'Not available';
     }
 
