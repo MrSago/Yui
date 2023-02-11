@@ -34,14 +34,14 @@ function initAuctionator(client) {
         console.error(error);
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
-    
+
     setInterval(async () => {
         for (const guild_id in itemsBase) {
             for (const realm_id in itemsBase[guild_id]) {
                 if (realm_id === 'channel_id') {
                     continue;
                 }
-                
+
                 for (const item_id in itemsBase[guild_id][realm_id]) {
                     await getDataItem(realm_id, item_id)
                         .then(data => {
@@ -50,14 +50,14 @@ function initAuctionator(client) {
                 }
             }
         }
-    
+
         if (!fs.existsSync(settingsPath)) {
             fs.mkdirSync(settingsPath);
         }
         fs.writeFileSync(settingsFile, JSON.stringify(itemsBase, null, 4), 'utf8');
-    }, delay);
+    }, 120000);
 
-    setInterval(updateEmbed, delay);
+    updateEmbed();
 }
 
 async function updateEmbed() {
@@ -116,6 +116,8 @@ async function updateEmbed() {
             console.error (error);
         }
     }
+
+    setTimeout(updateEmbed, delay);
 }
 
 function getChannelId(guild_id) {

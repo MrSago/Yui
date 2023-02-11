@@ -29,7 +29,7 @@ function initChangeLog(client) {
         console.log(`[WARNING] Can't parse ${settingsFile}`);
     }
 
-    setInterval(updateChangelog, intervalUpdate);
+    updateChangelog();
 }
 
 function setLogChannel(guild_id, channel_id) {
@@ -42,6 +42,9 @@ async function updateChangelog() {
     let data = undefined;
 
     try {
+	if (!fs.existsSync(logFile)) {
+	    fs.writeFileSync(logFile, '[]', 'utf8');
+	}
         logs = JSON.parse(fs.readFileSync(logFile, 'utf8'));
         response = await axios.get(changeLogUrl, {
             headers: { 'accept-encoding': null },
@@ -49,6 +52,7 @@ async function updateChangelog() {
         });
         data = response.data.data;
     } catch (error) {
+	console.error(error);
         return;
     }
 
@@ -78,10 +82,14 @@ async function updateChangelog() {
                 .setTitle('Новые изменения на сервере Sirus.su')
                 .addFields({ name: new Date().toLocaleString(), value: msg });
             sendChangeLog(embedMessage);
-        } catch (error) { }
+        } catch (error) {
+	    console.error(error);
+	}
     }
 
     fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), 'utf8');
+
+    setTimeout(updateChangelog, intervalUpdate);
 }
 
 function sendChangeLog(embedMessage) {
