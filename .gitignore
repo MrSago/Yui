@@ -5,4 +5,6 @@ package-lock.json
 settings
 log.json
 records.json
+!images/icons/*
+images/*
 
