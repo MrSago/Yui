@@ -13,7 +13,7 @@ const stylePath = './styles/'
 const mainStyleFile = stylePath + 'main.css';
 const otherStyleFile = stylePath + 'other.css';
 
-const intervalUpdate = 120000;
+const intervalUpdate = 60000;
 
 const bossThumbnails = {
     "Разрушитель XT-002": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-xt-002-deconstructor.png",
@@ -89,7 +89,7 @@ function initLoot(client) {
         console.log(`[WARNING] Can't load ${otherStyleFile}`);
     }
 
-    setInterval(refreshLoot, intervalUpdate);
+    refreshLoot();
 }
 
 function setLootChannel(guild_id, channel_id, guild_sirus_id) {
@@ -102,7 +102,7 @@ function setLootChannel(guild_id, channel_id, guild_sirus_id) {
 }
 
 async function takeSceenshot(html, fileName) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
     const page = await browser.newPage();
     const options = {
         path: 'images/' + fileName + '.png',
@@ -132,7 +132,7 @@ async function getExtraInfo(recordId, channel) {
     let fileName = [...Array(10)].map(i => (~~(Math.random() * 36)).toString(36)).join('');
     let responseBossKillInfo = await fetch('https://sirus.su/api/base/33/leader-board/bossfights/boss-kill/' + recordId);
     let dataBossKillInfo = await responseBossKillInfo.json();
-    let lootHtml = await Promise.all(dataBossKillInfo.data.loots.map(loot => getLootInfo(loot.item)));
+    let lootHtml = await Promise.all(dataBossKillInfo.data.loots.map(loot => getLootInfo(loot.item))).catch(console.error);
     let hasLootInfo = false;
 
     lootHtml = lootHtml.join().replaceAll(',', '');
@@ -189,7 +189,8 @@ async function refreshLoot() {
     }).then(response => {
         Promise.all(response.data.data.map(record => getExtraInfoWrapper(record)))
             .then(() => { fs.writeFileSync(recordsFile, JSON.stringify(records, null, 4), 'utf8') });
-    }).catch(console.log);
+    }).catch(console.error);
+    setTimeout(refreshLoot, intervalUpdate);
 }
 
 
