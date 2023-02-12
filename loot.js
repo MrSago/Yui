@@ -118,7 +118,7 @@ async function takeSceenshot(html, fileName) {
 }
 
 async function getLootInfo(item) {
-    if (item.inventory_type && item.level >= 260) {
+    if (item.inventory_type && item.quality === 4 && item.level >= 260) {
         let responseLoot = await fetch('https://sirus.su/api/tooltips/item/' + item.entry + '/33');
         let html = await responseLoot.text();
         return html.trim();
