@@ -19,4 +19,3 @@ module.exports = {
         await interaction.reply(`Канал ${channel} для уведомлений бота установлен`);
     },
 };
-

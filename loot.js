@@ -102,7 +102,7 @@ function setLootChannel(guild_id, channel_id, guild_sirus_id) {
 }
 
 async function takeSceenshot(html, fileName) {
-    const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
     const page = await browser.newPage();
     const options = {
         path: 'images/' + fileName + '.png',
@@ -198,4 +198,3 @@ module.exports = {
     initLoot: initLoot,
     setLootChannel: setLootChannel
 }
-

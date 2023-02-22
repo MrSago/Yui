@@ -104,4 +104,3 @@ module.exports = {
     initChangeLog: initChangeLog,
     setLogChannel: setLogChannel
 }
-

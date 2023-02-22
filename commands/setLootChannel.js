@@ -24,4 +24,3 @@ module.exports = {
         await interaction.reply(`Канал ${channel} для вывода информации лута установлен`);
     },
 };
-

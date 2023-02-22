@@ -11,4 +11,3 @@ module.exports = {
         await interaction.reply('Work in progress');
     },
 };
-
