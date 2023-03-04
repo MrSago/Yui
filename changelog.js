@@ -1,13 +1,12 @@
+const { EmbedBuilder } = require("discord.js");
+const axios = require("axios");
+const fs = require("fs");
 
-const { EmbedBuilder } = require('discord.js');
-const axios = require('axios');
-const fs = require('fs');
+const changeLogUrl = "https://sirus.su/api/statistic/changelog";
 
-const changeLogUrl = 'https://sirus.su/api/statistic/changelog';
-
-const settingsPath = './settings/';
-const settingsFile = settingsPath + 'changelog.json';
-const logFile = 'log.json';
+const settingsPath = "./settings/";
+const settingsFile = settingsPath + "changelog.json";
+const logFile = "log.json";
 
 const intervalUpdate = 300000;
 
@@ -22,7 +21,7 @@ function initChangeLog(client) {
         fs.mkdirSync(settingsPath);
     }
     try {
-        settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'))
+        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
         console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
     } catch (error) {
         console.error(error);
@@ -34,7 +33,7 @@ function initChangeLog(client) {
 
 function setLogChannel(guild_id, channel_id) {
     settings[guild_id] = channel_id;
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), 'utf8');
+    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
 }
 
 async function updateChangelog() {
@@ -42,17 +41,17 @@ async function updateChangelog() {
     let data = undefined;
 
     try {
-	if (!fs.existsSync(logFile)) {
-	    fs.writeFileSync(logFile, '[]', 'utf8');
-	}
-        logs = JSON.parse(fs.readFileSync(logFile, 'utf8'));
+        if (!fs.existsSync(logFile)) {
+            fs.writeFileSync(logFile, "[]", "utf8");
+        }
+        logs = JSON.parse(fs.readFileSync(logFile, "utf8"));
         response = await axios.get(changeLogUrl, {
-            headers: { 'accept-encoding': null },
-            cache: true
+            headers: { "accept-encoding": null },
+            cache: true,
         });
         data = response.data.data;
     } catch (error) {
-	console.error(error);
+        console.error(error);
         return;
     }
 
@@ -65,29 +64,31 @@ async function updateChangelog() {
         }
     }
 
-    if (!cnt) { return; }
+    if (!cnt) {
+        return;
+    }
 
     for (let i = cnt - 1; i >= 0; --i) {
         logs.push(data[i].message);
     }
 
     for (let i = 0; i < cnt; i += 5) {
-        let msg = '';
+        let msg = "";
         for (let j = i; j < i + 5 && j < cnt; ++j) {
-            msg += data[j].message + (j == cnt - 1 ? '' : '\n\n');
+            msg += data[j].message + (j == cnt - 1 ? "" : "\n\n");
         }
         try {
             const embedMessage = new EmbedBuilder()
-                .setColor(0x0099FF)
-                .setTitle('Новые изменения на сервере Sirus.su')
+                .setColor(0x0099ff)
+                .setTitle("Новые изменения на сервере Sirus.su")
                 .addFields({ name: new Date().toLocaleString(), value: msg });
             sendChangeLog(embedMessage);
         } catch (error) {
-	    console.error(error);
-	}
+            console.error(error);
+        }
     }
 
-    fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), 'utf8');
+    fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), "utf8");
 
     setTimeout(updateChangelog, intervalUpdate);
 }
@@ -99,8 +100,7 @@ function sendChangeLog(embedMessage) {
     }
 }
 
-
 module.exports = {
     initChangeLog: initChangeLog,
-    setLogChannel: setLogChannel
-}
+    setLogChannel: setLogChannel,
+};

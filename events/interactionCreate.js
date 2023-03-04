@@ -1,24 +1,30 @@
-
-const { Events } = require('discord.js');
+const { Events } = require("discord.js");
 
 module.exports = {
-	name: Events.InteractionCreate,
-	once: false,
+    name: Events.InteractionCreate,
+    once: false,
 
-	async execute(interaction) {
+    async execute(interaction) {
         if (!interaction.isChatInputCommand()) return;
 
-        const command = interaction.client.commands.get(interaction.commandName);
-    
+        const command = interaction.client.commands.get(
+            interaction.commandName
+        );
+
         if (!command) {
-            console.log(`[WARNING] No command matching ${interaction.commandName} was found.`);
+            console.log(
+                `[WARNING] No command matching ${interaction.commandName} was found.`
+            );
             return;
         }
-    
+
         try {
             await command.execute(interaction);
         } catch {
-            await interaction.reply({ content: 'Ошибка при выполнении команды!', ephemeral: true });
+            await interaction.reply({
+                content: "Ошибка при выполнении команды!",
+                ephemeral: true,
+            });
         }
-	},
+    },
 };
