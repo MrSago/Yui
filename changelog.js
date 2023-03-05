@@ -8,7 +8,7 @@ const settingsPath = "./settings/";
 const settingsFile = settingsPath + "changelog.json";
 const logFile = "log.json";
 
-const intervalUpdate = 300000;
+const intervalUpdate = 1000 * 60 * 5;
 
 var bot = undefined;
 var settings = {};

@@ -12,7 +12,7 @@ const stylePath = "./styles/";
 const mainStyleFile = stylePath + "main.css";
 const otherStyleFile = stylePath + "other.css";
 
-const intervalUpdate = 60000;
+const intervalUpdate = 1000 * 60 * 1;
 
 const bossThumbnails = {
     "Разрушитель XT-002":
@@ -177,7 +177,7 @@ async function getExtraInfo(recordId, channel) {
     let exampleEmbed = new EmbedBuilder()
         .setColor("#0099ff")
         .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
-        .setURL("https://sirus.su/base/ladder/pve/boss-kill/33/" + recordId)
+        .setURL("https://sirus.su/base/pve-progression/boss-kill/33/" + recordId)
         .addFields(
             {
                 name: "Попытки",

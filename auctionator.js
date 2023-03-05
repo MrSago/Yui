@@ -8,7 +8,7 @@ const apiItemPath = "/api/base/item/";
 const settingsPath = "./settings/";
 const settingsFile = settingsPath + "auctionator.json";
 
-const delay = 5000;
+const delay = 1000 * 60 * 5;
 
 const realmIdString = {
     9: "Scourge x2",
