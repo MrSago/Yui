@@ -47,7 +47,7 @@ function initAuctionator(client) {
                                 itemsBase[guild_id][realm_id][item_id] =
                                     parseData(data);
                             })
-                            .catch(console.error)
+                            .catch(() => {})
                     );
                 });
             });
@@ -118,7 +118,6 @@ async function updateEmbed() {
                     });
                 }
             } catch (error) {
-                console.error(error);
                 return;
             }
         }
@@ -141,7 +140,7 @@ async function updateEmbed() {
                         });
                     }
                 });
-        } catch (e) {}
+        } catch (error) {}
     }
 
     setTimeout(updateEmbed, delay);
@@ -200,7 +199,7 @@ async function getDataItem(realm_id, item_id) {
             cache: true,
         })
         .then((response) => response.data)
-        .catch((_) => undefined);
+        .catch(() => {});
 }
 
 function parseData(data) {

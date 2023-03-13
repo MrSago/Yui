@@ -12,7 +12,7 @@ const stylePath = "./styles/";
 const mainStyleFile = stylePath + "main.css";
 const otherStyleFile = stylePath + "other.css";
 
-const intervalUpdate = 1000 * 60 * 1;
+const intervalUpdate = 1000 * 60 * 5;
 
 const bossThumbnails = {
     "Разрушитель XT-002":
@@ -161,7 +161,7 @@ async function getExtraInfo(recordId, channel) {
     let dataBossKillInfo = await responseBossKillInfo.json();
     let lootHtml = await Promise.all(
         dataBossKillInfo.data.loots.map((loot) => getLootInfo(loot.item))
-    ).catch(console.error);
+    ).catch(() => {});
     let hasLootInfo = false;
 
     lootHtml = lootHtml.join().replaceAll(",", "");
@@ -177,7 +177,9 @@ async function getExtraInfo(recordId, channel) {
     let exampleEmbed = new EmbedBuilder()
         .setColor("#0099ff")
         .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
-        .setURL("https://sirus.su/base/pve-progression/boss-kill/33/" + recordId)
+        .setURL(
+            "https://sirus.su/base/pve-progression/boss-kill/33/" + recordId
+        )
         .addFields(
             {
                 name: "Попытки",
@@ -261,7 +263,7 @@ async function refreshLoot() {
                 );
             });
         })
-        .catch(console.error);
+        .catch(() => {});
     setTimeout(refreshLoot, intervalUpdate);
 }
 

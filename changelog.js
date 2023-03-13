@@ -51,7 +51,6 @@ async function updateChangelog() {
         });
         data = response.data.data;
     } catch (error) {
-        console.error(error);
         return;
     }
 
@@ -83,9 +82,7 @@ async function updateChangelog() {
                 .setTitle("Новые изменения на сервере Sirus.su")
                 .addFields({ name: new Date().toLocaleString(), value: msg });
             sendChangeLog(embedMessage);
-        } catch (error) {
-            console.error(error);
-        }
+        } catch (error) {}
     }
 
     fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), "utf8");
