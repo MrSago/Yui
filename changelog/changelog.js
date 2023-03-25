@@ -44,7 +44,7 @@ async function updateChangelog() {
             headers: { "accept-encoding": null },
             cache: true,
         })
-        .then((response) => sendData(response))
+        .then(async (response) => sendData(response))
         .catch(console.error);
 
     setTimeout(updateChangelog, intervalUpdate);

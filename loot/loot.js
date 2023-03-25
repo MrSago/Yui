@@ -3,6 +3,11 @@ const axios = require("axios");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
+const latestFightsApi =
+    "https://sirus.su/api/base/33/leader-board/bossfights/latest?realm=33";
+const bossKillApi =
+    "https://sirus.su/api/base/33/leader-board/bossfights/boss-kill/";
+
 const settingsFile = "./loot/loot.json";
 
 const tempPath = "./temp/";
@@ -68,8 +73,7 @@ function init(discord) {
 
     loadSettings();
     loadRecords();
-    loadStyle(mainStyle, mainStyleFile);
-    loadStyle(otherStyle, otherStyleFile);
+    loadStyles();
 
     refreshLoot();
 }
@@ -108,14 +112,169 @@ function loadRecords() {
     }
 }
 
-function loadStyle(toSave, fileName) {
-    console.log(`[LOG] Load style from ${fileName}`);
+function loadStyles() {
+    console.log(`[LOG] Load style from ${mainStyleFile}`);
     try {
-        toSave = fs.readFileSync(fileName, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${fileName}`);
+        mainStyle = fs.readFileSync(mainStyleFile, "utf8");
+        console.log(`[LOG] Style successfully loaded from ${mainStyleFile}`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't load ${fileName}`);
+        console.log(`[WARNING] Can't load ${mainStyleFile}`);
+    }
+
+    console.log(`[LOG] Load style from ${otherStyleFile}`);
+    try {
+        otherStyle = fs.readFileSync(otherStyleFile, "utf8");
+        console.log(`[LOG] Style successfully loaded from ${otherStyleFile}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't load ${otherStyleFile}`);
+    }
+}
+
+async function refreshLoot() {
+    axios
+        .get(latestFightsApi, {
+            headers: { "accept-encoding": null },
+            cache: true,
+        })
+        .then(async (response) => {
+            Promise.all(
+                response.data.data.map(async (record) =>
+                    getExtraInfoWrapper(record)
+                )
+            ).then(() => {
+                fs.writeFileSync(
+                    recordsFile,
+                    JSON.stringify(records, null, 4),
+                    "utf8"
+                );
+            });
+        })
+        .catch(console.error);
+
+    getExtraInfo(774447)
+        .then(async (message) => {
+            client.channels.cache.get("1089077448429277204").send(message);
+            //records[guild_id].push(record.id);
+        })
+        .catch(console.error);
+
+    setTimeout(refreshLoot, intervalUpdate);
+}
+
+async function getExtraInfoWrapper(record) {
+    for (const [guild_id, entry] of Object.entries(settings)) {
+        if (records[guild_id] === undefined) {
+            records[guild_id] = [];
+        }
+        if (
+            record.guildId === entry.guild_sirus_id &&
+            records[guild_id].indexOf(record.id) < 0 &&
+            record.boss_name
+        ) {
+            await getExtraInfo(record.id)
+                .then(async (message) => {
+                    client.channels.cache.get(entry.channel_id).send(message);
+                    records[guild_id].push(record.id);
+                })
+                .catch(console.error);
+        }
+    }
+}
+
+async function getExtraInfo(recordId) {
+    return new Promise(async (resolve, reject) => {
+        let fileName = [...Array(10)]
+            .map((i) => (~~(Math.random() * 36)).toString(36))
+            .join("");
+
+        let responseBossKillInfo = await axios.get(bossKillApi + recordId, {
+            headers: { "accept-encoding": null },
+            cache: true,
+        });
+        let dataBossKillInfo = responseBossKillInfo.data;
+        // console.log(dataBossKillInfo);
+
+        let lootHtml = await Promise.all(
+            dataBossKillInfo.data.loots.map((loot) => getLootInfo(loot.item))
+        ).catch(console.error);
+
+        let hasLootInfo = false;
+
+        lootHtml = lootHtml.join().replaceAll(",", "");
+
+        if (lootHtml) {
+            let html =
+                '<!doctype html> <html><body><div style="display: flex; justify-content: center;">';
+            hasLootInfo = true;
+            html += lootHtml + "</div></body></html>";
+            await takeSceenshot(html, fileName);
+        }
+
+        let exampleEmbed = new EmbedBuilder()
+            .setColor("#0099ff")
+            .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
+            .setURL(
+                "https://sirus.su/base/pve-progression/boss-kill/33/" + recordId
+            )
+            .addFields(
+                {
+                    name: "Попытки",
+                    value: dataBossKillInfo.data.attempts.toString(),
+                    inline: true,
+                },
+                {
+                    name: "Когда убили",
+                    value: dataBossKillInfo.data.killed_at,
+                    inline: true,
+                },
+                {
+                    name: "Время убийства",
+                    value: dataBossKillInfo.data.fight_length,
+                    inline: true,
+                }
+            );
+
+        if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
+            exampleEmbed.setThumbnail(
+                bossThumbnails[dataBossKillInfo.boss_name]
+            );
+        }
+
+        if (hasLootInfo) {
+            exampleEmbed.addFields({
+                name: "Лут: ",
+                value: "\u200b",
+                inline: false,
+            });
+            exampleEmbed.setImage("attachment://" + fileName + ".png");
+            resolve({
+                embeds: [exampleEmbed],
+                files: [
+                    {
+                        attachment: "./images/" + fileName + ".png",
+                        name: fileName + ".png",
+                    },
+                ],
+            });
+            // await channel.send();
+        } else {
+            resolve({ embeds: [exampleEmbed] });
+            // await channel.send();
+        }
+    });
+}
+
+async function getLootInfo(item) {
+    if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
+        let responseLoot = await fetch(
+            "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
+        );
+        let html = await responseLoot.text();
+        return html.trim();
+    } else {
+        return "";
     }
 }
 
@@ -140,136 +299,6 @@ async function takeSceenshot(html, fileName) {
     await page.screenshot(options);
     await browser.close();
 }
-
-async function getLootInfo(item) {
-    if (item.inventory_type && item.quality === 4 && item.level >= 260) {
-        let responseLoot = await fetch(
-            "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
-        );
-        let html = await responseLoot.text();
-        return html.trim();
-    } else {
-        return "";
-    }
-}
-
-async function getExtraInfo(recordId, channel) {
-    let fileName = [...Array(10)]
-        .map((i) => (~~(Math.random() * 36)).toString(36))
-        .join("");
-    let responseBossKillInfo = await fetch(
-        "https://sirus.su/api/base/33/leader-board/bossfights/boss-kill/" +
-            recordId
-    );
-    let dataBossKillInfo = await responseBossKillInfo.json();
-    let lootHtml = await Promise.all(
-        dataBossKillInfo.data.loots.map((loot) => getLootInfo(loot.item))
-    ).catch(() => {});
-    let hasLootInfo = false;
-
-    lootHtml = lootHtml.join().replaceAll(",", "");
-
-    if (lootHtml) {
-        let html =
-            '<!doctype html> <html><body><div style="display: flex; justify-content: center;">';
-        hasLootInfo = true;
-        html += lootHtml + "</div></body></html>";
-        await takeSceenshot(html, fileName);
-    }
-
-    let exampleEmbed = new EmbedBuilder()
-        .setColor("#0099ff")
-        .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
-        .setURL(
-            "https://sirus.su/base/pve-progression/boss-kill/33/" + recordId
-        )
-        .addFields(
-            {
-                name: "Попытки",
-                value: dataBossKillInfo.data.attempts.toString(),
-                inline: true,
-            },
-            {
-                name: "Когда убили",
-                value: dataBossKillInfo.data.killed_at,
-                inline: true,
-            },
-            {
-                name: "Время убийства",
-                value: dataBossKillInfo.data.fight_length,
-                inline: true,
-            }
-        );
-
-    if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
-        exampleEmbed.setThumbnail(bossThumbnails[dataBossKillInfo.boss_name]);
-    }
-
-    if (hasLootInfo) {
-        exampleEmbed.addFields({
-            name: "Лут: ",
-            value: "\u200b",
-            inline: false,
-        });
-        exampleEmbed.setImage("attachment://" + fileName + ".png");
-        await channel.send({
-            embeds: [exampleEmbed],
-            files: [
-                {
-                    attachment: "./images/" + fileName + ".png",
-                    name: fileName + ".png",
-                },
-            ],
-        });
-    } else {
-        await channel.send({ embeds: [exampleEmbed] });
-    }
-}
-
-async function getExtraInfoWrapper(record) {
-    for (const guild_id in settings) {
-        const channel = await client.channels.cache.get(
-            settings[guild_id]["channel_id"]
-        );
-        const guild_sirus_id = settings[guild_id]["guild_sirus_id"];
-        if (records[guild_id] === undefined) {
-            records[guild_id] = [];
-        }
-        if (
-            record.guildId === guild_sirus_id &&
-            records[guild_id].indexOf(record.id) < 0 &&
-            record.boss_name
-        ) {
-            await getExtraInfo(record.id, channel);
-            records[guild_id].push(record.id);
-        }
-    }
-}
-
-async function refreshLoot() {
-    await axios
-        .get(
-            "https://sirus.su/api/base/33/leader-board/bossfights/latest?realm=33",
-            {
-                headers: { "accept-encoding": null },
-                cache: true,
-            }
-        )
-        .then((response) => {
-            Promise.all(
-                response.data.data.map((record) => getExtraInfoWrapper(record))
-            ).then(() => {
-                fs.writeFileSync(
-                    recordsFile,
-                    JSON.stringify(records, null, 4),
-                    "utf8"
-                );
-            });
-        })
-        .catch(() => {});
-    setTimeout(refreshLoot, intervalUpdate);
-}
-
 module.exports = {
     init: init,
     setLootChannel: setLootChannel,
