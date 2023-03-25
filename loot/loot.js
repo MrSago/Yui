@@ -299,6 +299,7 @@ async function takeSceenshot(html, fileName) {
     await page.screenshot(options);
     await browser.close();
 }
+
 module.exports = {
     init: init,
     setLootChannel: setLootChannel,
