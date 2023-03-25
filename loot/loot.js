@@ -153,7 +153,7 @@ async function refreshLoot() {
         })
         .catch(console.error);
 
-    getExtraInfo(774447)
+    getExtraInfo(773971)
         .then(async (message) => {
             client.channels.cache.get("1089077448429277204").send(message);
             //records[guild_id].push(record.id);
@@ -267,17 +267,21 @@ async function getExtraInfo(recordId) {
 }
 
 async function getLootInfo(item) {
-    let responseLoot = await fetch(
-        "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
-    );
-    let html = await responseLoot.text();
-    return html.trim();
+    if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
+        let responseLoot = await fetch(
+            "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
+        );
+        let html = await responseLoot.text();
+        return html.trim();
+    } else {
+        return "";
+    }
 }
 
 async function takeSceenshot(html, fileName) {
     const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--window-size=3000,600"],
+        args: ["--no-sandbox", "--window-size=1900,700"],
         defaultViewport: null
     });
     const page = await browser.newPage();
