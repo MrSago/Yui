@@ -267,21 +267,18 @@ async function getExtraInfo(recordId) {
 }
 
 async function getLootInfo(item) {
-    if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
-        let responseLoot = await fetch(
-            "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
-        );
-        let html = await responseLoot.text();
-        return html.trim();
-    } else {
-        return "";
-    }
+    let responseLoot = await fetch(
+        "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
+    );
+    let html = await responseLoot.text();
+    return html.trim();
 }
 
 async function takeSceenshot(html, fileName) {
     const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox"],
+        args: ["--no-sandbox", "--window-size=3000,600"],
+        defaultViewport: null
     });
     const page = await browser.newPage();
     const options = {
@@ -296,6 +293,7 @@ async function takeSceenshot(html, fileName) {
         content:
             ".s-wow-tooltip-body{margin-right: 15px;margin-bottom: 15px;border: 1px solid #737373;padding: 10px;}.s-wow-tooltip-body:last-child{margin-right: 0px}",
     });
+    // await page.send('Emulation.clearDeviceMetricsOverride');
     await page.screenshot(options);
     await browser.close();
 }
