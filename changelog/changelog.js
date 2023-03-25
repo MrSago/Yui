@@ -39,25 +39,20 @@ function loadSettings() {
 }
 
 async function updateChangelog() {
-    let logs = undefined;
-    let data = undefined;
-
-    try {
-        if (!fs.existsSync(tempPath)) {
-            fs.mkdirSync(tempPath);
-        }
-        if (!fs.existsSync(logFile)) {
-            fs.writeFileSync(logFile, "[]", "utf8");
-        }
-        logs = JSON.parse(fs.readFileSync(logFile, "utf8"));
-        response = await axios.get(changeLogApi, {
+    axios
+        .get(changeLogApi, {
             headers: { "accept-encoding": null },
             cache: true,
-        });
-        data = response.data.data;
-    } catch (error) {
-        return;
-    }
+        })
+        .then((response) => sendData(response))
+        .catch(console.error);
+
+    setTimeout(updateChangelog, intervalUpdate);
+}
+
+async function sendData(response) {
+    let data = response.data.data;
+    let logs = loadLogs();
 
     let cnt = 0;
     for (let i = 0; i < data.length; ++i) {
@@ -76,30 +71,41 @@ async function updateChangelog() {
         logs.push(data[i].message);
     }
 
-    for (let i = 0; i < cnt; i += 5) {
+    const lines = 5;
+    for (let i = 0; i < cnt; i += lines) {
         let msg = "";
-        for (let j = i; j < i + 5 && j < cnt; ++j) {
+        for (let j = i; j < i + lines && j < cnt; ++j) {
             msg += data[j].message + (j == cnt - 1 ? "" : "\n\n");
         }
-        try {
-            const embedMessage = new EmbedBuilder()
-                .setColor(0x0099ff)
-                .setTitle("Новые изменения на сервере Sirus.su")
-                .addFields({ name: new Date().toLocaleString(), value: msg });
-            sendChangeLog(embedMessage);
-        } catch (error) {}
+        const embedMessage = new EmbedBuilder()
+            .setColor(0x0099ff)
+            .setTitle("Новые изменения на сервере Sirus.su")
+            .addFields({ name: new Date().toLocaleString(), value: msg });
+        await sendChangeLog(embedMessage);
     }
 
-    fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), "utf8");
-
-    setTimeout(updateChangelog, intervalUpdate);
+    saveLogs(logs);
 }
 
-function sendChangeLog(embedMessage) {
-    for (const guild_id in settings) {
-        const channel = client.channels.cache.get(settings[guild_id]);
-        channel.send({ embeds: [embedMessage] });
+function loadLogs() {
+    if (!fs.existsSync(tempPath)) {
+        fs.mkdirSync(tempPath);
     }
+    if (!fs.existsSync(logFile)) {
+        fs.writeFileSync(logFile, "[]", "utf8");
+        return [];
+    }
+    return JSON.parse(fs.readFileSync(logFile, "utf8"));
+}
+
+async function sendChangeLog(embedMessage) {
+    for (const channel_id of Object.values(settings)) {
+        client.channels.cache.get(channel_id).send({ embeds: [embedMessage] });
+    }
+}
+
+function saveLogs(logs) {
+    fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), "utf8");
 }
 
 module.exports = {
