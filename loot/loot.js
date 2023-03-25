@@ -281,7 +281,7 @@ async function getLootInfo(item) {
 async function takeSceenshot(html, fileName) {
     const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--window-size=1900,700"],
+        args: ["--no-sandbox", "--window-size=1400,695"],
         defaultViewport: null
     });
     const page = await browser.newPage();
