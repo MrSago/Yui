@@ -278,24 +278,18 @@ async function getLootInfo(item) {
     }
 }
 
-async function takeSceenshot(html, fileName) {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox"],
-    });
+takeSceenshot = async (html, fileName) => {
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
     const options = {
-        path: "images/" + fileName + ".png",
+        path: 'images/'+fileName+'.png',
         fullPage: false,
-        omitBackground: true,
+        omitBackground: true
     };
-    await page.setContent(html);
-    await page.addStyleTag({ content: mainStyle });
-    await page.addStyleTag({ content: otherStyle });
-    await page.addStyleTag({
-        content:
-            ".s-wow-tooltip-body{margin-right: 15px;margin-bottom: 15px;border: 1px solid #737373;padding: 10px;}.s-wow-tooltip-body:last-child{margin-right: 0px}",
-    });
+    await page.setContent(html)
+    await page.addStyleTag({url: 'https://sirus.su/tooltips/tooltip.css?v=4'})
+    await page.addStyleTag({url: 'https://sirus.su/css/app.css?v=c7bb00c8'})
+    await page.addStyleTag({content: '.s-wow-tooltip-body{margin-right: 15px;margin-bottom: 15px;border: 1px solid #737373;padding: 10px;}.s-wow-tooltip-body:last-child{margin-right: 0px}'})
     await page.screenshot(options);
     await browser.close();
 }
