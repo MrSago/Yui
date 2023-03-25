@@ -56,35 +56,54 @@ async function sendData(response) {
 
     let cnt = 0;
     for (let i = 0; i < data.length; ++i) {
-        if (data[i].message != logs[logs.length - 1]) {
-            ++cnt;
-        } else {
+        if (data[i].message[data[i].message.length - 1] === ">") {
+            data[i].message = data[i].message.slice(0, -6);
+        }
+        if (data[i].message == logs[logs.length - 1]) {
             break;
         }
+        ++cnt;
     }
 
     if (!cnt) {
         return;
     }
 
-    for (let i = cnt - 1; i >= 0; --i) {
-        logs.push(data[i].message);
-    }
-
-    const lines = 5;
-    for (let i = 0; i < cnt; i += lines) {
-        let msg = "";
-        for (let j = i; j < i + lines && j < cnt; ++j) {
-            msg += data[j].message + (j == cnt - 1 ? "" : "\n\n");
+    (async () => {
+        for (let i = cnt - 1; i >= 0; --i) {
+            logs.push(data[i].message);
         }
-        const embedMessage = new EmbedBuilder()
-            .setColor(0x0099ff)
-            .setTitle("Новые изменения на сервере Sirus.su")
-            .addFields({ name: new Date().toLocaleString(), value: msg });
+        saveLogs(logs);
+    })();
+
+    const embedMessage = new EmbedBuilder()
+    .setColor("#ff00ff")
+    .setAuthor({
+        name: "Sirus.su",
+        iconURL: "https://i.imgur.com/2ZKDaJQ.png",
+        url: "https://sirus.su",
+    })
+    .setTitle("Новые изменения на сервере Sirus.su")
+    .setURL("https://sirus.su/statistic/changelog")
+    .setTimestamp()
+    .setFooter({
+        text: "Юи, ваш ассистент",
+        iconURL: "https://i.imgur.com/LvlhrPY.png",
+    });
+
+    let message = "";
+    for (let i = 0; i < cnt; ++i) {
+        if (message.length + data[i].message.length >= 1024) {
+            embedMessage.setDescription(message);
+            await sendChangeLog(embedMessage);
+            message = "";
+        }
+        message += data[i].message + "\n";
+    }
+    if (message.length) {
+        embedMessage.setDescription(message);
         await sendChangeLog(embedMessage);
     }
-
-    saveLogs(logs);
 }
 
 function loadLogs() {
