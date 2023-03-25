@@ -10,15 +10,12 @@ const {
     REST,
     Collection,
     Routes,
+    Partials,
 } = require("discord.js");
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-    ],
-    partials: ["MESSAGE", "GUILDS"],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+    partials: [Partials.Message, Partials.Channel],
 });
 const rest = new REST({ version: "10" }).setToken(token);
 

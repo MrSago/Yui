@@ -3,10 +3,10 @@ const axios = require("axios");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
-const settingsPath = "./settings/";
-const settingsFile = settingsPath + "loot.json";
+const settingsFile = "./loot/loot.json";
 
-const recordsFile = "records.json";
+const tempPath = "./temp/";
+const recordsFile = tempPath + "records.json";
 
 const stylePath = "./styles/";
 const mainStyleFile = stylePath + "main.css";
@@ -56,53 +56,20 @@ const bossThumbnails = {
         "https://wow.zamimg.com/uploads/screenshots/small/132856.jpg",
 };
 
-var bot = undefined;
+var client = undefined;
 var settings = {};
 var records = {};
 
 var mainStyle = undefined;
 var otherStyle = undefined;
 
-function initLoot(client) {
-    bot = client;
+function init(discord) {
+    client = discord;
 
-    console.log(`[LOG] Load settings from ${settingsFile}`);
-    if (!fs.existsSync(settingsPath)) {
-        fs.mkdirSync(settingsPath);
-    }
-    try {
-        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-        console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't parse ${settingsFile}`);
-    }
-
-    console.log(`[LOG] Load records from ${recordsFile}`);
-    try {
-        records = JSON.parse(fs.readFileSync(recordsFile, "utf8"));
-        console.log(`[LOG] Records successfully loaded from ${recordsFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't parse ${recordsFile}`);
-    }
-
-    console.log(`[LOG] Load style from ${mainStyleFile}`);
-    try {
-        mainStyle = fs.readFileSync(mainStyleFile, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${mainStyleFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't load ${mainStyleFile}`);
-    }
-    console.log(`[LOG] Load style from ${otherStyleFile}`);
-    try {
-        otherStyle = fs.readFileSync(otherStyleFile, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${otherStyleFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't load ${otherStyleFile}`);
-    }
+    loadSettings();
+    loadRecords();
+    loadStyle(mainStyle, mainStyleFile);
+    loadStyle(otherStyle, otherStyleFile);
 
     refreshLoot();
 }
@@ -114,6 +81,42 @@ function setLootChannel(guild_id, channel_id, guild_sirus_id) {
     settings[guild_id]["channel_id"] = channel_id;
     settings[guild_id]["guild_sirus_id"] = guild_sirus_id;
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+}
+
+function loadSettings() {
+    console.log(`[LOG] Load settings from ${settingsFile}`);
+    try {
+        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
+        console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't parse ${settingsFile}`);
+    }
+}
+
+function loadRecords() {
+    console.log(`[LOG] Load records from ${recordsFile}`);
+    try {
+        if (!fs.existsSync(tempPath)) {
+            fs.mkdirSync(tempPath);
+        }
+        records = JSON.parse(fs.readFileSync(recordsFile, "utf8"));
+        console.log(`[LOG] Records successfully loaded from ${recordsFile}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't parse ${recordsFile}`);
+    }
+}
+
+function loadStyle(toSave, fileName) {
+    console.log(`[LOG] Load style from ${fileName}`);
+    try {
+        toSave = fs.readFileSync(fileName, "utf8");
+        console.log(`[LOG] Style successfully loaded from ${fileName}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't load ${fileName}`);
+    }
 }
 
 async function takeSceenshot(html, fileName) {
@@ -225,7 +228,7 @@ async function getExtraInfo(recordId, channel) {
 
 async function getExtraInfoWrapper(record) {
     for (const guild_id in settings) {
-        const channel = await bot.channels.cache.get(
+        const channel = await client.channels.cache.get(
             settings[guild_id]["channel_id"]
         );
         const guild_sirus_id = settings[guild_id]["guild_sirus_id"];
@@ -268,6 +271,6 @@ async function refreshLoot() {
 }
 
 module.exports = {
-    initLoot: initLoot,
+    init: init,
     setLootChannel: setLootChannel,
 };

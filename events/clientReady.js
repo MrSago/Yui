@@ -5,8 +5,8 @@ module.exports = {
     once: true,
 
     async execute(client) {
-        require("../changelog.js").initChangeLog(client);
-        require("../loot.js").initLoot(client);
+        require("../changelog/changelog.js").init(client);
+        require("../loot/loot.js").init(client);
         console.log(`Ready! Logged in as ${client.user.tag}`);
     },
 };

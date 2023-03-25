@@ -2,9 +2,9 @@
 .env
 node_modules
 package-lock.json
-settings
-log.json
-records.json
+temp
+changelog/*.json
+loot/*.json
 !images/icons/*
 images/*
 .prettierrc

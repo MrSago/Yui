@@ -2,31 +2,22 @@ const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
 
-const changeLogUrl = "https://sirus.su/api/statistic/changelog";
+const changeLogApi = "https://sirus.su/api/statistic/changelog";
 
-const settingsPath = "./settings/";
-const settingsFile = settingsPath + "changelog.json";
-const logFile = "log.json";
+const settingsFile = "./changelog/changelog.json";
+
+const tempPath = "./temp/";
+const logFile = tempPath + "log.json";
 
 const intervalUpdate = 1000 * 60 * 5;
 
-var bot = undefined;
+var client = undefined;
 var settings = {};
 
-function initChangeLog(client) {
-    bot = client;
+function init(discord) {
+    client = discord;
 
-    console.log(`[LOG] Load settings from ${settingsFile}`);
-    if (!fs.existsSync(settingsPath)) {
-        fs.mkdirSync(settingsPath);
-    }
-    try {
-        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-        console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't parse ${settingsFile}`);
-    }
+    loadSettings();
 
     updateChangelog();
 }
@@ -36,16 +27,30 @@ function setLogChannel(guild_id, channel_id) {
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
 }
 
+function loadSettings() {
+    console.log(`[LOG] Load settings from ${settingsFile}`);
+    try {
+        settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
+        console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't parse ${settingsFile}`);
+    }
+}
+
 async function updateChangelog() {
     let logs = undefined;
     let data = undefined;
 
     try {
+        if (!fs.existsSync(tempPath)) {
+            fs.mkdirSync(tempPath);
+        }
         if (!fs.existsSync(logFile)) {
             fs.writeFileSync(logFile, "[]", "utf8");
         }
         logs = JSON.parse(fs.readFileSync(logFile, "utf8"));
-        response = await axios.get(changeLogUrl, {
+        response = await axios.get(changeLogApi, {
             headers: { "accept-encoding": null },
             cache: true,
         });
@@ -92,12 +97,12 @@ async function updateChangelog() {
 
 function sendChangeLog(embedMessage) {
     for (const guild_id in settings) {
-        const channel = bot.channels.cache.get(settings[guild_id]);
+        const channel = client.channels.cache.get(settings[guild_id]);
         channel.send({ embeds: [embedMessage] });
     }
 }
 
 module.exports = {
-    initChangeLog: initChangeLog,
+    init: init,
     setLogChannel: setLogChannel,
 };

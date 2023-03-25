@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { setLogChannel } = require("../changelog.js");
+const { setLogChannel } = require("../changelog/changelog.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
