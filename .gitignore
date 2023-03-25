@@ -5,6 +5,7 @@ package-lock.json
 temp
 changelog/*.json
 loot/*.json
-!images/icons/*
+!loot/classEmoji.json
 images/*
+!images/icons/*
 .prettierrc

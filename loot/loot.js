@@ -16,6 +16,7 @@ const recordsFile = tempPath + "records.json";
 const stylePath = "./styles/";
 const mainStyleFile = stylePath + "main.css";
 const otherStyleFile = stylePath + "other.css";
+const borderStyleFile = stylePath + "border.css";
 
 const intervalUpdate = 1000 * 60 * 5;
 
@@ -67,6 +68,7 @@ var records = {};
 
 var mainStyle = undefined;
 var otherStyle = undefined;
+var borderStyle = undefined;
 
 function init(discord) {
     client = discord;
@@ -130,6 +132,15 @@ function loadStyles() {
         console.error(error);
         console.log(`[WARNING] Can't load ${otherStyleFile}`);
     }
+
+    console.log(`[LOG] Load style from ${borderStyleFile}`);
+    try {
+        borderStyle = fs.readFileSync(borderStyleFile, "utf8");
+        console.log(`[LOG] Style successfully loaded from ${borderStyleFile}`);
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't load ${borderStyleFile}`);
+    }
 }
 
 async function refreshLoot() {
@@ -150,13 +161,6 @@ async function refreshLoot() {
                     "utf8"
                 );
             });
-        })
-        .catch(console.error);
-
-    getExtraInfo(773971)
-        .then(async (message) => {
-            client.channels.cache.get("1089077448429277204").send(message);
-            //records[guild_id].push(record.id);
         })
         .catch(console.error);
 
@@ -194,25 +198,27 @@ async function getExtraInfo(recordId) {
             cache: true,
         });
         let dataBossKillInfo = responseBossKillInfo.data;
-        // console.log(dataBossKillInfo);
 
         let lootHtml = await Promise.all(
             dataBossKillInfo.data.loots.map((loot) => getLootInfo(loot.item))
-        ).catch(console.error);
-
-        let hasLootInfo = false;
-
+        );
         lootHtml = lootHtml.join().replaceAll(",", "");
 
+        let hasLootInfo = false;
         if (lootHtml) {
-            let html =
-                '<!doctype html> <html><body><div style="display: flex; justify-content: center;">';
             hasLootInfo = true;
-            html += lootHtml + "</div></body></html>";
-            await takeSceenshot(html, fileName);
+            let html =
+                '<!doctype html> <html><body><div style="display: flex; justify-content: center;">' +
+                lootHtml +
+                "</div></body></html>";
+            await takeSceenshot(
+                html,
+                fileName,
+                dataBossKillInfo.data.loots.length
+            );
         }
 
-        let exampleEmbed = new EmbedBuilder()
+        let embedMessage = new EmbedBuilder()
             .setColor("#0099ff")
             .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
             .setURL(
@@ -230,27 +236,59 @@ async function getExtraInfo(recordId) {
                     inline: true,
                 },
                 {
-                    name: "Время убийства",
+                    name: "Время боя",
                     value: dataBossKillInfo.data.fight_length,
                     inline: true,
                 }
             );
 
+        const [places, players, dps] = parsePlayers(
+            dataBossKillInfo.data.players
+        );
+        embedMessage
+            .addFields({
+                name: "\u200b",
+                value: "\u200b",
+            })
+            .addFields(
+                {
+                    name: "Место",
+                    value: places,
+                    inline: true,
+                },
+                {
+                    name: "Имя",
+                    value: players,
+                    inline: true,
+                },
+                {
+                    name: "DPS",
+                    value: dps,
+                    inline: true,
+                }
+            );
+
         if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
-            exampleEmbed.setThumbnail(
+            embedMessage.setThumbnail(
                 bossThumbnails[dataBossKillInfo.boss_name]
             );
         }
 
         if (hasLootInfo) {
-            exampleEmbed.addFields({
-                name: "Лут: ",
-                value: "\u200b",
-                inline: false,
-            });
-            exampleEmbed.setImage("attachment://" + fileName + ".png");
+            embedMessage
+                .addFields({
+                    name: "\u200b",
+                    value: "\u200b",
+                })
+                .addFields({
+                    name: "Лут: ",
+                    value: "\u200b",
+                    inline: false,
+                });
+            embedMessage.setImage("attachment://" + fileName + ".png");
+
             resolve({
-                embeds: [exampleEmbed],
+                embeds: [embedMessage],
                 files: [
                     {
                         attachment: "./images/" + fileName + ".png",
@@ -258,48 +296,84 @@ async function getExtraInfo(recordId) {
                     },
                 ],
             });
-            // await channel.send();
         } else {
-            resolve({ embeds: [exampleEmbed] });
-            // await channel.send();
+            resolve({ embeds: [embedMessage] });
         }
     });
 }
 
 async function getLootInfo(item) {
     if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
-        let responseLoot = await fetch(
-            "https://sirus.su/api/tooltips/item/" + item.entry + "/33"
+        let responseLoot = await axios.get(
+            "https://sirus.su/api/tooltips/item/" + item.entry + "/33",
+            { headers: { "accept-encoding": null }, cache: true }
         );
-        let html = await responseLoot.text();
-        return html.trim();
+        return responseLoot.data.trim();
     } else {
         return "";
     }
 }
 
-async function takeSceenshot(html, fileName) {
+async function takeSceenshot(html, fileName, lootCount) {
     const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--window-size=1400,695"],
-        defaultViewport: null
+        args: [
+            "--no-sandbox",
+            lootCount > 4 ? "--window-size=1300,700" : "--window-size=800,600",
+        ],
+        defaultViewport: null,
     });
+
     const page = await browser.newPage();
-    const options = {
-        path: "images/" + fileName + ".png",
-        fullPage: false,
-        omitBackground: true,
-    };
     await page.setContent(html);
     await page.addStyleTag({ content: mainStyle });
     await page.addStyleTag({ content: otherStyle });
-    await page.addStyleTag({
-        content:
-            ".s-wow-tooltip-body{margin-right: 15px;margin-bottom: 15px;border: 1px solid #737373;padding: 10px;}.s-wow-tooltip-body:last-child{margin-right: 0px}",
+    await page.addStyleTag({ content: borderStyle });
+    await page.screenshot({
+        path: "images/" + fileName + ".png",
+        fullPage: false,
+        omitBackground: true,
     });
-    // await page.send('Emulation.clearDeviceMetricsOverride');
-    await page.screenshot(options);
     await browser.close();
+}
+
+const easterEgg = ["Logrus", "Rozx"];
+
+function parsePlayers(data) {
+    let classEmoji = undefined;
+    try {
+        classEmoji = JSON.parse(
+            fs.readFileSync("./loot/classEmoji.json", "utf8")
+        );
+    } catch (error) {
+        console.error(error);
+    }
+
+    data.sort((a, b) => b.dps - a.dps);
+
+    let i = 1;
+    let places = "";
+    let players = "";
+    let dps = "";
+
+    for (const player of data) {
+        places += `${i++}\n`;
+        let emoji = undefined;
+        if (player.character.name in easterEgg) {
+            emoji = client.emojis.cache.get("1067786576639295488");
+        } else if (classEmoji !== undefined) {
+            emoji = client.emojis.cache.get(
+                classEmoji[player.character.class_id].spec[player.spec].emoji_id
+            );
+        }
+        players +=
+            (emoji !== undefined ? `${emoji}` : "") +
+            player.character.name +
+            "\n";
+        dps += player.dps + "\n";
+    }
+
+    return [places, players, dps];
 }
 
 module.exports = {
