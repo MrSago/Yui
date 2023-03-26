@@ -334,6 +334,7 @@ async function takeSceenshot(html, fileName, lootCount) {
         fullPage: false,
         omitBackground: true,
     });
+
     await browser.close();
 }
 
@@ -357,7 +358,7 @@ function parsePlayers(data) {
     let dps = "";
 
     for (const player of data) {
-        places += `${i++}\n`;
+        places += `**${i++}**\n`;
         let emoji = undefined;
         if (player.character.name in easterEgg) {
             emoji = client.emojis.cache.get("1067786576639295488");
