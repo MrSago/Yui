@@ -360,7 +360,7 @@ function parsePlayers(data) {
     for (const player of data) {
         places += `**${i++}**\n`;
         let emoji = undefined;
-        if (player.character.name in easterEgg) {
+        if (easterEgg.find(item => item === player.character.name)) {
             emoji = client.emojis.cache.get("1067786576639295488");
         } else if (classEmoji !== undefined) {
             emoji = client.emojis.cache.get(
