@@ -211,6 +211,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             })
             .setTitle("Упал босс " + dataBossKillInfo.boss_name)
             .setURL(pveProgressUrl + `${realm_id}/` + record_id)
+            .setFooter({
+                text: "Юи, ваш ассистент",
+                iconURL: "https://i.imgur.com/LvlhrPY.png",
+            })
             .addFields(
                 {
                     name: "Попытки",

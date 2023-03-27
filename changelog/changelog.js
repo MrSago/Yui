@@ -55,12 +55,12 @@ async function updateChangelog() {
 
 async function sendData(response) {
     let data = response.data.data;
-    let cnt = parseData(data);
+    let logs = loadLogs();
+    let cnt = parseData(data, logs);
     if (!cnt) {
         return;
     }
 
-    let logs = loadLogs();
     (async () => {
         for (let i = cnt - 1; i >= 0; --i) {
             logs.push(data[i].message);
@@ -98,7 +98,7 @@ async function sendData(response) {
     }
 }
 
-function parseData(data) {
+function parseData(data, logs) {
     let cnt = 0;
     for (let i = 0; i < data.length; ++i) {
         if (data[i].message[data[i].message.length - 1] === ">") {
