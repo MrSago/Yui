@@ -130,7 +130,10 @@ async function refreshLoot(realm_id) {
                 );
             });
         })
-        .catch(console.error);
+        .catch((error) => {
+            console.error(error);
+            console.log(`[WARNING] Can't get loot from realm ${realm_id}`);
+        });
 
     setTimeout(refreshLoot, intervalUpdate, realm_id);
 }
@@ -148,29 +151,33 @@ async function getExtraInfoWrapper(record) {
             await getExtraInfo(guild_id, record.id, entry.realm_id)
                 .then(async (message) => {
                     client.channels.cache.get(entry.channel_id).send(message);
+                    records[guild_id].push(record.id);
                 })
-                .catch(console.error);
-            records[guild_id].push(record.id);
+                .catch((error) => {
+                    console.error(error);
+                    console.log(
+                        `[WARNING] Can't get loot from record ${record.id}`
+                    );
+                });
         }
     }
 }
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
     return new Promise(async (resolve, reject) => {
-        let responseBossKillInfo = await axios.get(
-            apiBase + `${realm_id}` + bossKillApi + record_id,
-            {
+        let responseBossKillInfo = await axios
+            .get(apiBase + `${realm_id}` + bossKillApi + record_id, {
                 headers: { "accept-encoding": null },
                 cache: true,
-            }
-        );
+            })
+            .catch(reject);
         let dataBossKillInfo = responseBossKillInfo.data.data;
 
         let lootHtml = await Promise.all(
             dataBossKillInfo.loots.map((loot) =>
                 getLootInfo(loot.item, realm_id)
             )
-        );
+        ).catch(reject);
         lootHtml = lootHtml.join().replaceAll(",", "");
 
         let fileName = undefined;
@@ -182,7 +189,17 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             fileName = [...Array(10)]
                 .map(() => (~~(Math.random() * 36)).toString(36))
                 .join("");
-            await takeSceenshot(html, fileName, dataBossKillInfo.loots.length);
+            try {
+                await takeSceenshot(
+                    html,
+                    fileName,
+                    dataBossKillInfo.loots.length
+                );
+            } catch (error) {
+                console.error(error);
+                console.log("[WARNING] Can't take loot screenshot");
+                lootHtml = undefined;
+            }
         }
 
         let embedMessage = new EmbedBuilder()
@@ -274,7 +291,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
 }
 
 async function getLootInfo(item, realm_id) {
-    if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
+    if (item.inventory_type && item.quality === 4 && item.level >= 200) {
         let responseLoot = await axios.get(
             toolTipsItemApi + item.entry + `/${realm_id}`,
             { headers: { "accept-encoding": null }, cache: true }
@@ -312,13 +329,13 @@ async function takeSceenshot(html, fileName, lootCount) {
 const easterEgg = ["Logrus", "Rozx"];
 
 function parsePlayers(data) {
+    const classEmojiFile = "./loot/classEmoji.json";
     let classEmoji = undefined;
     try {
-        classEmoji = JSON.parse(
-            fs.readFileSync("./loot/classEmoji.json", "utf8")
-        );
+        classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
     } catch (error) {
         console.error(error);
+        console.log(`[WARNING] Can't load ${classEmojiFile}`);
     }
 
     data.sort((a, b) => b.dps - a.dps);
@@ -330,14 +347,24 @@ function parsePlayers(data) {
 
     for (const player of data) {
         places += `**${i++}**\n`;
+
         let emoji = undefined;
-        if (easterEgg.find((item) => item === player.character.name)) {
-            emoji = client.emojis.cache.get("1067786576639295488");
-        } else if (classEmoji !== undefined) {
-            emoji = client.emojis.cache.get(
-                classEmoji[player.character.class_id].spec[player.spec].emoji_id
+        try {
+            if (easterEgg.find((item) => item === player.character.name)) {
+                emoji = client.emojis.cache.get("1067786576639295488");
+            } else if (classEmoji !== undefined) {
+                emoji = client.emojis.cache.get(
+                    classEmoji[player.character.class_id].spec[player.spec]
+                        .emoji_id
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            console.log(
+                `[WARNING] Can't get emoji for ${player.character.name}`
             );
         }
+
         players +=
             (emoji !== undefined ? `${emoji}` : "") +
             player.character.name +

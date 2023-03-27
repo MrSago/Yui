@@ -44,31 +44,23 @@ async function updateChangelog() {
             headers: { "accept-encoding": null },
             cache: true,
         })
-        .then(async (response) => sendData(response))
-        .catch(console.error);
+        .then((response) => sendData(response))
+        .catch((error) => {
+            console.error(error);
+            console.log("[WARNING] Can't get changelog from Sirus.su");
+        });
 
     setTimeout(updateChangelog, intervalUpdate);
 }
 
 async function sendData(response) {
     let data = response.data.data;
-    let logs = loadLogs();
-
-    let cnt = 0;
-    for (let i = 0; i < data.length; ++i) {
-        if (data[i].message[data[i].message.length - 1] === ">") {
-            data[i].message = data[i].message.slice(0, -6);
-        }
-        if (data[i].message == logs[logs.length - 1]) {
-            break;
-        }
-        ++cnt;
-    }
-
+    let cnt = parseData(data);
     if (!cnt) {
         return;
     }
 
+    let logs = loadLogs();
     (async () => {
         for (let i = cnt - 1; i >= 0; --i) {
             logs.push(data[i].message);
@@ -77,19 +69,19 @@ async function sendData(response) {
     })();
 
     const embedMessage = new EmbedBuilder()
-    .setColor("#ff00ff")
-    .setAuthor({
-        name: "Sirus.su",
-        iconURL: "https://i.imgur.com/2ZKDaJQ.png",
-        url: "https://sirus.su",
-    })
-    .setTitle("Новые изменения на сервере Sirus.su")
-    .setURL("https://sirus.su/statistic/changelog")
-    .setTimestamp()
-    .setFooter({
-        text: "Юи, ваш ассистент",
-        iconURL: "https://i.imgur.com/LvlhrPY.png",
-    });
+        .setColor("#ff00ff")
+        .setAuthor({
+            name: "Sirus.su",
+            iconURL: "https://i.imgur.com/2ZKDaJQ.png",
+            url: "https://sirus.su",
+        })
+        .setTitle("Новые изменения на сервере Sirus.su")
+        .setURL("https://sirus.su/statistic/changelog")
+        .setTimestamp()
+        .setFooter({
+            text: "Юи, ваш ассистент",
+            iconURL: "https://i.imgur.com/LvlhrPY.png",
+        });
 
     let message = "";
     for (let i = 0; i < cnt; ++i) {
@@ -106,6 +98,20 @@ async function sendData(response) {
     }
 }
 
+function parseData(data) {
+    let cnt = 0;
+    for (let i = 0; i < data.length; ++i) {
+        if (data[i].message[data[i].message.length - 1] === ">") {
+            data[i].message = data[i].message.slice(0, -6);
+        }
+        if (data[i].message === logs[logs.length - 1]) {
+            break;
+        }
+        ++cnt;
+    }
+    return cnt;
+}
+
 function loadLogs() {
     if (!fs.existsSync(dataPath)) {
         fs.mkdirSync(dataPath);
@@ -119,7 +125,16 @@ function loadLogs() {
 
 async function sendChangeLog(embedMessage) {
     for (const channel_id of Object.values(settings)) {
-        client.channels.cache.get(channel_id).send({ embeds: [embedMessage] });
+        try {
+            client.channels.cache
+                .get(channel_id)
+                .send({ embeds: [embedMessage] });
+        } catch (error) {
+            console.error(error);
+            console.log(
+                `[WARNING] Can't send message to channel ${channel_id}`
+            );
+        }
     }
 }
 
