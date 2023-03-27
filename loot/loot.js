@@ -3,15 +3,23 @@ const axios = require("axios");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
-const latestFightsApi =
-    "https://sirus.su/api/base/33/leader-board/bossfights/latest?realm=33";
-const bossKillApi =
-    "https://sirus.su/api/base/33/leader-board/bossfights/boss-kill/";
+const apiBase = "https://sirus.su/api/base/";
+const latestFightsApi = "/leader-board/bossfights/latest?realm=";
+const bossKillApi = "/leader-board/bossfights/boss-kill/";
+const toolTipsItemApi = "https://sirus.su/api/tooltips/item/";
+const guildsUrl = "https://sirus.su/base/guilds/";
+const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill/";
 
-const settingsFile = "./loot/loot.json";
+const scourgeId = 9;
+const algalonId = 33;
+const sirusId = 57;
 
-const tempPath = "./temp/";
-const recordsFile = tempPath + "records.json";
+const lootPath = "./loot/";
+const settingsFile = lootPath + "loot.json";
+const bossThumbnailsFile = lootPath + "bossThumbnails.json";
+
+const dataPath = "./data/";
+const recordsFile = dataPath + "records.json";
 
 const stylePath = "./styles/";
 const mainStyleFile = stylePath + "main.css";
@@ -20,51 +28,10 @@ const borderStyleFile = stylePath + "border.css";
 
 const intervalUpdate = 1000 * 60 * 5;
 
-const bossThumbnails = {
-    "Разрушитель XT-002":
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-xt-002-deconstructor.png",
-    Фрея: "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-freya.png",
-    Торим: "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-thorim.png",
-    "Огненный Левиафан":
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-flame-leviathan.png",
-    Мимирон: "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-mimiron.png",
-    "Гидросс Нестабильный":
-        "https://wow.zamimg.com/uploads/screenshots/small/30250.jpg",
-    Острокрылая:
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-razorscale.png",
-    "Повелитель Горнов Игнис":
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-ignis-the-furnace-master.png",
-    Ходир: "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-hodir.png",
-    Кологарн:
-        "https://wow.zamimg.com/modelviewer/live/webthumbs/npc/222/28638.webp",
-    "Йогг-Сарон":
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-yogg-saron.png",
-    "Генерал Везакс":
-        "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-general-vezax.png",
-    "Железное Собрание":
-        "https://wow.zamimg.com/uploads/screenshots/small/128853.jpg",
-    Ауриайя: "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-auriaya.png",
-    "Кель'тас Солнечный Скиталец":
-        "https://wow.zamimg.com/uploads/screenshots/small/79291.jpg",
-    "Повелитель глубин Каратресс":
-        "https://wow.zamimg.com/uploads/screenshots/small/80609.jpg",
-    "Ал'ар": "https://wow.zamimg.com/uploads/screenshots/small/29018.jpg",
-    "Верховный звездочет Солариан":
-        "https://wow.zamimg.com/uploads/screenshots/small/53912.jpg",
-    "Страж Бездны":
-        "https://wow.zamimg.com/uploads/screenshots/small/47202.jpg",
-    "Леди Вайш": "https://wow.zamimg.com/uploads/screenshots/small/79290.jpg",
-    "Морогрим Волноступ":
-        "https://wow.zamimg.com/uploads/screenshots/small/28948.jpg",
-    "Скрытень из глубин":
-        "https://wow.zamimg.com/uploads/screenshots/small/81775.jpg",
-    "Алгалон Наблюдатель":
-        "https://wow.zamimg.com/uploads/screenshots/small/132856.jpg",
-};
-
 var client = undefined;
 var settings = {};
 var records = {};
+var bossThumbnails = undefined;
 
 var mainStyle = undefined;
 var otherStyle = undefined;
@@ -74,18 +41,22 @@ function init(discord) {
     client = discord;
 
     loadSettings();
+    loadBossThumbnails();
     loadRecords();
     loadStyles();
 
-    refreshLoot();
+    refreshLoot(scourgeId);
+    refreshLoot(algalonId);
+    refreshLoot(sirusId);
 }
 
-function setLootChannel(guild_id, channel_id, guild_sirus_id) {
+function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
     if (settings[guild_id] === undefined) {
         settings[guild_id] = {};
     }
-    settings[guild_id]["channel_id"] = channel_id;
-    settings[guild_id]["guild_sirus_id"] = guild_sirus_id;
+    settings[guild_id].channel_id = channel_id;
+    settings[guild_id].realm_id = realm_id;
+    settings[guild_id].guild_sirus_id = guild_sirus_id;
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
 }
 
@@ -100,11 +71,26 @@ function loadSettings() {
     }
 }
 
+function loadBossThumbnails() {
+    console.log(`[LOG] Load boss thumbnails from ${bossThumbnailsFile}`);
+    try {
+        bossThumbnails = JSON.parse(
+            fs.readFileSync(bossThumbnailsFile, "utf8")
+        );
+        console.log(
+            `[LOG] Boss thumbnails successfully loaded from ${bossThumbnailsFile}`
+        );
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't parse ${bossThumbnailsFile}`);
+    }
+}
+
 function loadRecords() {
     console.log(`[LOG] Load records from ${recordsFile}`);
     try {
-        if (!fs.existsSync(tempPath)) {
-            fs.mkdirSync(tempPath);
+        if (!fs.existsSync(dataPath)) {
+            fs.mkdirSync(dataPath);
         }
         records = JSON.parse(fs.readFileSync(recordsFile, "utf8"));
         console.log(`[LOG] Records successfully loaded from ${recordsFile}`);
@@ -115,45 +101,27 @@ function loadRecords() {
 }
 
 function loadStyles() {
-    console.log(`[LOG] Load style from ${mainStyleFile}`);
+    console.log(`[LOG] Load styles from path ${stylePath}`);
     try {
         mainStyle = fs.readFileSync(mainStyleFile, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${mainStyleFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't load ${mainStyleFile}`);
-    }
-
-    console.log(`[LOG] Load style from ${otherStyleFile}`);
-    try {
         otherStyle = fs.readFileSync(otherStyleFile, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${otherStyleFile}`);
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't load ${otherStyleFile}`);
-    }
-
-    console.log(`[LOG] Load style from ${borderStyleFile}`);
-    try {
         borderStyle = fs.readFileSync(borderStyleFile, "utf8");
-        console.log(`[LOG] Style successfully loaded from ${borderStyleFile}`);
+        console.log(`[LOG] Styles successfully loaded`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't load ${borderStyleFile}`);
+        console.log(`[WARNING] Can't load some style`);
     }
 }
 
-async function refreshLoot() {
+async function refreshLoot(realm_id) {
     axios
-        .get(latestFightsApi, {
+        .get(apiBase + `${realm_id}` + latestFightsApi + `${realm_id}`, {
             headers: { "accept-encoding": null },
             cache: true,
         })
-        .then(async (response) => {
+        .then((response) => {
             Promise.all(
-                response.data.data.map(async (record) =>
-                    getExtraInfoWrapper(record)
-                )
+                response.data.data.map((record) => getExtraInfoWrapper(record))
             ).then(() => {
                 fs.writeFileSync(
                     recordsFile,
@@ -164,7 +132,7 @@ async function refreshLoot() {
         })
         .catch(console.error);
 
-    setTimeout(refreshLoot, intervalUpdate);
+    setTimeout(refreshLoot, intervalUpdate, realm_id);
 }
 
 async function getExtraInfoWrapper(record) {
@@ -177,74 +145,74 @@ async function getExtraInfoWrapper(record) {
             records[guild_id].indexOf(record.id) < 0 &&
             record.boss_name
         ) {
-            await getExtraInfo(record.id)
+            await getExtraInfo(guild_id, record.id, entry.realm_id)
                 .then(async (message) => {
                     client.channels.cache.get(entry.channel_id).send(message);
-                    records[guild_id].push(record.id);
                 })
                 .catch(console.error);
+            records[guild_id].push(record.id);
         }
     }
 }
 
-async function getExtraInfo(recordId) {
+async function getExtraInfo(guild_id, record_id, realm_id) {
     return new Promise(async (resolve, reject) => {
-        let fileName = [...Array(10)]
-            .map((i) => (~~(Math.random() * 36)).toString(36))
-            .join("");
-
-        let responseBossKillInfo = await axios.get(bossKillApi + recordId, {
-            headers: { "accept-encoding": null },
-            cache: true,
-        });
-        let dataBossKillInfo = responseBossKillInfo.data;
+        let responseBossKillInfo = await axios.get(
+            apiBase + `${realm_id}` + bossKillApi + record_id,
+            {
+                headers: { "accept-encoding": null },
+                cache: true,
+            }
+        );
+        let dataBossKillInfo = responseBossKillInfo.data.data;
 
         let lootHtml = await Promise.all(
-            dataBossKillInfo.data.loots.map((loot) => getLootInfo(loot.item))
+            dataBossKillInfo.loots.map((loot) =>
+                getLootInfo(loot.item, realm_id)
+            )
         );
         lootHtml = lootHtml.join().replaceAll(",", "");
 
-        let hasLootInfo = false;
+        let fileName = undefined;
         if (lootHtml) {
-            hasLootInfo = true;
-            let html =
+            const html =
                 '<!doctype html> <html><body><div style="display: flex; justify-content: center;">' +
                 lootHtml +
                 "</div></body></html>";
-            await takeSceenshot(
-                html,
-                fileName,
-                dataBossKillInfo.data.loots.length
-            );
+            fileName = [...Array(10)]
+                .map(() => (~~(Math.random() * 36)).toString(36))
+                .join("");
+            await takeSceenshot(html, fileName, dataBossKillInfo.loots.length);
         }
 
         let embedMessage = new EmbedBuilder()
             .setColor("#0099ff")
-            .setTitle("Упал босс " + dataBossKillInfo.data.boss_name)
-            .setURL(
-                "https://sirus.su/base/pve-progression/boss-kill/33/" + recordId
-            )
+            .setAuthor({
+                name: dataBossKillInfo.guild.name,
+                iconURL: client.guilds.cache.get(guild_id).iconURL(),
+                url: guildsUrl + `${realm_id}/${dataBossKillInfo.guild.entry}/`,
+            })
+            .setTitle("Упал босс " + dataBossKillInfo.boss_name)
+            .setURL(pveProgressUrl + `${realm_id}/` + record_id)
             .addFields(
                 {
                     name: "Попытки",
-                    value: dataBossKillInfo.data.attempts.toString(),
+                    value: dataBossKillInfo.attempts.toString(),
                     inline: true,
                 },
                 {
                     name: "Когда убили",
-                    value: dataBossKillInfo.data.killed_at,
+                    value: dataBossKillInfo.killed_at,
                     inline: true,
                 },
                 {
                     name: "Время боя",
-                    value: dataBossKillInfo.data.fight_length,
+                    value: dataBossKillInfo.fight_length,
                     inline: true,
                 }
             );
 
-        const [places, players, dps] = parsePlayers(
-            dataBossKillInfo.data.players
-        );
+        const [places, players, dps] = parsePlayers(dataBossKillInfo.players);
         embedMessage
             .addFields({
                 name: "\u200b",
@@ -268,13 +236,16 @@ async function getExtraInfo(recordId) {
                 }
             );
 
-        if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
+        if (
+            bossThumbnails !== undefined &&
+            bossThumbnails[dataBossKillInfo.boss_name] !== undefined
+        ) {
             embedMessage.setThumbnail(
                 bossThumbnails[dataBossKillInfo.boss_name]
             );
         }
 
-        if (hasLootInfo) {
+        if (lootHtml) {
             embedMessage
                 .addFields({
                     name: "\u200b",
@@ -302,10 +273,10 @@ async function getExtraInfo(recordId) {
     });
 }
 
-async function getLootInfo(item) {
+async function getLootInfo(item, realm_id) {
     if (item.inventory_type && item.quality >= 4 && item.level >= 0) {
         let responseLoot = await axios.get(
-            "https://sirus.su/api/tooltips/item/" + item.entry + "/33",
+            toolTipsItemApi + item.entry + `/${realm_id}`,
             { headers: { "accept-encoding": null }, cache: true }
         );
         return responseLoot.data.trim();
@@ -360,7 +331,7 @@ function parsePlayers(data) {
     for (const player of data) {
         places += `**${i++}**\n`;
         let emoji = undefined;
-        if (easterEgg.find(item => item === player.character.name)) {
+        if (easterEgg.find((item) => item === player.character.name)) {
             emoji = client.emojis.cache.get("1067786576639295488");
         } else if (classEmoji !== undefined) {
             emoji = client.emojis.cache.get(

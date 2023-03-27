@@ -6,8 +6,8 @@ const changeLogApi = "https://sirus.su/api/statistic/changelog";
 
 const settingsFile = "./changelog/changelog.json";
 
-const tempPath = "./temp/";
-const logFile = tempPath + "log.json";
+const dataPath = "./data/";
+const logFile = dataPath + "log.json";
 
 const intervalUpdate = 1000 * 60 * 5;
 
@@ -107,8 +107,8 @@ async function sendData(response) {
 }
 
 function loadLogs() {
-    if (!fs.existsSync(tempPath)) {
-        fs.mkdirSync(tempPath);
+    if (!fs.existsSync(dataPath)) {
+        fs.mkdirSync(dataPath);
     }
     if (!fs.existsSync(logFile)) {
         fs.writeFileSync(logFile, "[]", "utf8");

@@ -1,11 +1,9 @@
-
 .env
 node_modules
 package-lock.json
-temp
-changelog/*.json
-loot/*.json
-!loot/classEmoji.json
+data
+changelog/changelog.json
+loot/loot.json
 images/*
 !images/icons/*
 .prettierrc
