@@ -10,9 +10,17 @@ const toolTipsItemApi = "https://sirus.su/api/tooltips/item/";
 const guildsUrl = "https://sirus.su/base/guilds/";
 const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill/";
 
-const scourgeId = 9;
-const algalonId = 33;
-const sirusId = 57;
+const getRealmNameById = (realm_id) => {
+    const realmName = {
+        9: "Scourge x2",
+        33: "Algalon x4",
+        57: "Sirus x5",
+    };
+    if (realm_id in realmName) {
+        return realmName[realm_id];
+    }
+    return undefined;
+};
 
 const lootPath = "./loot/";
 const settingsFile = lootPath + "loot.json";
@@ -31,7 +39,7 @@ const intervalUpdate = 1000 * 60 * 5;
 var client = undefined;
 var settings = {};
 var records = {};
-var bossThumbnails = undefined;
+var bossThumbnails = {};
 
 var mainStyle = undefined;
 var otherStyle = undefined;
@@ -44,6 +52,10 @@ function init(discord) {
     loadBossThumbnails();
     loadRecords();
     loadStyles();
+
+    const scourgeId = 9;
+    const algalonId = 33;
+    const sirusId = 57;
 
     refreshLoot(scourgeId);
     refreshLoot(algalonId);
@@ -165,13 +177,13 @@ async function getExtraInfoWrapper(record) {
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
     return new Promise(async (resolve, reject) => {
-        let responseBossKillInfo = await axios
+        const responseBossKillInfo = await axios
             .get(apiBase + `${realm_id}` + bossKillApi + record_id, {
                 headers: { "accept-encoding": null },
                 cache: true,
             })
             .catch(reject);
-        let dataBossKillInfo = responseBossKillInfo.data.data;
+        const dataBossKillInfo = responseBossKillInfo.data.data;
 
         let lootHtml = await Promise.all(
             dataBossKillInfo.loots.map((loot) =>
@@ -202,10 +214,13 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             }
         }
 
+        const realmName = getRealmNameById(realm_id);
         let embedMessage = new EmbedBuilder()
             .setColor("#0099ff")
             .setAuthor({
-                name: dataBossKillInfo.guild.name,
+                name:
+                    `${dataBossKillInfo.guild.name}` +
+                    (realmName !== undefined ? ` ${realmName}` : ""),
                 iconURL: client.guilds.cache.get(guild_id).iconURL(),
                 url: guildsUrl + `${realm_id}/${dataBossKillInfo.guild.entry}/`,
             })
@@ -233,8 +248,31 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 }
             );
 
-        const [places, players, dps] = parsePlayers(dataBossKillInfo.players);
+        const [places, players, dps, summaryDps] = parsePlayers(
+            dataBossKillInfo.players
+        );
         embedMessage
+            .addFields({
+                name: "\u200b",
+                value: "\u200b",
+            })
+            .addFields(
+                {
+                    name: "\u200b",
+                    value: "\u200b",
+                    inline: true,
+                },
+                {
+                    name: "\u200b",
+                    value: "\u200b",
+                    inline: true,
+                },
+                {
+                    name: "Суммарный DPS",
+                    value: `${summaryDps}`,
+                    inline: true,
+                }
+            )
             .addFields({
                 name: "\u200b",
                 value: "\u200b",
@@ -257,10 +295,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 }
             );
 
-        if (
-            bossThumbnails !== undefined &&
-            bossThumbnails[dataBossKillInfo.boss_name] !== undefined
-        ) {
+        if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
             embedMessage.setThumbnail(
                 bossThumbnails[dataBossKillInfo.boss_name]
             );
@@ -348,6 +383,7 @@ function parsePlayers(data) {
     let places = "";
     let players = "";
     let dps = "";
+    let summaryDps = 0;
 
     for (const player of data) {
         places += `**${i++}**\n`;
@@ -374,9 +410,11 @@ function parsePlayers(data) {
             player.character.name +
             "\n";
         dps += player.dps + "\n";
+        let dpsInt = parseInt(player.dps);
+        summaryDps += dpsInt !== NaN ? dpsInt : 0;
     }
 
-    return [places, players, dps];
+    return [places, players, dps, summaryDps];
 }
 
 module.exports = {
