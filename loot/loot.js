@@ -220,7 +220,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             .setAuthor({
                 name:
                     `${dataBossKillInfo.guild.name}` +
-                    (realmName !== undefined ? ` ${realmName}` : ""),
+                    (realmName !== undefined ? ` - ${realmName}` : ""),
                 iconURL: client.guilds.cache.get(guild_id).iconURL(),
                 url: guildsUrl + `${realm_id}/${dataBossKillInfo.guild.entry}/`,
             })
