@@ -3,18 +3,21 @@ const axios = require("axios");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
-const apiBase = "https://sirus.su/api/base/";
-const latestFightsApi = "/leader-board/bossfights/latest?realm=";
-const bossKillApi = "/leader-board/bossfights/boss-kill/";
-const toolTipsItemApi = "https://sirus.su/api/tooltips/item/";
-const guildsUrl = "https://sirus.su/base/guilds/";
-const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill/";
+const apiBaseUrl = "https://sirus.su/api/base";
+const latestFightsApi = "leader-board/bossfights/latest";
+const bossKillApi = "leader-board/bossfights/boss-kill";
+const toolTipsItemApiUrl = "https://sirus.su/api/tooltips/item";
+const guildsUrl = "https://sirus.su/base/guilds";
+const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill";
 
+const scourgeId = 9;
+const algalonId = 33;
+const sirusId = 57;
 const getRealmNameById = (realm_id) => {
     const realmName = {
-        9: "Scourge x2",
-        33: "Algalon x4",
-        57: "Sirus x5",
+        scourgeId: "Scourge x2",
+        algalonId: "Algalon x4",
+        sirusId: "Sirus x5",
     };
     if (realm_id in realmName) {
         return realmName[realm_id];
@@ -22,28 +25,28 @@ const getRealmNameById = (realm_id) => {
     return undefined;
 };
 
-const lootPath = "./loot/";
-const settingsFile = lootPath + "loot.json";
-const bossThumbnailsFile = lootPath + "bossThumbnails.json";
+const lootPath = "./loot";
+const settingsFile = `${lootPath}/loot.json`;
+const bossThumbnailsFile = `${lootPath}/bossThumbnails.json`;
 
-const dataPath = "./data/";
-const recordsFile = dataPath + "records.json";
+const dataPath = "./data";
+const recordsFile = `${dataPath}/records.json`;
 
-const stylePath = "./styles/";
-const mainStyleFile = stylePath + "main.css";
-const otherStyleFile = stylePath + "other.css";
-const borderStyleFile = stylePath + "border.css";
+const stylePath = "./styles";
+const mainStyleFile = `${stylePath}/main.css`;
+const otherStyleFile = `${stylePath}/other.css`;
+const borderStyleFile = `${stylePath}/border.css`;
 
 const intervalUpdate = 1000 * 60 * 5;
 
-var client = undefined;
+var client;
 var settings = {};
 var records = {};
 var bossThumbnails = {};
 
-var mainStyle = undefined;
-var otherStyle = undefined;
-var borderStyle = undefined;
+var mainStyle;
+var otherStyle;
+var borderStyle;
 
 function init(discord) {
     client = discord;
@@ -53,17 +56,13 @@ function init(discord) {
     loadRecords();
     loadStyles();
 
-    const scourgeId = 9;
-    const algalonId = 33;
-    const sirusId = 57;
-
     refreshLoot(scourgeId);
     refreshLoot(algalonId);
     refreshLoot(sirusId);
 }
 
 function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
-    if (settings[guild_id] === undefined) {
+    if (!settings[guild_id]) {
         settings[guild_id] = {};
     }
     settings[guild_id].channel_id = channel_id;
@@ -121,13 +120,13 @@ function loadStyles() {
         console.log(`[LOG] Styles successfully loaded`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't load some style`);
+        console.log(`[WARNING] Can't parse some style`);
     }
 }
 
 async function refreshLoot(realm_id) {
     axios
-        .get(apiBase + `${realm_id}` + latestFightsApi + `${realm_id}`, {
+        .get(`${apiBaseUrl}/${realm_id}/${latestFightsApi}?realm=${realm_id}`, {
             headers: { "accept-encoding": null },
             cache: true,
         })
@@ -152,7 +151,7 @@ async function refreshLoot(realm_id) {
 
 async function getExtraInfoWrapper(record) {
     for (const [guild_id, entry] of Object.entries(settings)) {
-        if (records[guild_id] === undefined) {
+        if (!records[guild_id]) {
             records[guild_id] = [];
         }
         if (
@@ -178,7 +177,7 @@ async function getExtraInfoWrapper(record) {
 async function getExtraInfo(guild_id, record_id, realm_id) {
     return new Promise(async (resolve, reject) => {
         const responseBossKillInfo = await axios
-            .get(apiBase + `${realm_id}` + bossKillApi + record_id, {
+            .get(`${apiBaseUrl}/${realm_id}/${bossKillApi}/${record_id}`, {
                 headers: { "accept-encoding": null },
                 cache: true,
             })
@@ -192,12 +191,11 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         ).catch(reject);
         lootHtml = lootHtml.join().replaceAll(",", "");
 
-        let fileName = undefined;
+        let fileName;
         if (lootHtml) {
-            const html =
-                '<!doctype html> <html><body><div style="display: flex; justify-content: center;">' +
-                lootHtml +
-                "</div></body></html>";
+            const html = `<!doctype html> <html><body><div style="display: flex; justify-content: center;">
+                ${lootHtml}
+                </div></body></html>`;
             fileName = [...Array(10)]
                 .map(() => (~~(Math.random() * 36)).toString(36))
                 .join("");
@@ -220,20 +218,21 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             .setAuthor({
                 name:
                     `${dataBossKillInfo.guild.name}` +
-                    (realmName !== undefined ? ` - ${realmName}` : ""),
+                    (realmName ? ` - ${realmName}` : ""),
                 iconURL: client.guilds.cache.get(guild_id).iconURL(),
-                url: guildsUrl + `${realm_id}/${dataBossKillInfo.guild.entry}/`,
+                url: `${guildsUrl}/${realm_id}/${dataBossKillInfo.guild.entry}`,
             })
-            .setTitle("Упал босс " + dataBossKillInfo.boss_name)
-            .setURL(pveProgressUrl + `${realm_id}/` + record_id)
+            .setTitle(`Убийство босса ${dataBossKillInfo.boss_name}`)
+            .setURL(`${pveProgressUrl}/${realm_id}/${record_id}`)
             .setFooter({
-                text: "Юи, ваш ассистент",
+                text: "Юи, Ваш ассистент",
                 iconURL: "https://i.imgur.com/LvlhrPY.png",
             })
+            .setTimestamp()
             .addFields(
                 {
                     name: "Попытки",
-                    value: dataBossKillInfo.attempts.toString(),
+                    value: `${dataBossKillInfo.attempts}`,
                     inline: true,
                 },
                 {
@@ -247,6 +246,12 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                     inline: true,
                 }
             );
+
+        if (bossThumbnails[dataBossKillInfo.boss_name]) {
+            embedMessage.setThumbnail(
+                bossThumbnails[dataBossKillInfo.boss_name]
+            );
+        }
 
         const [places, players, dps, summaryDps] = parsePlayers(
             dataBossKillInfo.players
@@ -268,8 +273,8 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                     inline: true,
                 },
                 {
-                    name: "Суммарный DPS",
-                    value: `${summaryDps}`,
+                    name: "Общий DPS",
+                    value: `${dpsToShortFormat(summaryDps)}k`,
                     inline: true,
                 }
             )
@@ -295,44 +300,38 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 }
             );
 
-        if (bossThumbnails[dataBossKillInfo.boss_name] !== undefined) {
-            embedMessage.setThumbnail(
-                bossThumbnails[dataBossKillInfo.boss_name]
-            );
-        }
-
-        if (lootHtml) {
-            embedMessage
-                .addFields({
-                    name: "\u200b",
-                    value: "\u200b",
-                })
-                .addFields({
-                    name: "Лут: ",
-                    value: "\u200b",
-                    inline: false,
-                });
-            embedMessage.setImage("attachment://" + fileName + ".png");
-
-            resolve({
-                embeds: [embedMessage],
-                files: [
-                    {
-                        attachment: "./images/" + fileName + ".png",
-                        name: fileName + ".png",
-                    },
-                ],
-            });
-        } else {
+        if (!lootHtml) {
             resolve({ embeds: [embedMessage] });
         }
+
+        embedMessage
+            .addFields({
+                name: "\u200b",
+                value: "\u200b",
+            })
+            .addFields({
+                name: "Лут",
+                value: "\u200b",
+                inline: false,
+            });
+        embedMessage.setImage(`attachment://${fileName}.png`);
+
+        resolve({
+            embeds: [embedMessage],
+            files: [
+                {
+                    attachment: `./images/${fileName}.png`,
+                    name: `${fileName}.png`,
+                },
+            ],
+        });
     });
 }
 
 async function getLootInfo(item, realm_id) {
     if (item.inventory_type && item.quality === 4 && item.level >= 200) {
         let responseLoot = await axios.get(
-            toolTipsItemApi + item.entry + `/${realm_id}`,
+            `${toolTipsItemApiUrl}/${item.entry}/${realm_id}`,
             { headers: { "accept-encoding": null }, cache: true }
         );
         return responseLoot.data.trim();
@@ -357,7 +356,7 @@ async function takeSceenshot(html, fileName, lootCount) {
     await page.addStyleTag({ content: otherStyle });
     await page.addStyleTag({ content: borderStyle });
     await page.screenshot({
-        path: "images/" + fileName + ".png",
+        path: `images/${fileName}.png`,
         fullPage: false,
         omitBackground: true,
     });
@@ -365,11 +364,10 @@ async function takeSceenshot(html, fileName, lootCount) {
     await browser.close();
 }
 
-const easterEgg = ["Logrus", "Rozx"];
-
 function parsePlayers(data) {
+    const easterEgg = ["Logrus", "Rozx"];
     const classEmojiFile = "./loot/classEmoji.json";
-    let classEmoji = undefined;
+    let classEmoji;
     try {
         classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
     } catch (error) {
@@ -388,11 +386,11 @@ function parsePlayers(data) {
     for (const player of data) {
         places += `**${i++}**\n`;
 
-        let emoji = undefined;
+        let emoji;
         try {
             if (easterEgg.find((item) => item === player.character.name)) {
                 emoji = client.emojis.cache.get("1067786576639295488");
-            } else if (classEmoji !== undefined) {
+            } else if (classEmoji) {
                 emoji = client.emojis.cache.get(
                     classEmoji[player.character.class_id].spec[player.spec]
                         .emoji_id
@@ -405,16 +403,22 @@ function parsePlayers(data) {
             );
         }
 
-        players +=
-            (emoji !== undefined ? `${emoji}` : "") +
-            player.character.name +
-            "\n";
-        dps += player.dps + "\n";
-        let dpsInt = parseInt(player.dps);
-        summaryDps += dpsInt !== NaN ? dpsInt : 0;
+        players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
+
+        const dpsInt = parseInt(player.dps);
+        if (dpsInt) {
+            dps += `${dpsToShortFormat(dpsInt)}k\n`;
+            summaryDps += dpsInt;
+        } else {
+            dps += "0k\n";
+        }
     }
 
     return [places, players, dps, summaryDps];
+}
+
+function dpsToShortFormat(dpsInt) {
+    return +(dpsInt.toFixed(1) / 1000).toFixed(1);
 }
 
 module.exports = {
