@@ -6,12 +6,12 @@ const changeLogApi = "https://sirus.su/api/statistic/changelog";
 
 const settingsFile = "./changelog/changelog.json";
 
-const dataPath = "./data/";
-const logFile = dataPath + "log.json";
+const dataPath = "./data";
+const logFile = `${dataPath}/log.json`;
 
 const intervalUpdate = 1000 * 60 * 5;
 
-var client = undefined;
+var client;
 var settings = {};
 
 function init(discord) {
@@ -77,20 +77,21 @@ async function sendData(response) {
         })
         .setTitle("Новые изменения на сервере Sirus.su")
         .setURL("https://sirus.su/statistic/changelog")
-        .setTimestamp()
         .setFooter({
-            text: "Юи, ваш ассистент",
+            text: "Юи, Ваш ассистент",
             iconURL: "https://i.imgur.com/LvlhrPY.png",
-        });
+        })
+        .setTimestamp();
 
     let message = "";
     for (let i = 0; i < cnt; ++i) {
+        // Embedded message can have maximum of 1024 characters
         if (message.length + data[i].message.length >= 1024) {
             embedMessage.setDescription(message);
             await sendChangeLog(embedMessage);
             message = "";
         }
-        message += data[i].message + "\n";
+        message += `${data[i].message}\n`;
     }
     if (message.length) {
         embedMessage.setDescription(message);
