@@ -15,9 +15,9 @@ const algalonId = 33;
 const sirusId = 57;
 const getRealmNameById = (realm_id) => {
     const realmName = {
-        scourgeId: "Scourge x2",
-        algalonId: "Algalon x4",
-        sirusId: "Sirus x5",
+        9: "Scourge x2",
+        33: "Algalon x4",
+        57: "Sirus x5",
     };
     if (realm_id in realmName) {
         return realmName[realm_id];
