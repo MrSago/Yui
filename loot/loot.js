@@ -200,11 +200,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 .map(() => (~~(Math.random() * 36)).toString(36))
                 .join("");
             try {
-                await takeSceenshot(
-                    html,
-                    fileName,
-                    dataBossKillInfo.loots.length
-                );
+                await takeSceenshot(html, fileName);
             } catch (error) {
                 console.error(error);
                 console.log("[WARNING] Can't take loot screenshot");
@@ -340,13 +336,10 @@ async function getLootInfo(item, realm_id) {
     }
 }
 
-async function takeSceenshot(html, fileName, lootCount) {
+async function takeSceenshot(html, fileName) {
     const browser = await puppeteer.launch({
         headless: true,
-        args: [
-            "--no-sandbox",
-            lootCount > 4 ? "--window-size=1300,700" : "--window-size=800,600",
-        ],
+        args: ["--no-sandbox", "--window-size=1400,800"],
         defaultViewport: null,
     });
 
