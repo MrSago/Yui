@@ -10,7 +10,7 @@
 
 ## Установка бота
 
-1. [Инвайт](https://discord.com/api/oauth2/authorize?client_id=1048561255989919795&permissions=8&scope=bot%20applications.commands) (необходимы права администратора)
+1. [Инвайт ссылка](https://discord.com/api/oauth2/authorize?client_id=1048561255989919795&permissions=8&scope=bot%20applications.commands) (необходимы права администратора)
 
 2. Установить необходимые каналы
 
@@ -51,6 +51,6 @@
 
 Для отображения кастомных смайлов напротив ников необходимо прописать их ID в файле `./loot/classEmoji.json` параметра `emoji_id`
 
-Запуск: `node ./index.js`
+Запуск: `node .`
 
-При первом запуске будут сообщения об ошибках, что файлы настроек не загружены. Они будут созданы при использовании команды `/setlootchannel` и `/setlogchannel`
+При первом запуске будут сообщения об ошибках, что файлы настроек не загружены. Они будут созданы при использовании команд `/setlootchannel` и `/setlogchannel`
