@@ -22,7 +22,7 @@ const getRealmNameById = (realm_id) => {
     if (realm_id in realmName) {
         return realmName[realm_id];
     }
-    return undefined;
+    return null;
 };
 
 const lootPath = "./loot";
@@ -204,7 +204,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
             } catch (error) {
                 console.error(error);
                 console.log("[WARNING] Can't take loot screenshot");
-                lootHtml = undefined;
+                lootHtml = null;
             }
         }
 
@@ -296,31 +296,31 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 }
             );
 
-        if (!lootHtml) {
+        if (lootHtml) {
+            embedMessage
+                .addFields({
+                    name: "\u200b",
+                    value: "\u200b",
+                })
+                .addFields({
+                    name: "Лут",
+                    value: "\u200b",
+                    inline: false,
+                });
+            embedMessage.setImage(`attachment://${fileName}.png`);
+
+            resolve({
+                embeds: [embedMessage],
+                files: [
+                    {
+                        attachment: `./images/${fileName}.png`,
+                        name: `${fileName}.png`,
+                    },
+                ],
+            });
+        } else {
             resolve({ embeds: [embedMessage] });
         }
-
-        embedMessage
-            .addFields({
-                name: "\u200b",
-                value: "\u200b",
-            })
-            .addFields({
-                name: "Лут",
-                value: "\u200b",
-                inline: false,
-            });
-        embedMessage.setImage(`attachment://${fileName}.png`);
-
-        resolve({
-            embeds: [embedMessage],
-            files: [
-                {
-                    attachment: `./images/${fileName}.png`,
-                    name: `${fileName}.png`,
-                },
-            ],
-        });
     });
 }
 
