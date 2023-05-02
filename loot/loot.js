@@ -1,3 +1,7 @@
+/*
+    Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
+*/
+
 const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const puppeteer = require("puppeteer");
