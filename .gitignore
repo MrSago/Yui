@@ -2,8 +2,5 @@
 node_modules
 package-lock.json
 data
-changelog/changelog.json
-loot/loot.json
-images/*
-!images/icons/*
+settings
 .prettierrc

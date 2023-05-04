@@ -30,10 +30,14 @@ const getRealmNameById = (realm_id) => {
 };
 
 const lootPath = "./loot";
-const settingsFile = `${lootPath}/loot.json`;
 const bossThumbnailsFile = `${lootPath}/bossThumbnails.json`;
+const classEmojiFile = `${lootPath}/classEmoji.json`;
+
+const settingsPath = "./settings";
+const settingsFile = `${settingsPath}/loot.json`;
 
 const dataPath = "./data";
+const screenshotsPath = `${dataPath}/images`;
 const recordsFile = `${dataPath}/records.json`;
 
 const stylePath = "./styles";
@@ -41,12 +45,13 @@ const mainStyleFile = `${stylePath}/main.css`;
 const otherStyleFile = `${stylePath}/other.css`;
 const borderStyleFile = `${stylePath}/border.css`;
 
-const intervalUpdate = 1000 * 60 * 2;
+const intervalUpdate = 1000 * 60 * 5;
 
 var client;
 var settings = {};
-var records = {};
 var bossThumbnails = {};
+var classEmoji = {};
+var records = {};
 
 var mainStyle;
 var otherStyle;
@@ -57,8 +62,13 @@ function init(discord) {
 
     loadSettings();
     loadBossThumbnails();
+    loadClassEmoji();
     loadRecords();
     loadStyles();
+
+    if (!fs.existsSync(screenshotsPath)) {
+        fs.mkdirSync(screenshotsPath);
+    }
 
     refreshLoot(scourgeId);
     refreshLoot(algalonId);
@@ -75,14 +85,28 @@ function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
 }
 
+function clearLootChannel(guild_id) {
+    if (guild_id in settings) {
+        delete settings[guild_id];
+        fs.writeFileSync(
+            settingsFile,
+            JSON.stringify(settings, null, 4),
+            "utf8"
+        );
+    }
+}
+
 function loadSettings() {
     console.log(`[LOG] Load settings from ${settingsFile}`);
     try {
+        if (!fs.existsSync(settingsPath)) {
+            fs.mkdirSync(settingsPath);
+        }
         settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
         console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't parse ${settingsFile}`);
+        console.log(`[WARNING] Can't load ${settingsFile}`);
     }
 }
 
@@ -97,7 +121,20 @@ function loadBossThumbnails() {
         );
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't parse ${bossThumbnailsFile}`);
+        console.log(`[WARNING] Can't load ${bossThumbnailsFile}`);
+    }
+}
+
+function loadClassEmoji() {
+    console.log(`[LOG] Load class emoji from ${classEmojiFile}`);
+    try {
+        classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
+        console.log(
+            `[LOG] Class emoji successfully loaded from ${classEmojiFile}`
+        );
+    } catch (error) {
+        console.error(error);
+        console.log(`[WARNING] Can't load ${classEmojiFile}`);
     }
 }
 
@@ -111,7 +148,7 @@ function loadRecords() {
         console.log(`[LOG] Records successfully loaded from ${recordsFile}`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't parse ${recordsFile}`);
+        console.log(`[WARNING] Can't load ${recordsFile}`);
     }
 }
 
@@ -124,7 +161,7 @@ function loadStyles() {
         console.log(`[LOG] Styles successfully loaded`);
     } catch (error) {
         console.error(error);
-        console.log(`[WARNING] Can't parse some style`);
+        console.log(`[WARNING] Can't load some style`);
     }
 }
 
@@ -317,7 +354,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
                 embeds: [embedMessage],
                 files: [
                     {
-                        attachment: `./images/${fileName}.png`,
+                        attachment: `${screenshotsPath}/${fileName}.png`,
                         name: `${fileName}.png`,
                     },
                 ],
@@ -353,7 +390,7 @@ async function takeSceenshot(html, fileName) {
     await page.addStyleTag({ content: otherStyle });
     await page.addStyleTag({ content: borderStyle });
     await page.screenshot({
-        path: `images/${fileName}.png`,
+        path: `${screenshotsPath}/${fileName}.png`,
         fullPage: false,
         omitBackground: true,
     });
@@ -363,14 +400,6 @@ async function takeSceenshot(html, fileName) {
 
 function parsePlayers(data) {
     const easterEgg = ["Logrus", "Rozx"];
-    const classEmojiFile = "./loot/classEmoji.json";
-    let classEmoji;
-    try {
-        classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
-    } catch (error) {
-        console.error(error);
-        console.log(`[WARNING] Can't load ${classEmojiFile}`);
-    }
 
     data.sort((a, b) => b.dps - a.dps);
 
@@ -421,4 +450,5 @@ function dpsToShortFormat(dpsInt) {
 module.exports = {
     init: init,
     setLootChannel: setLootChannel,
+    clearLootChannel: clearLootChannel,
 };

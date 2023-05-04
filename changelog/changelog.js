@@ -4,7 +4,8 @@ const fs = require("fs");
 
 const changeLogApi = "https://sirus.su/api/statistic/changelog";
 
-const settingsFile = "./changelog/changelog.json";
+const settingsPath = "./settings";
+const settingsFile = `${settingsPath}/changelog.json`;
 
 const dataPath = "./data";
 const logFile = `${dataPath}/log.json`;
@@ -25,6 +26,17 @@ function init(discord) {
 function setLogChannel(guild_id, channel_id) {
     settings[guild_id] = channel_id;
     fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+}
+
+function clearLogChannel(guild_id) {
+    if (guild_id in settings) {
+        delete settings[guild_id];
+        fs.writeFileSync(
+            settingsFile,
+            JSON.stringify(settings, null, 4),
+            "utf8"
+        );
+    }
 }
 
 function loadSettings() {
@@ -146,4 +158,5 @@ function saveLogs(logs) {
 module.exports = {
     init: init,
     setLogChannel: setLogChannel,
+    clearLogChannel: clearLogChannel,
 };
