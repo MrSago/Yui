@@ -1,12 +1,12 @@
 const { Events } = require("discord.js");
 
 module.exports = {
-    name: Events.ClientReady,
-    once: true,
+  name: Events.ClientReady,
+  once: true,
 
-    async execute(client) {
-        require("../changelog/changelog.js").init(client);
-        require("../loot/loot.js").init(client);
-        console.log(`Ready! Logged in as ${client.user.tag}`);
-    },
+  async execute(client) {
+    require("../changelog/changelog.js").init(client);
+    require("../loot/loot.js").init(client);
+    console.log(`Ready! Logged in as ${client.user.tag}`);
+  },
 };
