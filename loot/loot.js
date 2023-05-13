@@ -249,7 +249,6 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         text: "Юи, Ваш ассистент",
         iconURL: "https://i.imgur.com/LvlhrPY.png",
       })
-      .setTimestamp()
       .addFields(
         {
           name: "Попытки",

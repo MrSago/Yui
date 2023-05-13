@@ -89,7 +89,6 @@ async function sendData(response) {
       text: "Юи, Ваш ассистент",
       iconURL: "https://i.imgur.com/LvlhrPY.png",
     })
-    .setTimestamp();
 
   let message = "";
   for (let i = 0; i < cnt; ++i) {
