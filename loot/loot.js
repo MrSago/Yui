@@ -45,7 +45,7 @@ const mainStyleFile = `${stylePath}/main.css`;
 const otherStyleFile = `${stylePath}/other.css`;
 const borderStyleFile = `${stylePath}/border.css`;
 
-const intervalUpdate = 1000 * 60 * 5;
+const intervalUpdate = 1000 * 60 * 1;
 
 var client;
 var settings = {};
@@ -172,7 +172,9 @@ async function refreshLoot(realm_id) {
     })
     .catch((error) => {
       console.error(error);
-      console.log(`[WARNING] Can't get loot from realm ${realm_id}`);
+      console.log(
+        `[WARNING] Can't get loot from realm ${getRealmNameById(realm_id)}`
+      );
     });
 
   setTimeout(refreshLoot, intervalUpdate, realm_id);
@@ -271,7 +273,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
       embedMessage.setThumbnail(bossThumbnails[dataBossKillInfo.boss_name]);
     }
 
-    const [places, players, dps, summaryDps] = parsePlayers(
+    const [places, players, dps, summaryDps] = parseDpsPlayers(
       dataBossKillInfo.players
     );
     embedMessage
@@ -292,14 +294,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         },
         {
           name: "Общий DPS",
-          value: `${dpsToShortFormat(summaryDps)}k`,
+          value: `${intToShortFormat(summaryDps)}k`,
           inline: true,
         }
       )
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
       .addFields(
         {
           name: "Место",
@@ -314,6 +312,49 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         {
           name: "DPS",
           value: dps,
+          inline: true,
+        }
+      );
+
+    const [placesHeal, playersHeal, hps, summaryHps] = parseHealPlayers(
+      dataBossKillInfo.players
+    );
+    embedMessage
+      .addFields({
+        name: "\u200b",
+        value: "\u200b",
+      })
+      .addFields(
+        {
+          name: "\u200b",
+          value: "\u200b",
+          inline: true,
+        },
+        {
+          name: "\u200b",
+          value: "\u200b",
+          inline: true,
+        },
+        {
+          name: "Общий HPS",
+          value: `${intToShortFormat(summaryHps)}k`,
+          inline: true,
+        }
+      )
+      .addFields(
+        {
+          name: "Место",
+          value: placesHeal,
+          inline: true,
+        },
+        {
+          name: "Имя",
+          value: playersHeal,
+          inline: true,
+        },
+        {
+          name: "HPS",
+          value: hps,
           inline: true,
         }
       );
@@ -379,8 +420,9 @@ async function takeSceenshot(html, fileName) {
   await browser.close();
 }
 
-function parsePlayers(data) {
+function parseDpsPlayers(data) {
   const easterEgg = ["Logrus", "Rozx"];
+  const easterEggEmojiId = "1067786576639295488";
 
   data.sort((a, b) => b.dps - a.dps);
 
@@ -391,27 +433,27 @@ function parsePlayers(data) {
   let summaryDps = 0;
 
   for (const player of data) {
-    places += `**${i++}**\n`;
-
     let emoji;
     try {
+      const spec = classEmoji[player.character.class_id].spec[player.spec];
+      if (spec.heal) continue;
       if (easterEgg.find((item) => item === player.character.name)) {
-        emoji = client.emojis.cache.get("1067786576639295488");
-      } else if (classEmoji) {
-        emoji = client.emojis.cache.get(
-          classEmoji[player.character.class_id].spec[player.spec].emoji_id
-        );
+        emoji = client.emojis.cache.get(easterEggEmojiId);
+      } else {
+        emoji = client.emojis.cache.get(spec.emoji_id);
       }
     } catch (error) {
       console.error(error);
       console.log(`[WARNING] Can't get emoji for ${player.character.name}`);
     }
 
+    places += `**${i++}**\n`;
+
     players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
 
     const dpsInt = parseInt(player.dps);
     if (dpsInt) {
-      dps += `${dpsToShortFormat(dpsInt)}k\n`;
+      dps += `${intToShortFormat(dpsInt)}k\n`;
       summaryDps += dpsInt;
     } else {
       dps += "0k\n";
@@ -421,8 +463,44 @@ function parsePlayers(data) {
   return [places, players, dps, summaryDps];
 }
 
-function dpsToShortFormat(dpsInt) {
-  return +(dpsInt.toFixed(1) / 1000).toFixed(1);
+function parseHealPlayers(data) {
+  data.sort((a, b) => b.hps - a.hps);
+
+  let i = 1;
+  let places = "";
+  let players = "";
+  let hps = "";
+  let summaryHps = 0;
+
+  for (const player of data) {
+    let emoji;
+    try {
+      const spec = classEmoji[player.character.class_id].spec[player.spec];
+      if (!spec.heal) continue;
+      emoji = client.emojis.cache.get(spec.emoji_id);
+    } catch (error) {
+      console.error(error);
+      console.log(`[WARNING] Can't get emoji for ${player.character.name}`);
+    }
+
+    places += `**${i++}**\n`;
+
+    players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
+
+    const hpsInt = parseInt(player.hps);
+    if (hpsInt) {
+      hps += `${intToShortFormat(hpsInt)}k\n`;
+      summaryHps += hpsInt;
+    } else {
+      hps += "0k\n";
+    }
+  }
+
+  return [places, players, hps, summaryHps];
+}
+
+function intToShortFormat(value) {
+  return +(value.toFixed(1) / 1000).toFixed(1);
 }
 
 module.exports = {
