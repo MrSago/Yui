@@ -192,8 +192,13 @@ async function getExtraInfoWrapper(record) {
     ) {
       await getExtraInfo(guild_id, record.id, entry.realm_id)
         .then(async (message) => {
-          client.channels.cache.get(entry.channel_id).send(message);
-          records[guild_id].push(record.id);
+          const channel = client.channels.cache.get(entry.channel_id);
+          if (channel) {
+            channel.send(message);
+            records[guild_id].push(record.id);
+          } else {
+            clearLootChannel(guild_id);
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -273,7 +278,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
       embedMessage.setThumbnail(bossThumbnails[dataBossKillInfo.boss_name]);
     }
 
-    const [places, players, dps, summaryDps] = parseDpsPlayers(
+    const [placesDps, playersDps, dps, summaryDps] = parseDpsPlayers(
       dataBossKillInfo.players
     );
     embedMessage
@@ -301,12 +306,12 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
       .addFields(
         {
           name: "Место",
-          value: places,
+          value: placesDps,
           inline: true,
         },
         {
           name: "Имя",
-          value: players,
+          value: playersDps,
           inline: true,
         },
         {

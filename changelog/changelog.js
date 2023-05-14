@@ -88,7 +88,7 @@ async function sendData(response) {
     .setFooter({
       text: "Юи, Ваш ассистент",
       iconURL: "https://i.imgur.com/LvlhrPY.png",
-    })
+    });
 
   let message = "";
   for (let i = 0; i < cnt; ++i) {
@@ -132,9 +132,14 @@ function loadLogs() {
 }
 
 async function sendChangeLog(embedMessage) {
-  for (const channel_id of Object.values(settings)) {
+  for (const [guild_id, channel_id] of Object.entries(settings)) {
     try {
-      client.channels.cache.get(channel_id).send({ embeds: [embedMessage] });
+      const channel = client.channels.cache.get(channel_id);
+      if (channel) {
+        channel.send({ embeds: [embedMessage] });
+      } else {
+        clearLogChannel(guild_id);
+      }
     } catch (error) {
       console.error(error);
       console.log(`[WARNING] Can't send message to channel ${channel_id}`);
