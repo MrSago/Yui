@@ -185,6 +185,11 @@ async function getExtraInfoWrapper(record) {
     if (!records[guild_id]) {
       records[guild_id] = [];
     }
+
+    if (!client.guilds.cache.get(guild_id)) {
+      clearLootChannel(guild_id);
+    }
+
     if (
       record.guildId === entry.guild_sirus_id &&
       records[guild_id].indexOf(record.id) < 0 &&
