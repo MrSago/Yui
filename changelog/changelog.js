@@ -92,13 +92,13 @@ async function sendData(response) {
 
   let message = "";
   for (let i = 0; i < cnt; ++i) {
-    // Embedded message can have maximum of 1024 characters
-    if (message.length + data[i].message.length >= 1024) {
+    // Embedded message can have maximum of 2^12 (4096) characters
+    if (message.length + data[i].message.length + 2 >= 4096) {
       embedMessage.setDescription(message);
       await sendChangeLog(embedMessage);
       message = "";
     }
-    message += `${data[i].message}\n`;
+    message += `${data[i].message}\n\n`;
   }
   if (message.length) {
     embedMessage.setDescription(message);
