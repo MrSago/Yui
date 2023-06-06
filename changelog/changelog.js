@@ -25,13 +25,13 @@ function init(discord) {
 
 function setLogChannel(guild_id, channel_id) {
   settings[guild_id] = channel_id;
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
 }
 
 function clearLogChannel(guild_id) {
   if (guild_id in settings) {
     delete settings[guild_id];
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
   }
 }
 
@@ -148,7 +148,7 @@ async function sendChangeLog(embedMessage) {
 }
 
 function saveLogs(logs) {
-  fs.writeFileSync(logFile, JSON.stringify(logs, null, 4), "utf8");
+  fs.writeFileSync(logFile, JSON.stringify(logs, null, 2), "utf8");
 }
 
 module.exports = {
