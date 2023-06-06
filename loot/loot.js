@@ -72,6 +72,7 @@ function init(discord) {
   }
 
   for (const guild_id of Object.keys(settings)) {
+    refreshingLoots[guild_id] = true;
     refreshLoot(guild_id);
   }
 }
@@ -195,8 +196,8 @@ async function initGuildRecords(guild_id) {
     });
 
   if (!refreshingLoots[guild_id]) {
-    setTimeout(refreshLoot, intervalUpdate, guild_id);
     refreshingLoots[guild_id] = true;
+    setTimeout(refreshLoot, intervalUpdate, guild_id);
   }
 }
 
