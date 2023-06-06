@@ -45,13 +45,14 @@ const mainStyleFile = `${stylePath}/main.css`;
 const otherStyleFile = `${stylePath}/other.css`;
 const borderStyleFile = `${stylePath}/border.css`;
 
-const intervalUpdate = 1000 * 60 * 5;
+const intervalUpdate = 1000 * 60 * 1;
 
 var client;
 var settings = {};
 var bossThumbnails = {};
 var classEmoji = {};
 var records = {};
+var refreshingLoots = {};
 
 var mainStyle;
 var otherStyle;
@@ -70,9 +71,9 @@ function init(discord) {
     fs.mkdirSync(screenshotsPath);
   }
 
-  refreshLoot(scourgeId);
-  refreshLoot(algalonId);
-  refreshLoot(sirusId);
+  for (const guild_id of Object.keys(settings)) {
+    refreshLoot(guild_id);
+  }
 }
 
 function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
@@ -82,13 +83,18 @@ function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
   settings[guild_id].channel_id = channel_id;
   settings[guild_id].realm_id = realm_id;
   settings[guild_id].guild_sirus_id = guild_sirus_id;
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
+
+  initGuildRecords(guild_id);
 }
 
 function clearLootChannel(guild_id) {
   if (guild_id in settings) {
     delete settings[guild_id];
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 4), "utf8");
+    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
+
+    delete records[guild_id];
+    fs.writeFileSync(recordsFile, JSON.stringify(records, null, 2), "utf8");
   }
 }
 
@@ -157,59 +163,100 @@ function loadStyles() {
   }
 }
 
-async function refreshLoot(realm_id) {
+async function initGuildRecords(guild_id) {
+  const entry = settings[guild_id];
+
+  if (!records[guild_id]) {
+    records[guild_id] = [];
+  }
+
   axios
-    .get(`${apiBaseUrl}/${realm_id}/${latestFightsApi}?realm=${realm_id}`, {
-      headers: { "accept-encoding": null },
-      cache: true,
-    })
+    .get(
+      `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
+      {
+        headers: { "accept-encoding": null },
+        cache: true,
+      }
+    )
     .then((response) => {
       Promise.all(
-        response.data.data.map((record) => getExtraInfoWrapper(record))
+        response.data.data.map((record) => records[guild_id].push(record.id))
       ).then(() => {
-        fs.writeFileSync(recordsFile, JSON.stringify(records, null, 4), "utf8");
+        fs.writeFileSync(recordsFile, JSON.stringify(records, null, 2), "utf8");
       });
     })
     .catch((error) => {
       console.error(error);
       console.log(
-        `[WARNING] Can't get loot from realm ${getRealmNameById(realm_id)}`
+        `[WARNING] Can't get loot from realm ${getRealmNameById(
+          entry.realm_id
+        )} with guild sirus id ${entry.guild_sirus_id}`
       );
     });
 
-  setTimeout(refreshLoot, intervalUpdate, realm_id);
+  if (!refreshingLoots[guild_id]) {
+    setTimeout(refreshLoot, intervalUpdate, guild_id);
+    refreshingLoots[guild_id] = true;
+  }
 }
 
-async function getExtraInfoWrapper(record) {
-  for (const [guild_id, entry] of Object.entries(settings)) {
-    if (!records[guild_id]) {
-      records[guild_id] = [];
-    }
+async function refreshLoot(guild_id) {
+  const entry = settings[guild_id];
+  if (!entry) {
+    delete refreshingLoots[guild_id];
+    return;
+  }
 
-    if (!client.guilds.cache.get(guild_id)) {
-      clearLootChannel(guild_id);
-    }
+  axios
+    .get(
+      `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
+      {
+        headers: { "accept-encoding": null },
+        cache: true,
+      }
+    )
+    .then((response) => {
+      Promise.all(
+        response.data.data.map((record) =>
+          getExtraInfoWrapper(guild_id, record)
+        )
+      ).then(() => {
+        fs.writeFileSync(recordsFile, JSON.stringify(records, null, 2), "utf8");
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      console.log(
+        `[WARNING] Can't get loot from realm ${getRealmNameById(
+          entry.realm_id
+        )} with guild sirus id ${entry.guild_sirus_id}`
+      );
+    });
 
-    if (
-      record.guildId === entry.guild_sirus_id &&
-      records[guild_id].indexOf(record.id) < 0 &&
-      record.boss_name
-    ) {
-      await getExtraInfo(guild_id, record.id, entry.realm_id)
-        .then(async (message) => {
-          const channel = client.channels.cache.get(entry.channel_id);
-          if (channel) {
-            channel.send(message);
-            records[guild_id].push(record.id);
-          } else {
-            clearLootChannel(guild_id);
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-          console.log(`[WARNING] Can't get loot from record ${record.id}`);
-        });
-    }
+  setTimeout(refreshLoot, intervalUpdate, guild_id);
+}
+
+async function getExtraInfoWrapper(guild_id, record) {
+  const entry = settings[guild_id];
+
+  if (!client.guilds.cache.get(guild_id)) {
+    clearLootChannel(guild_id);
+    return;
+  }
+
+  if (records[guild_id].indexOf(record.id) < 0 && record.boss_name) {
+    await getExtraInfo(guild_id, record.id, entry.realm_id)
+      .then(async (message) => {
+        const channel = client.channels.cache.get(entry.channel_id);
+        if (channel) {
+          channel.send(message);
+          records[guild_id].push(record.id);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        console.log(`[WARNING] Can't get loot from record ${record.id}`);
+      });
   }
 }
 
