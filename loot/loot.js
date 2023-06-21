@@ -45,7 +45,7 @@ const mainStyleFile = `${stylePath}/main.css`;
 const otherStyleFile = `${stylePath}/other.css`;
 const borderStyleFile = `${stylePath}/border.css`;
 
-const intervalUpdate = 1000 * 60 * 1;
+const intervalUpdate = 1000 * 60 * 5;
 
 var client;
 var settings = {};
