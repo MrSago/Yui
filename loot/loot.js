@@ -208,7 +208,7 @@ async function refreshLoot(guild_id) {
     return;
   }
 
-  axios
+  await axios
     .get(
       `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
       {
@@ -274,10 +274,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     let lootHtml = await Promise.all(
       dataBossKillInfo.loots.map((loot) => getLootInfo(loot.item, realm_id))
     ).catch(reject);
-    lootHtml = lootHtml.join().replaceAll(",", "");
 
     let fileName;
     if (lootHtml) {
+      lootHtml = lootHtml.join().replaceAll(",", "");
       const html = `<!doctype html> <html><body><div style="display: flex; justify-content: center;">
                 ${lootHtml}
                 </div></body></html>`;
@@ -518,6 +518,10 @@ function parseDpsPlayers(data) {
     }
   }
 
+  if (places === "" || players === "" || dps === "" || summaryDps === "") {
+    return [" ", " ", " ", " "];
+  }
+
   return [places, players, dps, summaryDps];
 }
 
@@ -552,6 +556,10 @@ function parseHealPlayers(data) {
     } else {
       hps += "0k\n";
     }
+  }
+
+  if (places === "" || players === "" || dps === "" || summaryHps === "") {
+    return [" ", " ", " ", " "];
   }
 
   return [places, players, hps, summaryHps];
