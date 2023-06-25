@@ -4,13 +4,11 @@
 
 const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
-const puppeteer = require("puppeteer");
 const fs = require("fs");
 
 const apiBaseUrl = "https://sirus.su/api/base";
 const latestFightsApi = "leader-board/bossfights/latest";
 const bossKillApi = "leader-board/bossfights/boss-kill";
-const toolTipsItemApiUrl = "https://sirus.su/api/tooltips/item";
 const guildsUrl = "https://sirus.su/base/guilds";
 const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill";
 
@@ -37,15 +35,9 @@ const settingsPath = "./settings";
 const settingsFile = `${settingsPath}/loot.json`;
 
 const dataPath = "./data";
-const screenshotsPath = `${dataPath}/images`;
 const recordsFile = `${dataPath}/records.json`;
 
-const stylePath = "./styles";
-const mainStyleFile = `${stylePath}/main.css`;
-const otherStyleFile = `${stylePath}/other.css`;
-const borderStyleFile = `${stylePath}/border.css`;
-
-const intervalUpdate = 1000 * 60 * 5;
+const intervalUpdate = 1000 * 60 * 1;
 
 var client;
 var settings = {};
@@ -54,10 +46,6 @@ var classEmoji = {};
 var records = {};
 var refreshingLoots = {};
 
-var mainStyle;
-var otherStyle;
-var borderStyle;
-
 function init(discord) {
   client = discord;
 
@@ -65,11 +53,6 @@ function init(discord) {
   loadBossThumbnails();
   loadClassEmoji();
   loadRecords();
-  loadStyles();
-
-  if (!fs.existsSync(screenshotsPath)) {
-    fs.mkdirSync(screenshotsPath);
-  }
 
   for (const guild_id of Object.keys(settings)) {
     refreshingLoots[guild_id] = true;
@@ -148,19 +131,6 @@ function loadRecords() {
   } catch (error) {
     console.error(error);
     console.log(`[WARNING] Can't load ${recordsFile}`);
-  }
-}
-
-function loadStyles() {
-  console.log(`[LOG] Load styles from path ${stylePath}`);
-  try {
-    mainStyle = fs.readFileSync(mainStyleFile, "utf8");
-    otherStyle = fs.readFileSync(otherStyleFile, "utf8");
-    borderStyle = fs.readFileSync(borderStyleFile, "utf8");
-    console.log(`[LOG] Styles successfully loaded`);
-  } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't load some style`);
   }
 }
 
@@ -263,34 +233,18 @@ async function getExtraInfoWrapper(guild_id, record) {
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
   return new Promise(async (resolve, reject) => {
-    const responseBossKillInfo = await axios
-      .get(`${apiBaseUrl}/${realm_id}/${bossKillApi}/${record_id}`, {
-        headers: { "accept-encoding": null },
-        cache: true,
-      })
-      .catch(reject);
-    const dataBossKillInfo = responseBossKillInfo.data.data;
-
-    let lootHtml = await Promise.all(
-      dataBossKillInfo.loots.map((loot) => getLootInfo(loot.item, realm_id))
-    ).catch(reject);
-
-    let fileName;
-    if (lootHtml) {
-      lootHtml = lootHtml.join().replaceAll(",", "");
-      const html = `<!doctype html> <html><body><div style="display: flex; justify-content: center;">
-                ${lootHtml}
-                </div></body></html>`;
-      fileName = [...Array(10)]
-        .map(() => (~~(Math.random() * 36)).toString(36))
-        .join("");
-      try {
-        await takeSceenshot(html, fileName);
-      } catch (error) {
-        console.error(error);
-        console.log("[WARNING] Can't take loot screenshot");
-        lootHtml = null;
-      }
+    let dataBossKillInfo;
+    try {
+      const responseBossKillInfo = await axios
+        .get(`${apiBaseUrl}/${realm_id}/${bossKillApi}/${record_id}`, {
+          headers: { "accept-encoding": null },
+          cache: true,
+        })
+        .catch(reject);
+      dataBossKillInfo = responseBossKillInfo.data.data;
+    } catch {
+      reject();
+      return;
     }
 
     const realmName = getRealmNameById(realm_id);
@@ -417,65 +371,29 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         }
       );
 
-    if (lootHtml) {
-      embedMessage
-        .addFields({
-          name: "\u200b",
-          value: "\u200b",
-        })
-        .addFields({
-          name: "Лут",
-          value: "\u200b",
-          inline: false,
-        });
-      embedMessage.setImage(`attachment://${fileName}.png`);
-
-      resolve({
-        embeds: [embedMessage],
-        files: [
-          {
-            attachment: `${screenshotsPath}/${fileName}.png`,
-            name: `${fileName}.png`,
-          },
-        ],
-      });
-    } else {
-      resolve({ embeds: [embedMessage] });
+    let loot_str = "";
+    await Promise.all(
+      dataBossKillInfo.loots.map((loot) => {
+        if (loot.item.quality >= 4) {
+          loot_str += `${loot.item.name} x${loot.count}\n`;
+        }
+      })
+    ).catch(reject);
+    if (!loot_str || loot_str === "") {
+      loot_str = "\u200b";
     }
+    embedMessage
+      .addFields({
+        name: "\u200b",
+        value: "\u200b",
+      })
+      .addFields({
+        name: "Лут",
+        value: loot_str,
+      });
+
+    resolve({ embeds: [embedMessage] });
   });
-}
-
-async function getLootInfo(item, realm_id) {
-  if (item.inventory_type && item.quality === 4 && item.level >= 200) {
-    let responseLoot = await axios.get(
-      `${toolTipsItemApiUrl}/${item.entry}/${realm_id}`,
-      { headers: { "accept-encoding": null }, cache: true }
-    );
-    return responseLoot.data.trim();
-  } else {
-    return "";
-  }
-}
-
-async function takeSceenshot(html, fileName) {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--window-size=1400,800"],
-    defaultViewport: null,
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(html);
-  await page.addStyleTag({ content: mainStyle });
-  await page.addStyleTag({ content: otherStyle });
-  await page.addStyleTag({ content: borderStyle });
-  await page.screenshot({
-    path: `${screenshotsPath}/${fileName}.png`,
-    fullPage: false,
-    omitBackground: true,
-  });
-
-  await browser.close();
 }
 
 function parseDpsPlayers(data) {
@@ -518,8 +436,8 @@ function parseDpsPlayers(data) {
     }
   }
 
-  if (places === "" || players === "" || dps === "" || summaryDps === "") {
-    return [" ", " ", " ", " "];
+  if (places === "" || players === "" || dps === "") {
+    return ["\u200b", "\u200b", "\u200b", 0];
   }
 
   return [places, players, dps, summaryDps];
@@ -558,8 +476,8 @@ function parseHealPlayers(data) {
     }
   }
 
-  if (places === "" || players === "" || dps === "" || summaryHps === "") {
-    return [" ", " ", " ", " "];
+  if (places === "" || players === "" || hps === "") {
+    return ["\u200b", "\u200b", "\u200b", 0];
   }
 
   return [places, players, hps, summaryHps];
