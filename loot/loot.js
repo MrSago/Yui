@@ -30,6 +30,7 @@ const getRealmNameById = (realm_id) => {
 const lootPath = "./loot";
 const bossThumbnailsFile = `${lootPath}/bossThumbnails.json`;
 const classEmojiFile = `${lootPath}/classEmoji.json`;
+const blackListFile = `${lootPath}/blacklist.json`;
 
 const settingsPath = "./settings";
 const settingsFile = `${settingsPath}/loot.json`;
@@ -37,12 +38,13 @@ const settingsFile = `${settingsPath}/loot.json`;
 const dataPath = "./data";
 const recordsFile = `${dataPath}/records.json`;
 
-const intervalUpdate = 1000 * 60 * 1;
+const intervalUpdate = 1000 * 60 * 2;
 
 var client;
 var settings = {};
 var bossThumbnails = {};
 var classEmoji = {};
+var blacklist = [];
 var records = {};
 var refreshingLoots = {};
 
@@ -52,6 +54,7 @@ function init(discord) {
   loadSettings();
   loadBossThumbnails();
   loadClassEmoji();
+  loadBlacklist();
   loadRecords();
 
   for (const guild_id of Object.keys(settings)) {
@@ -117,6 +120,17 @@ function loadClassEmoji() {
   } catch (error) {
     console.error(error);
     console.log(`[WARNING] Can't load ${classEmojiFile}`);
+  }
+}
+
+function loadBlacklist() {
+  console.log(`[LOG] Load loot blacklist from ${blackListFile}`);
+  try {
+    blacklist = JSON.parse(fs.readFileSync(blackListFile, "utf8"));
+    console.log(`[LOG] Blacklist successfully loaded from ${blackListFile}`);
+  } catch (error) {
+    console.error(error);
+    console.log(`[WARNING] Can't load ${blackListFile}`);
   }
 }
 
@@ -374,8 +388,11 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     let loot_str = "";
     await Promise.all(
       dataBossKillInfo.loots.map((loot) => {
-        if (loot.item.quality >= 4) {
-          loot_str += `${loot.item.name} x${loot.count}\n`;
+        if (
+          loot.item.quality >= 4 &&
+          !blacklist.includes(loot.item.entry)
+        ) {
+          loot_str += `${loot.item.name} (${loot.item.level})\n`;
         }
       })
     ).catch(reject);
