@@ -14,11 +14,13 @@ const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill";
 
 const scourgeId = 9;
 const algalonId = 33;
+const soulseekerId = 42;
 const sirusId = 57;
 const getRealmNameById = (realm_id) => {
   const realmName = {
     9: "Scourge x2",
     33: "Algalon x4",
+    42: "Soulseeker x1",
     57: "Sirus x5",
   };
   if (realm_id in realmName) {
@@ -38,7 +40,7 @@ const settingsFile = `${settingsPath}/loot.json`;
 const dataPath = "./data";
 const recordsFile = `${dataPath}/records.json`;
 
-const intervalUpdate = 1000 * 60 * 2;
+const intervalUpdate = 1000 * 60 * 5;
 
 var client;
 var settings = {};
