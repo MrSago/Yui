@@ -40,7 +40,7 @@ const settingsFile = `${settingsPath}/loot.json`;
 const dataPath = "./data";
 const recordsFile = `${dataPath}/records.json`;
 
-const intervalUpdate = 1000 * 30;
+const intervalUpdate = 1000 * 60 * 5;
 
 var client;
 var settings = {};
