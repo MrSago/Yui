@@ -390,10 +390,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     let loot_str = "";
     await Promise.all(
       dataBossKillInfo.loots.map((loot) => {
-        if (
-          loot.item.quality >= 4 &&
-          !blacklist.includes(loot.item.entry)
-        ) {
+        if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
           loot_str += `${loot.item.name} (${loot.item.level})\n`;
         }
       })
