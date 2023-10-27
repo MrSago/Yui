@@ -40,7 +40,7 @@ const settingsFile = `${settingsPath}/loot.json`;
 const dataPath = "./data";
 const recordsFile = `${dataPath}/records.json`;
 
-const intervalUpdate = 1000 * 60 * 5;
+const intervalUpdate = 1000 * 30;
 
 var client;
 var settings = {};
@@ -231,7 +231,7 @@ async function getExtraInfoWrapper(guild_id, record) {
     return;
   }
 
-  if (records[guild_id].indexOf(record.id) < 0 && record.boss_name) {
+  if (records[guild_id].indexOf(record.id) < 0) {
     await getExtraInfo(guild_id, record.id, entry.realm_id)
       .then(async (message) => {
         const channel = client.channels.cache.get(entry.channel_id);
