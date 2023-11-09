@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { clearLogChannel } = require("../changelog/changelog.js");
+const { deleteChangelogChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,7 +9,7 @@ module.exports = {
 
   async execute(interaction) {
     const guild = interaction.guild;
-    clearLogChannel(guild.id);
+    deleteChangelogChannel(guild.id);
     await interaction.reply(
       `Настройки оповещений об изменениях Sirus.su успешно сброшены!`
     );

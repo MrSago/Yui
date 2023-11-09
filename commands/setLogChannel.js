@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { setLogChannel } = require("../changelog/changelog.js");
+const { setChangelogChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,7 +16,7 @@ module.exports = {
   async execute(interaction) {
     const guild = interaction.guild;
     const channel = interaction.options.getChannel("channel");
-    setLogChannel(guild.id, channel.id);
+    setChangelogChannel(guild.id, channel.id);
     await interaction.reply(`Канал ${channel} для списка изменений установлен`);
   },
 };

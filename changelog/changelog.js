@@ -1,11 +1,9 @@
 const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
+const db = require("../db/db.js");
 
 const changeLogApi = "https://sirus.su/api/statistic/changelog";
-
-const settingsPath = "./settings";
-const settingsFile = `${settingsPath}/changelog.json`;
 
 const dataPath = "./data";
 const logFile = `${dataPath}/log.json`;
@@ -13,37 +11,11 @@ const logFile = `${dataPath}/log.json`;
 const intervalUpdate = 1000 * 60 * 5;
 
 var client;
-var settings = {};
 
 function init(discord) {
   client = discord;
 
-  loadSettings();
-
   updateChangelog();
-}
-
-function setLogChannel(guild_id, channel_id) {
-  settings[guild_id] = channel_id;
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
-}
-
-function clearLogChannel(guild_id) {
-  if (guild_id in settings) {
-    delete settings[guild_id];
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
-  }
-}
-
-function loadSettings() {
-  console.log(`[LOG] Load settings from ${settingsFile}`);
-  try {
-    settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-    console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
-  } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't parse ${settingsFile}`);
-  }
 }
 
 async function updateChangelog() {
@@ -132,13 +104,18 @@ function loadLogs() {
 }
 
 async function sendChangeLog(embedMessage) {
-  for (const [guild_id, channel_id] of Object.entries(settings)) {
+  const settings = await db.getChangelogSettings();
+  if (!settings) {
+    return;
+  }
+
+  for (const entry of settings) {
     try {
-      const channel = client.channels.cache.get(channel_id);
+      const channel = client.channels.cache.get(entry.channel_id);
       if (channel) {
         channel.send({ embeds: [embedMessage] });
       } else {
-        clearLogChannel(guild_id);
+        // db.deleteChangelogChannel(guild_id);
       }
     } catch (error) {
       console.error(error);
@@ -153,6 +130,4 @@ function saveLogs(logs) {
 
 module.exports = {
   init: init,
-  setLogChannel: setLogChannel,
-  clearLogChannel: clearLogChannel,
 };
