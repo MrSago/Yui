@@ -1,7 +1,4 @@
-require("dotenv").config();
-const token = process.env["token"];
-const client_id = process.env["client_id"];
-
+const config = require("./environment.js").discord;
 const fs = require("node:fs");
 const path = require("node:path");
 const {
@@ -23,7 +20,7 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
   disableEveryone: false,
 });
-const rest = new REST({ version: "10" }).setToken(token);
+const rest = new REST({ version: "10" }).setToken(config.token);
 
 const commands = [];
 client.commands = new Collection();
@@ -78,7 +75,7 @@ for (const file of eventFiles) {
       `[LOG] Started refreshing ${commands.length} application (/) commands`
     );
 
-    const data = await rest.put(Routes.applicationCommands(client_id), {
+    const data = await rest.put(Routes.applicationCommands(config.client_id), {
       body: commands,
     });
 
@@ -90,4 +87,4 @@ for (const file of eventFiles) {
   }
 })();
 
-client.login(token);
+client.login(config.token);
