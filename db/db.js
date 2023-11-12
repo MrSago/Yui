@@ -28,22 +28,32 @@ function init() {
 async function setChangelogChannel(discord_id, channel_id) {
   const changelog_settings = await settings.findOne({ discord_id: discord_id });
   if (!changelog_settings) {
-    let result = await changelog.insertOne({ channel_id: channel_id });
+    const result = await changelog.insertOne({ channel_id: channel_id });
     await settings.insertOne({
       discord_id: discord_id,
       changelog_id: result.insertedId,
     });
-  } else {
-    await changelog.updateOne(
-      { _id: changelog_settings.changelog_id },
-      { $set: { channel_id: channel_id } }
-    );
+    return;
   }
+
+  if (!changelog_settings.changelog_id) {
+    const result = await changelog.insertOne({ channel_id: channel_id });
+    await settings.updateOne(
+      { discord_id: discord_id },
+      { $set: { changelog_id: result.insertedId } }
+    );
+    return;
+  }
+
+  await changelog.updateOne(
+    { _id: changelog_settings.changelog_id },
+    { $set: { channel_id: channel_id } }
+  );
 }
 
 async function deleteChangelogChannel(discord_id) {
   const changelog_settings = await settings.findOne({ discord_id: discord_id });
-  if (!changelog_settings) {
+  if (!changelog_settings || !changelog_settings.changelog_id) {
     return false;
   }
 
@@ -53,10 +63,15 @@ async function deleteChangelogChannel(discord_id) {
   if (!result.deletedCount) {
     return false;
   }
-  result = await settings.deleteOne({ discord_id: discord_id });
-  if (!result.deletedCount) {
+
+  result = await settings.updateOne(
+    { discord_id: discord_id },
+    { $unset: { changelog_id: 1 } }
+  );
+  if (!result.modifiedCount) {
     return false;
   }
+
   return true;
 }
 
@@ -66,7 +81,7 @@ async function getChangelogSettings() {
 
 async function getChangelogChannel(discord_id) {
   const changelog_settings = await settings.findOne({ discord_id: discord_id });
-  if (!changelog_settings) {
+  if (!changelog_settings || !changelog_settings.changelog_id) {
     return null;
   }
 
