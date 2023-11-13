@@ -72,11 +72,10 @@ async function deleteChangelogChannel(guild_id) {
 
 async function getChangelogSettings() {
   const entry = changelog.find();
-  if (entry) {
-    return await entry.toArray();
-  } else {
+  if (!entry) {
     return null;
   }
+  return await entry.toArray();
 }
 
 async function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
@@ -137,11 +136,10 @@ async function deleteLootChannel(guild_id) {
 
 async function getLootSettings() {
   const entry = loot.find();
-  if (entry) {
-    return await entry.toArray();
-  } else {
+  if (!entry) {
     return null;
   }
+  return await entry.toArray();
 }
 
 async function getGuildIdByLootId(loot_id) {
@@ -149,11 +147,10 @@ async function getGuildIdByLootId(loot_id) {
     { loot_id: loot_id },
     { projection: { _id: 0, guild_id: 1 } }
   );
-  if (entry.guild_id) {
-    return entry.guild_id;
-  } else {
+  if (!entry || !entry.guild_id) {
     return null;
   }
+  return entry.guild_id;
 }
 
 module.exports = {
