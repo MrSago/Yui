@@ -184,7 +184,10 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
       })
       .catch((error) => {
         console.error(error);
-        console.log(`[WARNING] Can't get loot from record ${record.id}`);
+        console.log(
+          "[WARNING] Error while getting loot info:" +
+            `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id}`
+        );
       });
   }
 }
