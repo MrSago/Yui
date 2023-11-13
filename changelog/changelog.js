@@ -15,10 +15,10 @@ var client;
 function init(discord) {
   client = discord;
 
-  updateChangelog();
+  startUpdatingChangelog();
 }
 
-async function updateChangelog() {
+async function startUpdatingChangelog() {
   axios
     .get(changeLogApi, {
       headers: { "accept-encoding": null },
@@ -30,7 +30,7 @@ async function updateChangelog() {
       console.log("[WARNING] Can't get changelog from Sirus.su");
     });
 
-  setTimeout(updateChangelog, intervalUpdate);
+  setTimeout(startUpdatingChangelog, intervalUpdate);
 }
 
 async function sendData(response) {
@@ -106,6 +106,7 @@ function loadLogs() {
 async function sendChangeLog(embedMessage) {
   const settings = await db.getChangelogSettings();
   if (!settings) {
+    console.log("[WARNING] Can't load changelog settings from DB");
     return;
   }
 

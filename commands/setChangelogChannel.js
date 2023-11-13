@@ -3,7 +3,7 @@ const { setChangelogChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setlogchannel")
+    .setName("setchangelogchannel")
     .setDescription("Установить канал для списка изменений")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addChannelOption((option) =>
