@@ -3,7 +3,7 @@ const { setLootChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setlootchannel")
+    .setName("setloot")
     .setDescription("Установить канал для вывода информации лута")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addChannelOption((option) =>

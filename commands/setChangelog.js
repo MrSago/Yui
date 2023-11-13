@@ -3,8 +3,8 @@ const { setChangelogChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setchangelogchannel")
-    .setDescription("Установить канал для списка изменений")
+    .setName("setchangelog")
+    .setDescription("Установить канал для списка изменений Sirus.su")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addChannelOption((option) =>
       option

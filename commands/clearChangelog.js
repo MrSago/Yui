@@ -3,7 +3,7 @@ const { deleteChangelogChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("clearlogchannel")
+    .setName("clearchangelog")
     .setDescription("Удалить настройки оповещений об изменениях Sirus.su")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
