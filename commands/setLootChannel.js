@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { setLootChannel } = require("../loot/loot.js");
+const { setLootChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
-const { clearLootChannel } = require("../loot/loot.js");
+const { deleteLootChannel } = require("../db/db.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,7 +9,7 @@ module.exports = {
 
   async execute(interaction) {
     const guild = interaction.guild;
-    clearLootChannel(guild.id);
+    deleteLootChannel(guild.id);
     await interaction.reply(
       `Настройки оповещений об убийствах боссов успешно сброшены!`
     );

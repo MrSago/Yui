@@ -1,5 +1,5 @@
-const config = require("../environment.js").db;
 const { MongoClient } = require("mongodb");
+const config = require("../environment.js").db;
 
 const uri =
   `mongodb://${config.user}:${config.pwd}` +
@@ -14,7 +14,7 @@ const changelog = db.collection("changelog");
 const loot = db.collection("loot");
 
 function init() {
-  settings.createIndex({ discord_id: 1 }, { unique: true });
+  settings.createIndex({ guild_id: 1 }, { unique: true });
   settings.createIndex({ changelog_id: 2 });
   settings.createIndex({ loot_id: 2 });
 
@@ -25,76 +25,146 @@ function init() {
   loot.createIndex({ guild_sirus_id: 2 });
 }
 
-async function setChangelogChannel(discord_id, channel_id) {
-  const changelog_settings = await settings.findOne({ discord_id: discord_id });
-  if (!changelog_settings) {
+async function setChangelogChannel(guild_id, channel_id) {
+  const guild_settings = await settings.findOne({ guild_id: guild_id });
+  if (!guild_settings) {
     const result = await changelog.insertOne({ channel_id: channel_id });
     await settings.insertOne({
-      discord_id: discord_id,
+      guild_id: guild_id,
       changelog_id: result.insertedId,
     });
     return;
   }
 
-  if (!changelog_settings.changelog_id) {
+  if (!guild_settings.changelog_id) {
     const result = await changelog.insertOne({ channel_id: channel_id });
     await settings.updateOne(
-      { discord_id: discord_id },
+      { guild_id: guild_id },
       { $set: { changelog_id: result.insertedId } }
     );
     return;
   }
 
   await changelog.updateOne(
-    { _id: changelog_settings.changelog_id },
+    { _id: guild_settings.changelog_id },
     { $set: { channel_id: channel_id } }
   );
 }
 
-async function deleteChangelogChannel(discord_id) {
-  const changelog_settings = await settings.findOne({ discord_id: discord_id });
-  if (!changelog_settings || !changelog_settings.changelog_id) {
-    return false;
+async function deleteChangelogChannel(guild_id) {
+  const guild_settings = await settings.findOne({ guild_id: guild_id });
+  if (!guild_settings || !guild_settings.changelog_id) {
+    return;
   }
 
-  let result = await changelog.deleteOne({
-    _id: changelog_settings.changelog_id,
+  const result = await changelog.deleteOne({
+    _id: guild_settings.changelog_id,
   });
   if (!result.deletedCount) {
-    return false;
+    return;
   }
 
-  result = await settings.updateOne(
-    { discord_id: discord_id },
+  await settings.updateOne(
+    { guild_id: guild_id },
     { $unset: { changelog_id: 1 } }
   );
-  if (!result.modifiedCount) {
-    return false;
-  }
-
-  return true;
 }
 
 async function getChangelogSettings() {
-  return await changelog.find().toArray();
-}
-
-async function getChangelogChannel(discord_id) {
-  const changelog_settings = await settings.findOne({ discord_id: discord_id });
-  if (!changelog_settings || !changelog_settings.changelog_id) {
+  const entry = changelog.find();
+  if (entry) {
+    return await entry.toArray();
+  } else {
     return null;
   }
+}
 
-  const doc = await changelog.findOne({
-    _id: changelog_settings.changelog_id,
+async function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
+  const guild_settings = await settings.findOne({ guild_id: guild_id });
+  if (!guild_settings) {
+    const result = await loot.insertOne({
+      channel_id: channel_id,
+      realm_id: realm_id,
+      guild_sirus_id: guild_sirus_id,
+    });
+    await settings.insertOne({
+      guild_id: guild_id,
+      loot_id: result.insertedId,
+    });
+    return;
+  }
+
+  if (!guild_settings.loot_id) {
+    const result = await loot.insertOne({
+      channel_id: channel_id,
+      realm_id: realm_id,
+      guild_sirus_id: guild_sirus_id,
+    });
+    await settings.updateOne(
+      { guild_id: guild_id },
+      { $set: { loot_id: result.insertedId } }
+    );
+    return;
+  }
+
+  await loot.updateOne(
+    { _id: guild_settings.loot_id },
+    {
+      $set: {
+        channel_id: channel_id,
+        realm_id: realm_id,
+        guild_sirus_id: guild_sirus_id,
+      },
+    }
+  );
+}
+
+async function deleteLootChannel(guild_id) {
+  const guild_settings = await settings.findOne({ guild_id: guild_id });
+  if (!guild_settings || !guild_settings.loot_id) {
+    return;
+  }
+
+  const result = await loot.deleteOne({
+    _id: guild_settings.loot_id,
   });
-  return doc.channel_id;
+  if (!result.deletedCount) {
+    return;
+  }
+
+  await settings.updateOne({ guild_id: guild_id }, { $unset: { loot_id: 1 } });
+}
+
+async function getLootSettings() {
+  const entry = loot.find();
+  if (entry) {
+    return await entry.toArray();
+  } else {
+    return null;
+  }
+}
+
+async function getGuildIdByLootId(loot_id) {
+  const entry = await settings.findOne(
+    { loot_id: loot_id },
+    { projection: { _id: 0, guild_id: 1 } }
+  );
+  if (entry.guild_id) {
+    return entry.guild_id;
+  } else {
+    return null;
+  }
 }
 
 module.exports = {
   init: init,
+
   setChangelogChannel: setChangelogChannel,
   deleteChangelogChannel: deleteChangelogChannel,
   getChangelogSettings: getChangelogSettings,
-  getChangelogChannel: getChangelogChannel,
+
+  setLootChannel: setLootChannel,
+  deleteLootChannel: deleteLootChannel,
+  getLootSettings: getLootSettings,
+  getGuildIdByLootId: getGuildIdByLootId,
 };
