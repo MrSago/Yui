@@ -9,9 +9,12 @@ const uri =
 
 const client = new MongoClient(uri);
 const db = client.db(config.auth_source);
+
 const settings = db.collection("settings");
 const changelog = db.collection("changelog");
 const loot = db.collection("loot");
+
+const records = db.collection("records");
 
 function init() {
   settings.createIndex({ guild_id: 1 }, { unique: true });
@@ -23,6 +26,9 @@ function init() {
   loot.createIndex({ channel_id: 2 });
   loot.createIndex({ realm_id: 2 });
   loot.createIndex({ guild_sirus_id: 2 });
+
+  records.createIndex({ guild_id: 1 }, { unique: true });
+  records.createIndex({ records: 2 });
 }
 
 async function setChangelogChannel(guild_id, channel_id) {
@@ -153,6 +159,38 @@ async function getGuildIdByLootId(loot_id) {
   return entry.guild_id;
 }
 
+async function initRecords(guild_id) {
+  const entry = await records.findOne({ guild_id: guild_id });
+  if (!entry) {
+    await records.insertOne({ guild_id: guild_id, records: [] });
+    return true;
+  }
+  return false;
+}
+
+async function pushRecords(guild_id, push_recs) {
+  const entry = await records.findOne({ guild_id: guild_id });
+  if (!entry) {
+    return false;
+  }
+  await records.updateOne(
+    { guild_id: guild_id },
+    { $addToSet: { records: { $each: push_recs } } }
+  );
+  return true;
+}
+
+async function checkRecord(guild_id, record) {
+  const entry = await records.findOne({
+    guild_id: guild_id,
+    records: { $in: [record] },
+  });
+  if (!entry) {
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   init: init,
 
@@ -164,4 +202,8 @@ module.exports = {
   deleteLootChannel: deleteLootChannel,
   getLootSettings: getLootSettings,
   getGuildIdByLootId: getGuildIdByLootId,
+
+  initRecords: initRecords,
+  pushRecords: pushRecords,
+  checkRecord: checkRecord,
 };
