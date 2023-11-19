@@ -35,19 +35,12 @@ const bossThumbnailsFile = `${lootPath}/bossThumbnails.json`;
 const classEmojiFile = `${lootPath}/classEmoji.json`;
 const blackListFile = `${lootPath}/blacklist.json`;
 
-const settingsPath = "./settings";
-const settingsFile = `${settingsPath}/loot.json`;
-
-const dataPath = "./data";
-const recordsFile = `${dataPath}/records.json`;
-
 const intervalUpdate = 1000 * 60 * 5;
 
 var client;
 var bossThumbnails = {};
 var classEmoji = {};
 var blacklist = [];
-var records = {};
 
 function init(discord) {
   client = discord;
@@ -55,7 +48,6 @@ function init(discord) {
   loadBossThumbnails();
   loadClassEmoji();
   loadBlacklist();
-  loadRecords();
 
   startRefreshingLoot();
 }
@@ -95,20 +87,6 @@ function loadBlacklist() {
   }
 }
 
-function loadRecords() {
-  console.log(`[LOG] Load records from ${recordsFile}`);
-  try {
-    if (!fs.existsSync(dataPath)) {
-      fs.mkdirSync(dataPath);
-    }
-    records = JSON.parse(fs.readFileSync(recordsFile, "utf8"));
-    console.log(`[LOG] Records successfully loaded from ${recordsFile}`);
-  } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't load ${recordsFile}`);
-  }
-}
-
 async function startRefreshingLoot() {
   const settings = await db.getLootSettings();
   if (!settings) {
@@ -123,12 +101,9 @@ async function startRefreshingLoot() {
       continue;
     }
 
-    let first_init = false;
-    if (!records[guild_id]) {
-      records[guild_id] = [];
-      first_init = true;
-    }
+    let first_init = await db.initRecords(guild_id);
 
+    let sended_records = [];
     await axios
       .get(
         `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
@@ -139,19 +114,24 @@ async function startRefreshingLoot() {
       )
       .then((response) => {
         Promise.all(
-          response.data.data.map((record) => {
+          response.data.data.map(async (record) => {
             if (first_init) {
-              records[guild_id].push(record.id);
+              sended_records.push(record.id);
             } else {
-              getExtraInfoWrapper(entry, guild_id, record);
+              const record_id = await getExtraInfoWrapper(
+                entry,
+                guild_id,
+                record
+              );
+              if (record_id) {
+                sended_records.push(record_id);
+              }
             }
           })
         ).then(() => {
-          fs.writeFileSync(
-            recordsFile,
-            JSON.stringify(records, null, 2),
-            "utf8"
-          );
+          if (sended_records.length > 0) {
+            db.pushRecords(guild_id, sended_records);
+          }
         });
       })
       .catch((error) => {
@@ -170,26 +150,26 @@ async function startRefreshingLoot() {
 async function getExtraInfoWrapper(entry, guild_id, record) {
   if (!client.guilds.cache.get(guild_id)) {
     // clearLootChannel(guild_id);
-    return;
+    return null;
   }
 
-  if (records[guild_id].indexOf(record.id) < 0) {
-    await getExtraInfo(guild_id, record.id, entry.realm_id)
-      .then(async (message) => {
-        const channel = client.channels.cache.get(entry.channel_id);
-        if (channel) {
-          channel.send(message);
-          records[guild_id].push(record.id);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        console.log(
-          "[WARNING] Error while getting loot info:" +
-            `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id}`
-        );
-      });
+  if (!(await db.checkRecord(guild_id, record.id))) {
+    try {
+      const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
+      const channel = client.channels.cache.get(entry.channel_id);
+      if (channel) {
+        channel.send(message);
+        return record.id;
+      }
+    } catch (error) {
+      console.error(error);
+      console.log(
+        "[WARNING] Error while getting loot info:" +
+          `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`
+      );
+    }
   }
+  return null;
 }
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
