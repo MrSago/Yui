@@ -160,13 +160,17 @@ async function getGuildIdByLootId(loot_id) {
   return entry.guild_id;
 }
 
+async function getSettingsArray() {
+  return await settings.find({}).toArray();
+}
+
 function clearGuildSettings(guild_id) {
   deleteChangelogChannel(guild_id);
   deleteLootChannel(guild_id);
   settings.deleteOne({ guild_id: guild_id });
 }
 
-async function getGuildCount() {
+async function getGuildsCount() {
   return await settings.countDocuments();
 }
 
@@ -214,8 +218,9 @@ module.exports = {
   getLootSettings: getLootSettings,
   getGuildIdByLootId: getGuildIdByLootId,
 
+  getSettingsArray: getSettingsArray,
   clearGuildSettings: clearGuildSettings,
-  getGuildCount: getGuildCount,
+  getGuildsCount: getGuildsCount,
 
   initRecords: initRecords,
   pushRecords: pushRecords,
