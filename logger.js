@@ -1,6 +1,6 @@
 const { log_guild_id, log_channel_id } = require("./environment.js").discord;
 
-const levels = { error: 0, warn: 1, info: 2, discord: 3, debug: 4 };
+const LEVELS = { error: 0, warn: 1, info: 2, discord: 3, debug: 4 };
 
 var client;
 var currentLevel = "info";
@@ -11,7 +11,7 @@ function init(discord, level) {
 }
 
 function log(message, level = "info") {
-  if (levels[level] > levels[currentLevel]) {
+  if (LEVELS[level] > LEVELS[currentLevel]) {
     return;
   }
 
@@ -57,7 +57,7 @@ function debug(message) {
 }
 
 function setLevel(newLevel) {
-  if (newLevel in levels) {
+  if (newLevel in LEVELS) {
     currentLevel = newLevel;
   }
 }

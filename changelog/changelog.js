@@ -5,12 +5,12 @@ const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
 
-const changeLogApiUrl = "https://sirus.su/api/statistic/changelog";
+const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
 
-const dataPath = "./data";
-const logFile = `${dataPath}/log.json`;
+const DATA_PATH = "./data";
+const LOG_FILE = `${DATA_PATH}/log.json`;
 
-const intervalUpdateMs = 1000 * 60 * 5;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 5;
 
 var client;
 
@@ -21,9 +21,10 @@ function init(discord) {
 }
 
 async function startUpdatingChangelog() {
-  logger.info("Updating changelog");
+  logger.info("Updating changelog started");
+
   axios
-    .get(changeLogApiUrl, {
+    .get(CHANGELOG_API_URL, {
       headers: { "accept-encoding": null },
       cache: true,
     })
@@ -33,7 +34,9 @@ async function startUpdatingChangelog() {
       logger.warn("Can't get changelog from Sirus.su");
     });
 
-  setTimeout(startUpdatingChangelog, intervalUpdateMs);
+  logger.info("Updating changelog ended");
+
+  setTimeout(startUpdatingChangelog, INTERVAL_UPDATE_MS);
 }
 
 async function sendData(response) {
@@ -96,14 +99,14 @@ function parseData(data, logs) {
 }
 
 function loadLogs() {
-  if (!fs.existsSync(dataPath)) {
-    fs.mkdirSync(dataPath);
+  if (!fs.existsSync(DATA_PATH)) {
+    fs.mkdirSync(DATA_PATH);
   }
-  if (!fs.existsSync(logFile)) {
-    fs.writeFileSync(logFile, "[]", "utf8");
+  if (!fs.existsSync(LOG_FILE)) {
+    fs.writeFileSync(LOG_FILE, "[]", "utf8");
     return [];
   }
-  return JSON.parse(fs.readFileSync(logFile, "utf8"));
+  return JSON.parse(fs.readFileSync(LOG_FILE, "utf8"));
 }
 
 async function sendChangeLog(embedMessage) {
@@ -118,8 +121,6 @@ async function sendChangeLog(embedMessage) {
       const channel = client.channels.cache.get(entry.channel_id);
       if (channel) {
         channel.send({ embeds: [embedMessage] });
-      } else {
-        // db.deleteChangelogChannel(guild_id);
       }
     } catch (error) {
       logger.error(error);
@@ -129,7 +130,7 @@ async function sendChangeLog(embedMessage) {
 }
 
 function saveLogs(logs) {
-  fs.writeFileSync(logFile, JSON.stringify(logs, null, 2), "utf8");
+  fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2), "utf8");
 }
 
 module.exports = {

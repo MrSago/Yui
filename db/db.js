@@ -2,13 +2,13 @@ const config = require("../environment.js").db;
 
 const { MongoClient } = require("mongodb");
 
-const uri =
+const URI =
   `mongodb://${config.user}:${config.pwd}` +
   `@${config.cluster_url}:${config.port}` +
   `/?authMechanism=${config.auth_mechanism}` +
   `&authSource=${config.auth_source}`;
 
-const client = new MongoClient(uri);
+const client = new MongoClient(URI);
 const db = client.db(config.auth_source);
 
 const settings = db.collection("settings");
@@ -160,20 +160,6 @@ async function getGuildIdByLootId(loot_id) {
   return entry.guild_id;
 }
 
-async function getSettingsArray() {
-  return await settings.find({}).toArray();
-}
-
-function clearGuildSettings(guild_id) {
-  deleteChangelogChannel(guild_id);
-  deleteLootChannel(guild_id);
-  settings.deleteOne({ guild_id: guild_id });
-}
-
-async function getGuildsCount() {
-  return await settings.countDocuments();
-}
-
 async function initRecords(guild_id) {
   const entry = await records.findOne({ guild_id: guild_id });
   if (!entry) {
@@ -181,6 +167,14 @@ async function initRecords(guild_id) {
     return true;
   }
   return false;
+}
+
+async function deleteRecords(guild_id) {
+  const entry = await records.findOne({ guild_id: guild_id });
+  if (!entry) {
+    return;
+  }
+  await records.deleteOne({ guild_id: guild_id });
 }
 
 async function pushRecords(guild_id, push_recs) {
@@ -206,6 +200,21 @@ async function checkRecord(guild_id, record) {
   return true;
 }
 
+async function getSettingsArray() {
+  return await settings.find({}).toArray();
+}
+
+function clearGuildSettings(guild_id) {
+  deleteChangelogChannel(guild_id);
+  deleteLootChannel(guild_id);
+  deleteRecords(guild_id);
+  settings.deleteOne({ guild_id: guild_id });
+}
+
+async function getGuildsCount() {
+  return await settings.countDocuments();
+}
+
 module.exports = {
   init: init,
 
@@ -218,11 +227,12 @@ module.exports = {
   getLootSettings: getLootSettings,
   getGuildIdByLootId: getGuildIdByLootId,
 
+  initRecords: initRecords,
+  deleteRecords: deleteRecords,
+  pushRecords: pushRecords,
+  checkRecord: checkRecord,
+
   getSettingsArray: getSettingsArray,
   clearGuildSettings: clearGuildSettings,
   getGuildsCount: getGuildsCount,
-
-  initRecords: initRecords,
-  pushRecords: pushRecords,
-  checkRecord: checkRecord,
 };

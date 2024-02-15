@@ -9,35 +9,31 @@ const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
 
-const apiBaseUrl = "https://sirus.su/api/base";
-const latestFightsApi = "leader-board/bossfights/latest";
-const bossKillApi = "leader-board/bossfights/boss-kill";
-const guildsUrl = "https://sirus.su/base/guilds";
-const pveProgressUrl = "https://sirus.su/base/pve-progression/boss-kill";
+const API_BASE_URL = "https://sirus.su/api/base";
+const LATEST_FIGHTS_API = "leader-board/bossfights/latest";
+const BOSS_KILL_API = "leader-board/bossfights/boss-kill";
+const GUILDS_URL = "https://sirus.su/base/guilds";
+const PVE_PROGRESS_URL = "https://sirus.su/base/pve-progression/boss-kill";
 
-const scourgeId = 9;
-const algalonId = 33;
-const soulseekerId = 42;
-const sirusId = 57;
-const realmName = {
+const REALM_NAMES = {
   9: "Scourge x2",
   33: "Algalon x4",
   42: "Soulseeker x1",
   57: "Sirus x5",
 };
 const getRealmNameById = (realm_id) => {
-  if (realmName[realm_id]) {
-    return realmName[realm_id];
+  if (REALM_NAMES[realm_id]) {
+    return REALM_NAMES[realm_id];
   }
   return null;
 };
 
-const lootPath = "./loot";
-const bossThumbnailsFile = `${lootPath}/bossThumbnails.json`;
-const classEmojiFile = `${lootPath}/classEmoji.json`;
-const blackListFile = `${lootPath}/blacklist.json`;
+const LOOT_PATH = "./loot";
+const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/bossThumbnails.json`;
+const CLASS_EMOJI_FILE = `${LOOT_PATH}/classEmoji.json`;
+const BLACKLIST_FILE = `${LOOT_PATH}/blacklist.json`;
 
-const intervalUpdate = 1000 * 60 * 5;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 5;
 
 var client;
 var bossThumbnails = {};
@@ -55,47 +51,47 @@ function init(discord) {
 }
 
 function loadBossThumbnails() {
-  logger.info(`Load boss thumbnails from ${bossThumbnailsFile}`);
+  logger.info(`Load boss thumbnails from ${BOSS_THUMBNAILS_FILE}`);
   try {
-    bossThumbnails = JSON.parse(fs.readFileSync(bossThumbnailsFile, "utf8"));
+    bossThumbnails = JSON.parse(fs.readFileSync(BOSS_THUMBNAILS_FILE, "utf8"));
     logger.info(
-      `Boss thumbnails successfully loaded from ${bossThumbnailsFile}`
+      `Boss thumbnails successfully loaded from ${BOSS_THUMBNAILS_FILE}`
     );
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't load ${bossThumbnailsFile}`);
+    logger.warn(`Can't load ${BOSS_THUMBNAILS_FILE}`);
   }
 }
 
 function loadClassEmoji() {
-  logger.info(`Load class emoji from ${classEmojiFile}`);
+  logger.info(`Load class emoji from ${CLASS_EMOJI_FILE}`);
   try {
-    classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
-    logger.info(`Class emoji successfully loaded from ${classEmojiFile}`);
+    classEmoji = JSON.parse(fs.readFileSync(CLASS_EMOJI_FILE, "utf8"));
+    logger.info(`Class emoji successfully loaded from ${CLASS_EMOJI_FILE}`);
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't load ${classEmojiFile}`);
+    logger.warn(`Can't load ${CLASS_EMOJI_FILE}`);
   }
 }
 
 function loadBlacklist() {
-  logger.info(`Load loot blacklist from ${blackListFile}`);
+  logger.info(`Load loot blacklist from ${BLACKLIST_FILE}`);
   try {
-    blacklist = JSON.parse(fs.readFileSync(blackListFile, "utf8"));
-    logger.info(`Blacklist successfully loaded from ${blackListFile}`);
+    blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, "utf8"));
+    logger.info(`Blacklist successfully loaded from ${BLACKLIST_FILE}`);
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't load ${blackListFile}`);
+    logger.warn(`Can't load ${BLACKLIST_FILE}`);
   }
 }
 
 async function startRefreshingLoot() {
-  logger.info("Refreshing loot");
+  logger.info("Refreshing loot started");
 
   const settings = await db.getLootSettings();
   if (!settings) {
     logger.warn("Can't load loot settings from DB");
-    setTimeout(startRefreshingLoot, intervalUpdate);
+    setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
     return;
   }
 
@@ -109,9 +105,9 @@ async function startRefreshingLoot() {
 
     let sended_records = [];
 
-    axios
+    await axios
       .get(
-        `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
+        `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}`,
         {
           headers: { "accept-encoding": null },
           cache: true,
@@ -149,12 +145,13 @@ async function startRefreshingLoot() {
       });
   }
 
-  setTimeout(startRefreshingLoot, intervalUpdate);
+  logger.info("Refreshing loot ended");
+
+  setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
 }
 
 async function getExtraInfoWrapper(entry, guild_id, record) {
   if (!client.guilds.cache.get(guild_id)) {
-    // clearLootChannel(guild_id);
     return null;
   }
 
@@ -179,32 +176,32 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
   return new Promise(async (resolve, reject) => {
-    let dataBossKillInfo;
+    let data_boss_kill_info;
     try {
-      const responseBossKillInfo = await axios
-        .get(`${apiBaseUrl}/${realm_id}/${bossKillApi}/${record_id}`, {
+      const response_boss_kill_info = await axios
+        .get(`${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}`, {
           headers: { "accept-encoding": null },
           cache: true,
         })
         .catch(reject);
-      dataBossKillInfo = responseBossKillInfo.data.data;
+      data_boss_kill_info = response_boss_kill_info.data.data;
     } catch {
       reject();
       return;
     }
 
-    const realmName = getRealmNameById(realm_id);
-    let embedMessage = new EmbedBuilder()
+    const realm_name = getRealmNameById(realm_id);
+    let embed_message = new EmbedBuilder()
       .setColor("#0099ff")
       .setAuthor({
         name:
-          `${dataBossKillInfo.guild.name}` +
-          (realmName ? ` - ${realmName}` : ""),
+          `${data_boss_kill_info.guild.name}` +
+          (realm_name ? ` - ${realm_name}` : ""),
         iconURL: client.guilds.cache.get(guild_id).iconURL(),
-        url: `${guildsUrl}/${realm_id}/${dataBossKillInfo.guild.entry}`,
+        url: `${GUILDS_URL}/${realm_id}/${data_boss_kill_info.guild.entry}`,
       })
-      .setTitle(`Убийство босса ${dataBossKillInfo.boss_name}`)
-      .setURL(`${pveProgressUrl}/${realm_id}/${record_id}`)
+      .setTitle(`Убийство босса ${data_boss_kill_info.boss_name}`)
+      .setURL(`${PVE_PROGRESS_URL}/${realm_id}/${record_id}`)
       .setFooter({
         text: "Юи, Ваш ассистент",
         iconURL: "https://i.imgur.com/LvlhrPY.png",
@@ -212,133 +209,136 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
       .addFields(
         {
           name: "Попытки",
-          value: `${dataBossKillInfo.attempts}`,
+          value: `${data_boss_kill_info.attempts}`,
           inline: true,
         },
         {
           name: "Когда убили",
-          value: dataBossKillInfo.killed_at,
+          value: data_boss_kill_info.killed_at,
           inline: true,
         },
         {
           name: "Время боя",
-          value: dataBossKillInfo.fight_length,
+          value: data_boss_kill_info.fight_length,
           inline: true,
         }
       );
 
-    if (bossThumbnails[dataBossKillInfo.boss_name]) {
-      embedMessage.setThumbnail(bossThumbnails[dataBossKillInfo.boss_name]);
+    if (data_boss_kill_info.boss_name in bossThumbnails) {
+      embed_message.setThumbnail(bossThumbnails[data_boss_kill_info.boss_name]);
     }
 
-    const [placesDps, playersDps, dps, summaryDps] = parseDpsPlayers(
-      dataBossKillInfo.players
+    const [places_dps, players_dps, dps, summary_dps] = parseDpsPlayers(
+      data_boss_kill_info.players
     );
-    embedMessage
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields(
-        {
+    if (places_dps && players_dps && dps && summary_dps) {
+      embed_message
+        .addFields({
           name: "\u200b",
           value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "Общий DPS",
-          value: `${intToShortFormat(summaryDps)}k`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: "Место",
-          value: placesDps,
-          inline: true,
-        },
-        {
-          name: "Имя",
-          value: playersDps,
-          inline: true,
-        },
-        {
-          name: "DPS",
-          value: dps,
-          inline: true,
-        }
-      );
+        })
+        .addFields(
+          {
+            name: "\u200b",
+            value: "\u200b",
+            inline: true,
+          },
+          {
+            name: "\u200b",
+            value: "\u200b",
+            inline: true,
+          },
+          {
+            name: "Общий DPS",
+            value: `${intToShortFormat(summary_dps)}k`,
+            inline: true,
+          }
+        )
+        .addFields(
+          {
+            name: "Место",
+            value: places_dps,
+            inline: true,
+          },
+          {
+            name: "Имя",
+            value: players_dps,
+            inline: true,
+          },
+          {
+            name: "DPS",
+            value: dps,
+            inline: true,
+          }
+        );
+    }
 
-    const [placesHeal, playersHeal, hps, summaryHps] = parseHealPlayers(
-      dataBossKillInfo.players
+    const [places_heal, players_heal, hps, summary_hps] = parseHealPlayers(
+      data_boss_kill_info.players
     );
-    embedMessage
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields(
-        {
+    if (places_heal && places_heal && hps && summary_hps) {
+      embed_message
+        .addFields({
           name: "\u200b",
           value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "Общий HPS",
-          value: `${intToShortFormat(summaryHps)}k`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: "Место",
-          value: placesHeal,
-          inline: true,
-        },
-        {
-          name: "Имя",
-          value: playersHeal,
-          inline: true,
-        },
-        {
-          name: "HPS",
-          value: hps,
-          inline: true,
-        }
-      );
+        })
+        .addFields(
+          {
+            name: "\u200b",
+            value: "\u200b",
+            inline: true,
+          },
+          {
+            name: "\u200b",
+            value: "\u200b",
+            inline: true,
+          },
+          {
+            name: "Общий HPS",
+            value: `${intToShortFormat(summary_hps)}k`,
+            inline: true,
+          }
+        )
+        .addFields(
+          {
+            name: "Место",
+            value: places_heal,
+            inline: true,
+          },
+          {
+            name: "Имя",
+            value: players_heal,
+            inline: true,
+          },
+          {
+            name: "HPS",
+            value: hps,
+            inline: true,
+          }
+        );
+    }
 
     let loot_str = "";
     await Promise.all(
-      dataBossKillInfo.loots.map((loot) => {
+      data_boss_kill_info.loots.map((loot) => {
         if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
           loot_str += `${loot.item.name} (${loot.item.level})\n`;
         }
       })
     ).catch(reject);
-    if (!loot_str || loot_str === "") {
-      loot_str = "\u200b";
+    if (loot_str !== "") {
+      embed_message
+        .addFields({
+          name: "\u200b",
+          value: "\u200b",
+        })
+        .addFields({
+          name: "Лут",
+          value: loot_str,
+        });
     }
-    embedMessage
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields({
-        name: "Лут",
-        value: loot_str,
-      });
 
-    resolve({ embeds: [embedMessage] });
+    resolve({ embeds: [embed_message] });
   });
 }
 
@@ -352,7 +352,7 @@ function parseDpsPlayers(data) {
   let places = "";
   let players = "";
   let dps = "";
-  let summaryDps = 0;
+  let summary_dps = 0;
 
   for (const player of data) {
     let emoji;
@@ -373,10 +373,10 @@ function parseDpsPlayers(data) {
 
     players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
 
-    const dpsInt = parseInt(player.dps);
-    if (dpsInt) {
-      dps += `${intToShortFormat(dpsInt)}k\n`;
-      summaryDps += dpsInt;
+    const dps_int = parseInt(player.dps);
+    if (dps_int) {
+      dps += `${intToShortFormat(dps_int)}k\n`;
+      summary_dps += dps_int;
     } else {
       dps += "0k\n";
     }
@@ -386,7 +386,7 @@ function parseDpsPlayers(data) {
     return ["\u200b", "\u200b", "\u200b", 0];
   }
 
-  return [places, players, dps, summaryDps];
+  return [places, players, dps, summary_dps];
 }
 
 function parseHealPlayers(data) {
@@ -396,7 +396,7 @@ function parseHealPlayers(data) {
   let places = "";
   let players = "";
   let hps = "";
-  let summaryHps = 0;
+  let summary_hps = 0;
 
   for (const player of data) {
     let emoji;
@@ -416,7 +416,7 @@ function parseHealPlayers(data) {
     const hpsInt = parseInt(player.hps);
     if (hpsInt) {
       hps += `${intToShortFormat(hpsInt)}k\n`;
-      summaryHps += hpsInt;
+      summary_hps += hpsInt;
     } else {
       hps += "0k\n";
     }
@@ -426,7 +426,7 @@ function parseHealPlayers(data) {
     return ["\u200b", "\u200b", "\u200b", 0];
   }
 
-  return [places, players, hps, summaryHps];
+  return [places, players, hps, summary_hps];
 }
 
 function intToShortFormat(value) {

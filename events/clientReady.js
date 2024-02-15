@@ -31,7 +31,7 @@ async function clearInactiveGuildsFromDb(client) {
   const current_guild_ids = client.guilds.cache.map((guild) => guild.id);
 
   const stored_guild_ids = (await getSettingsArray()).map(
-    (guild) => guild.guild_id
+    (settings) => settings.guild_id
   );
 
   const removed_guild_ids = stored_guild_ids.filter(
