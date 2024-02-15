@@ -1,5 +1,7 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const logger = require("../logger.js");
 const { deleteLootChannel } = require("../db/db.js");
+
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,6 +11,10 @@ module.exports = {
 
   async execute(interaction) {
     const guild = interaction.guild;
+    logger.info(
+      `[${interaction.guild.name} (${interaction.guild.id})] [${interaction.user.tag}] ` +
+        `Using command: /${interaction.commandName}`
+    );
     deleteLootChannel(guild.id);
     await interaction.reply(
       `Настройки оповещений об убийствах боссов успешно сброшены!`

@@ -1,5 +1,6 @@
-const { MongoClient } = require("mongodb");
 const config = require("../environment.js").db;
+
+const { MongoClient } = require("mongodb");
 
 const uri =
   `mongodb://${config.user}:${config.pwd}` +
@@ -159,6 +160,16 @@ async function getGuildIdByLootId(loot_id) {
   return entry.guild_id;
 }
 
+function clearGuildSettings(guild_id) {
+  deleteChangelogChannel(guild_id);
+  deleteLootChannel(guild_id);
+  settings.deleteOne({ guild_id: guild_id });
+}
+
+async function getGuildCount() {
+  return await settings.countDocuments();
+}
+
 async function initRecords(guild_id) {
   const entry = await records.findOne({ guild_id: guild_id });
   if (!entry) {
@@ -202,6 +213,9 @@ module.exports = {
   deleteLootChannel: deleteLootChannel,
   getLootSettings: getLootSettings,
   getGuildIdByLootId: getGuildIdByLootId,
+
+  clearGuildSettings: clearGuildSettings,
+  getGuildCount: getGuildCount,
 
   initRecords: initRecords,
   pushRecords: pushRecords,

@@ -1,5 +1,7 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const logger = require("../logger.js");
 const { setChangelogChannel } = require("../db/db.js");
+
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,6 +18,11 @@ module.exports = {
   async execute(interaction) {
     const guild = interaction.guild;
     const channel = interaction.options.getChannel("channel");
+    logger.info(
+      `[${interaction.guild.name} (${interaction.guild.id})] [${interaction.user.tag}] ` +
+        `Using command: /${interaction.commandName} ` +
+        `[${channel.id}]`
+    );
     setChangelogChannel(guild.id, channel.id);
     await interaction.reply(`Канал ${channel} для списка изменений установлен`);
   },

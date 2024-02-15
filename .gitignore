@@ -1,6 +1,5 @@
 .env
+.prettierrc
 node_modules
 package-lock.json
 data
-settings
-test

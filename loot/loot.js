@@ -2,10 +2,12 @@
     Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
 */
 
+const logger = require("../logger.js");
+const db = require("../db/db.js");
+
 const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
-const db = require("../db/db.js");
 
 const apiBaseUrl = "https://sirus.su/api/base";
 const latestFightsApi = "leader-board/bossfights/latest";
@@ -24,7 +26,7 @@ const realmName = {
   57: "Sirus x5",
 };
 const getRealmNameById = (realm_id) => {
-  if (realm_id in realmName) {
+  if (realmName[realm_id]) {
     return realmName[realm_id];
   }
   return null;
@@ -53,44 +55,46 @@ function init(discord) {
 }
 
 function loadBossThumbnails() {
-  console.log(`[LOG] Load boss thumbnails from ${bossThumbnailsFile}`);
+  logger.info(`Load boss thumbnails from ${bossThumbnailsFile}`);
   try {
     bossThumbnails = JSON.parse(fs.readFileSync(bossThumbnailsFile, "utf8"));
-    console.log(
-      `[LOG] Boss thumbnails successfully loaded from ${bossThumbnailsFile}`
+    logger.info(
+      `Boss thumbnails successfully loaded from ${bossThumbnailsFile}`
     );
   } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't load ${bossThumbnailsFile}`);
+    logger.error(error);
+    logger.warn(`Can't load ${bossThumbnailsFile}`);
   }
 }
 
 function loadClassEmoji() {
-  console.log(`[LOG] Load class emoji from ${classEmojiFile}`);
+  logger.info(`Load class emoji from ${classEmojiFile}`);
   try {
     classEmoji = JSON.parse(fs.readFileSync(classEmojiFile, "utf8"));
-    console.log(`[LOG] Class emoji successfully loaded from ${classEmojiFile}`);
+    logger.info(`Class emoji successfully loaded from ${classEmojiFile}`);
   } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't load ${classEmojiFile}`);
+    logger.error(error);
+    logger.warn(`Can't load ${classEmojiFile}`);
   }
 }
 
 function loadBlacklist() {
-  console.log(`[LOG] Load loot blacklist from ${blackListFile}`);
+  logger.info(`Load loot blacklist from ${blackListFile}`);
   try {
     blacklist = JSON.parse(fs.readFileSync(blackListFile, "utf8"));
-    console.log(`[LOG] Blacklist successfully loaded from ${blackListFile}`);
+    logger.info(`Blacklist successfully loaded from ${blackListFile}`);
   } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't load ${blackListFile}`);
+    logger.error(error);
+    logger.warn(`Can't load ${blackListFile}`);
   }
 }
 
 async function startRefreshingLoot() {
+  logger.info("Refreshing loot");
+
   const settings = await db.getLootSettings();
   if (!settings) {
-    console.log("[WARNING] Can't load loot settings from DB");
+    logger.warn("Can't load loot settings from DB");
     setTimeout(startRefreshingLoot, intervalUpdate);
     return;
   }
@@ -104,7 +108,8 @@ async function startRefreshingLoot() {
     let first_init = await db.initRecords(guild_id);
 
     let sended_records = [];
-    await axios
+
+    axios
       .get(
         `${apiBaseUrl}/${entry.realm_id}/${latestFightsApi}?guild=${entry.guild_sirus_id}`,
         {
@@ -135,9 +140,9 @@ async function startRefreshingLoot() {
         });
       })
       .catch((error) => {
-        console.error(error);
-        console.log(
-          `[WARNING] Can't get loot from realm ${getRealmNameById(
+        logger.error(error);
+        logger.warn(
+          `Can't get loot from realm ${getRealmNameById(
             entry.realm_id
           )} with guild sirus id ${entry.guild_sirus_id}`
         );
@@ -162,9 +167,9 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
         return record.id;
       }
     } catch (error) {
-      console.error(error);
-      console.log(
-        "[WARNING] Error while getting loot info:" +
+      logger.error(error);
+      logger.warn(
+        "Error while getting loot info:" +
           `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`
       );
     }
@@ -360,8 +365,8 @@ function parseDpsPlayers(data) {
         emoji = client.emojis.cache.get(spec.emoji_id);
       }
     } catch (error) {
-      console.error(error);
-      console.log(`[WARNING] Can't get emoji for ${player.character.name}`);
+      logger.error(error);
+      logger.warn(`Can't get emoji for ${player.character.name}`);
     }
 
     places += `**${i++}**\n`;
@@ -400,8 +405,8 @@ function parseHealPlayers(data) {
       if (!spec.heal) continue;
       emoji = client.emojis.cache.get(spec.emoji_id);
     } catch (error) {
-      console.error(error);
-      console.log(`[WARNING] Can't get emoji for ${player.character.name}`);
+      logger.error(error);
+      logger.warn(`Can't get emoji for ${player.character.name}`);
     }
 
     places += `**${i++}**\n`;

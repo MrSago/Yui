@@ -1,5 +1,7 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const logger = require("../logger.js");
 const { setLootChannel } = require("../db/db.js");
+
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -36,6 +38,11 @@ module.exports = {
     const channel = interaction.options.getChannel("channel");
     const realm_id = interaction.options.getInteger("realm_id");
     const guild_sirus_id = interaction.options.getInteger("guild_sirus_id");
+    logger.info(
+      `[${interaction.guild.name} (${interaction.guild.id})] [${interaction.user.tag}] ` +
+        `Using command: /${interaction.commandName} ` +
+        `[${channel.id}] [${realm_id}] [${guild_sirus_id}]`
+    );
     setLootChannel(guild.id, channel.id, realm_id, guild_sirus_id);
     await interaction.reply(
       `Канал ${channel} для вывода информации лута установлен`

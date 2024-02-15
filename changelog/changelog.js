@@ -1,14 +1,16 @@
+const logger = require("../logger.js");
+const db = require("../db/db.js");
+
 const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
 const fs = require("fs");
-const db = require("../db/db.js");
 
-const changeLogApi = "https://sirus.su/api/statistic/changelog";
+const changeLogApiUrl = "https://sirus.su/api/statistic/changelog";
 
 const dataPath = "./data";
 const logFile = `${dataPath}/log.json`;
 
-const intervalUpdate = 1000 * 60 * 5;
+const intervalUpdateMs = 1000 * 60 * 5;
 
 var client;
 
@@ -19,18 +21,19 @@ function init(discord) {
 }
 
 async function startUpdatingChangelog() {
+  logger.info("Updating changelog");
   axios
-    .get(changeLogApi, {
+    .get(changeLogApiUrl, {
       headers: { "accept-encoding": null },
       cache: true,
     })
     .then((response) => sendData(response))
     .catch((error) => {
-      console.error(error);
-      console.log("[WARNING] Can't get changelog from Sirus.su");
+      logger.error(error);
+      logger.warn("Can't get changelog from Sirus.su");
     });
 
-  setTimeout(startUpdatingChangelog, intervalUpdate);
+  setTimeout(startUpdatingChangelog, intervalUpdateMs);
 }
 
 async function sendData(response) {
@@ -64,7 +67,7 @@ async function sendData(response) {
 
   let message = "";
   for (let i = 0; i < cnt; ++i) {
-    // Embedded message can have maximum of 2^12 (4096) characters
+    // Embedded message can have maximum of 2**12 (4096) characters
     if (message.length + data[i].message.length + 2 >= 4096) {
       embedMessage.setDescription(message);
       await sendChangeLog(embedMessage);
@@ -106,7 +109,7 @@ function loadLogs() {
 async function sendChangeLog(embedMessage) {
   const settings = await db.getChangelogSettings();
   if (!settings) {
-    console.log("[WARNING] Can't load changelog settings from DB");
+    logger.warn("Can't load changelog settings from DB");
     return;
   }
 
@@ -119,8 +122,8 @@ async function sendChangeLog(embedMessage) {
         // db.deleteChangelogChannel(guild_id);
       }
     } catch (error) {
-      console.error(error);
-      console.log(`[WARNING] Can't send message to channel ${channel_id}`);
+      logger.error(error);
+      logger.warn(`Can't send message to channel ${channel_id}`);
     }
   }
 }
