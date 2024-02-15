@@ -22,11 +22,9 @@ function log(message, level = "info") {
     case "error":
       console.error(log_message);
       break;
-    case "warn":
-      console.warn(log_message);
-      break;
     case "discord":
       sendToDiscord(log_message);
+    case "warn":
     case "info":
     case "debug":
       console.log(log_message);
