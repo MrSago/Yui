@@ -12,7 +12,8 @@ module.exports = {
   once: true,
 
   async execute(client) {
-    require("../logger.js").init(client, "discord");
+    await require("../browserGetter.js").init();
+    require("../logger.js").init(client, "debug");
     require("../db/db.js").init();
     require("../changelog/changelog.js").init(client);
     require("../loot/loot.js").init(client);

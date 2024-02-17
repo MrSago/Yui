@@ -1,8 +1,9 @@
 const logger = require("../logger.js");
 const db = require("../db/db.js");
+const { browserGet } = require("../browserGetter.js");
 
-const { EmbedBuilder } = require("discord.js");
 const axios = require("axios");
+const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 
 const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
@@ -10,7 +11,7 @@ const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
 const DATA_PATH = "./data";
 const LOG_FILE = `${DATA_PATH}/log.json`;
 
-const INTERVAL_UPDATE_MS = 1000 * 60 * 5;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 60;
 
 var client;
 
@@ -23,24 +24,33 @@ function init(discord) {
 async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
-  axios
-    .get(CHANGELOG_API_URL, {
-      headers: { "accept-encoding": null },
-      cache: true,
-    })
-    .then((response) => sendData(response))
-    .catch((error) => {
-      logger.error(error);
-      logger.warn("Can't get changelog from Sirus.su");
-    });
+  let response;
+  try {
+    if (browserGet) {
+      response = await browserGet(CHANGELOG_API_URL);
+    } else {
+      response = (
+        await axios.get(CHANGELOG_API_URL, {
+          headers: { "accept-encoding": null },
+          cache: true,
+        })
+      ).data;
+    }
+  } catch (error) {
+    logger.error(error);
+    logger.warn("Can't get changelog from Sirus.su");
+  }
+
+  if (response.data) {
+    sendData(response.data);
+  }
 
   logger.info("Updating changelog ended");
 
   setTimeout(startUpdatingChangelog, INTERVAL_UPDATE_MS);
 }
 
-async function sendData(response) {
-  let data = response.data.data;
+async function sendData(data) {
   let logs = loadLogs();
   let cnt = parseData(data, logs);
   if (!cnt) {
