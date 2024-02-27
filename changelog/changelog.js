@@ -26,22 +26,20 @@ async function startUpdatingChangelog() {
 
   let response;
   try {
-    if (browserGet) {
-      response = await browserGet(CHANGELOG_API_URL);
-    } else {
-      response = (
-        await axios.get(CHANGELOG_API_URL, {
-          headers: { "accept-encoding": null },
-          cache: true,
-        })
-      ).data;
-    }
+    response = await browserGet(CHANGELOG_API_URL);
+
+    // response = (
+    //   await axios.get(CHANGELOG_API_URL, {
+    //     headers: { "accept-encoding": null },
+    //     cache: true,
+    //   })
+    // ).data;
   } catch (error) {
     logger.error(error);
     logger.warn("Can't get changelog from Sirus.su");
   }
 
-  if (response.data) {
+  if (response && response.data) {
     sendData(response.data);
   }
 
@@ -129,12 +127,14 @@ async function sendChangeLog(embedMessage) {
   for (const entry of settings) {
     try {
       const channel = client.channels.cache.get(entry.channel_id);
-      if (channel) {
-        channel.send({ embeds: [embedMessage] });
+      if (!channel) {
+        throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
+
+      channel.send({ embeds: [embedMessage] });
     } catch (error) {
       logger.error(error);
-      logger.warn(`Can't send message to channel ${channel_id}`);
+      logger.warn(`Can't send message to channel ${entry.channel_id}`);
     }
   }
 }

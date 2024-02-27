@@ -125,16 +125,15 @@ async function entryProcess(entry, guild_id) {
   let response;
   try {
     const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}`;
-    if (browserGet) {
-      response = await browserGet(api_url);
-    } else {
-      response = (
-        await axios.get(api_url, {
-          headers: { "accept-encoding": null },
-          cache: true,
-        })
-      ).data;
-    }
+
+    response = await browserGet(api_url);
+
+    // response = (
+    //   await axios.get(api_url, {
+    //     headers: { "accept-encoding": null },
+    //     cache: true,
+    //   })
+    // ).data;
   } catch (error) {
     logger.error(error);
     logger.warn(
@@ -176,11 +175,17 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
   if (!(await db.checkRecord(guild_id, record.id))) {
     try {
       const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
-      const channel = client.channels.cache.get(entry.channel_id);
-      if (channel) {
-        channel.send(message);
-        return record.id;
+      if (!message) {
+        throw new Error("Empty message getted!");
       }
+
+      const channel = client.channels.cache.get(entry.channel_id);
+      if (!channel) {
+        throw new Error(`Can't get channel with id: ${entry.channel_id}`);
+      }
+
+      channel.send(message);
+      return record.id;
     } catch (error) {
       logger.error(error);
       logger.warn(
@@ -198,16 +203,15 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}`;
     let response;
 
-    if (browserGet) {
-      response = await browserGet(api_url);
-    } else {
-      response = (
-        await axios.get(api_url, {
-          headers: { "accept-encoding": null },
-          cache: true,
-        })
-      ).data;
-    }
+    response = await browserGet(api_url);
+
+    // response = (
+    //   await axios.get(api_url, {
+    //     headers: { "accept-encoding": null },
+    //     cache: true,
+    //   })
+    // ).data;
+
     data_boss_kill_info = response.data;
   } catch {
     return;
