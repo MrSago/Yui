@@ -6,14 +6,11 @@ const { default: Bottleneck } = require("bottleneck");
 const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 100 });
 
 var browser;
-var page;
 
 async function init() {
   browser = await puppeteer.launch({
     headless: false,
   });
-
-  page = await browser.newPage();
 }
 
 async function browserGet(url) {
@@ -22,13 +19,17 @@ async function browserGet(url) {
 
 async function getWrapper(url) {
   logger.debug(`Browser get started with url: ${url}`);
+  
+  let page = await browser.newPage();
   await page.goto(url, {
-    waitUntil: "networkidle0",
+    waitUntil: "load",
   });
 
   const result = await page.evaluate(() => {
     return JSON.parse(document.querySelector("body").textContent);
   });
+
+  page.close();
 
   logger.debug(`Browser get ended with url:   ${url}`);
   return result;

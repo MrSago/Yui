@@ -11,8 +11,8 @@ const axios = require("axios");
 const fs = require("fs");
 
 const API_BASE_URL = "https://sirus.su/api/base";
-const LATEST_FIGHTS_API = "leader-board/bossfights/latest";
-const BOSS_KILL_API = "leader-board/bossfights/boss-kill";
+const LATEST_FIGHTS_API = "progression/pve/latest-boss-kills";
+const BOSS_KILL_API = "details/bossfight";
 const GUILDS_URL = "https://sirus.su/base/guilds";
 const PVE_PROGRESS_URL = "https://sirus.su/base/pve-progression/boss-kill";
 
@@ -34,7 +34,7 @@ const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/bossThumbnails.json`;
 const CLASS_EMOJI_FILE = `${LOOT_PATH}/classEmoji.json`;
 const BLACKLIST_FILE = `${LOOT_PATH}/blacklist.json`;
 
-const INTERVAL_UPDATE_MS = 1000 * 60 * 10;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 60;
 
 var client;
 var bossThumbnails = {};
@@ -124,7 +124,7 @@ async function startRefreshingLoot() {
 async function entryProcess(entry, guild_id) {
   let response;
   try {
-    const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}`;
+    const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}&lang=ru`;
 
     response = await browserGet(api_url);
 
@@ -200,7 +200,7 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
 async function getExtraInfo(guild_id, record_id, realm_id) {
   let data_boss_kill_info;
   try {
-    const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}`;
+    const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}?lang=ru`;
     let response;
 
     response = await browserGet(api_url);
