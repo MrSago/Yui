@@ -213,7 +213,8 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     // ).data;
 
     data_boss_kill_info = response.data;
-  } catch {
+  } catch (error) {
+    logger.error(error);
     return;
   }
 
@@ -390,21 +391,21 @@ function parseDpsPlayers(data) {
   for (const player of data) {
     let emoji;
     try {
-      const spec = classEmoji[player.character.class_id].spec[player.spec];
+      const spec = classEmoji[player.class_id].spec[player.spec];
       if (spec.heal) continue;
-      if (easterEgg.find((item) => item === player.character.name)) {
+      if (easterEgg.find((item) => item === player.name)) {
         emoji = client.emojis.cache.get(easterEggEmojiId);
       } else {
         emoji = client.emojis.cache.get(spec.emoji_id);
       }
     } catch (error) {
       logger.error(error);
-      logger.warn(`Can't get emoji for ${player.character.name}`);
+      logger.warn(`Can't get emoji for ${player.name}`);
     }
 
     places += `**${i++}**\n`;
 
-    players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
+    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
 
     const dps_int = parseInt(player.dps);
     if (dps_int) {
@@ -434,17 +435,17 @@ function parseHealPlayers(data) {
   for (const player of data) {
     let emoji;
     try {
-      const spec = classEmoji[player.character.class_id].spec[player.spec];
+      const spec = classEmoji[player.class_id].spec[player.spec];
       if (!spec.heal) continue;
       emoji = client.emojis.cache.get(spec.emoji_id);
     } catch (error) {
       logger.error(error);
-      logger.warn(`Can't get emoji for ${player.character.name}`);
+      logger.warn(`Can't get emoji for ${player.name}`);
     }
 
     places += `**${i++}**\n`;
 
-    players += (emoji ? `${emoji}` : "") + `${player.character.name}\n`;
+    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
 
     const hpsInt = parseInt(player.hps);
     if (hpsInt) {

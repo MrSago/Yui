@@ -20,7 +20,7 @@ function log(message, level = "info") {
 
   switch (level) {
     case "error":
-      console.error(log_message);
+      console.error(log_message, message.stack);
       break;
     case "discord":
       sendToDiscord(log_message);

@@ -3,7 +3,7 @@ const logger = require("./logger.js");
 const puppeteer = require("puppeteer");
 const { default: Bottleneck } = require("bottleneck");
 
-const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 100 });
+const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 5000 });
 
 var browser;
 
@@ -19,17 +19,17 @@ async function browserGet(url) {
 
 async function getWrapper(url) {
   logger.debug(`Browser get started with url: ${url}`);
-  
+
   let page = await browser.newPage();
   await page.goto(url, {
-    waitUntil: "load",
+    waitUntil: "networkidle0",
   });
 
   const result = await page.evaluate(() => {
     return JSON.parse(document.querySelector("body").textContent);
   });
 
-  page.close();
+  await page.close();
 
   logger.debug(`Browser get ended with url:   ${url}`);
   return result;
