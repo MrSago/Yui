@@ -179,8 +179,10 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
         throw new Error("Empty message getted!");
       }
 
-      const channel = client.channels.cache.get(entry.channel_id);
-      if (!channel) {
+      const channel = client.guilds.cache
+        .get(guild_id)
+        .channels.cache.get(entry.channel_id);
+      if (!channel || !channel.send) {
         throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
 
@@ -351,7 +353,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     await Promise.all(
       data_boss_kill_info.loots.map((loot) => {
         if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
-          loot_str += `${loot.item.name} (${loot.item.level})\n`;
+          loot_str += `${loot.item.name}\n`;
         }
       })
     );
