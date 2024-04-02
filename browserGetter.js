@@ -3,21 +3,26 @@ const logger = require("./logger.js");
 const puppeteer = require("puppeteer");
 const { default: Bottleneck } = require("bottleneck");
 
-const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 5000 });
+const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 1000 });
 
-var browser;
-
-async function init() {
-  browser = await puppeteer.launch({
+async function initBrowser() {
+  logger.debug("Init new browser");
+  return await puppeteer.launch({
     headless: false,
   });
 }
 
-async function browserGet(url) {
-  return await limiter.schedule(() => getWrapper(url));
+async function browserGet(browser, url) {
+  if (!browser) {
+    logger.warn("Browser is not init!");
+    return null;
+  }
+
+  const result = await limiter.schedule(() => getWrapper(browser, url));
+  return result;
 }
 
-async function getWrapper(url) {
+async function getWrapper(browser, url) {
   logger.debug(`Browser get started with url: ${url}`);
 
   let page = await browser.newPage();
@@ -29,13 +34,13 @@ async function getWrapper(url) {
     return JSON.parse(document.querySelector("body").textContent);
   });
 
-  await page.close();
+  page.close();
 
   logger.debug(`Browser get ended with url:   ${url}`);
   return result;
 }
 
 module.exports = {
-  init: init,
+  initBrowser: initBrowser,
   browserGet: browserGet,
 };

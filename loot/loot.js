@@ -4,7 +4,7 @@
 
 const logger = require("../logger.js");
 const db = require("../db/db.js");
-const { browserGet } = require("../browserGetter.js");
+const { initBrowser, browserGet } = require("../browserGetter.js");
 
 const { EmbedBuilder, ActivityType } = require("discord.js");
 const axios = require("axios");
@@ -34,12 +34,14 @@ const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/bossThumbnails.json`;
 const CLASS_EMOJI_FILE = `${LOOT_PATH}/classEmoji.json`;
 const BLACKLIST_FILE = `${LOOT_PATH}/blacklist.json`;
 
-const INTERVAL_UPDATE_MS = 1000 * 60 * 60;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 30;
 
 var client;
 var bossThumbnails = {};
 var classEmoji = {};
 var blacklist = [];
+
+var browser;
 
 function init(discord) {
   client = discord;
@@ -88,12 +90,15 @@ function loadBlacklist() {
 
 async function startRefreshingLoot() {
   logger.info("Refreshing loot started");
+  
   client.user.setPresence({
     activities: [
       { name: `Обрабатываю киллы боссов`, type: ActivityType.Custom },
     ],
     status: "dnd",
   });
+
+  browser = await initBrowser();
 
   const settings = await db.getLootSettings();
   if (!settings) {
@@ -112,6 +117,9 @@ async function startRefreshingLoot() {
   }
   await Promise.all(entry_promises);
 
+  await browser.close();
+  browser = null;
+
   client.user.setPresence({
     activities: [{ name: `Чилю`, type: ActivityType.Custom }],
     status: "online",
@@ -126,7 +134,7 @@ async function entryProcess(entry, guild_id) {
   try {
     const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}&lang=ru`;
 
-    response = await browserGet(api_url);
+    response = await browserGet(browser, api_url);
 
     // response = (
     //   await axios.get(api_url, {
@@ -205,7 +213,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}?lang=ru`;
     let response;
 
-    response = await browserGet(api_url);
+    response = await browserGet(browser, api_url);
 
     // response = (
     //   await axios.get(api_url, {

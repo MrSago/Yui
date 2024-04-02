@@ -12,7 +12,7 @@ module.exports = {
   once: true,
 
   async execute(client) {
-    await require("../browserGetter.js").init();
+    //await require("../browserGetter.js").init();
     await require("../fetchAll.js").fetchAll(client);
     require("../logger.js").init(client, "debug");
     require("../db/db.js").init();
