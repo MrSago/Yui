@@ -47,7 +47,7 @@ async function startUpdatingChangelog() {
   browser = null;
 
   if (response && response.data) {
-    sendData(response.data);
+    sendData(response.data).catch((err) => logger.error(err));
   }
 
   logger.info("Updating changelog ended");

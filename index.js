@@ -16,10 +16,9 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildEmojisAndStickers,
-    GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+  partials: [Partials.Channel, Partials.Reaction],
   disableEveryone: false,
 });
 const rest = new REST({ version: "10" }).setToken(config.token);

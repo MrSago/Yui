@@ -31,7 +31,13 @@ async function getWrapper(browser, url) {
   });
 
   const result = await page.evaluate(() => {
-    return JSON.parse(document.querySelector("body").textContent);
+    let result = null;
+    try {
+      result = JSON.parse(document.querySelector("body").textContent);
+    } catch (err) {
+      logger.error(err);
+    }
+    return result;
   });
 
   page.close();
