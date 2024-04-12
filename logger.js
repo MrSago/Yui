@@ -64,7 +64,8 @@ async function sendToDiscord(message) {
   client.guilds.cache
     .get(log_guild_id)
     .channels.cache.get(log_channel_id)
-    .send(message);
+    .send(message)
+    .catch((err) => error(err));
 }
 
 module.exports = {

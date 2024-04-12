@@ -90,7 +90,7 @@ function loadBlacklist() {
 
 async function startRefreshingLoot() {
   logger.info("Refreshing loot started");
-  
+
   client.user.setPresence({
     activities: [
       { name: `Обрабатываю киллы боссов`, type: ActivityType.Custom },
@@ -194,7 +194,7 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
         throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
 
-      channel.send(message);
+      channel.send(message).catch((err) => logger.error(err));
       return record.id;
     } catch (error) {
       logger.error(error);

@@ -47,7 +47,7 @@ async function startUpdatingChangelog() {
   browser = null;
 
   if (response && response.data) {
-    sendData(response.data).catch((err) => logger.error(err));
+    sendData(response.data);
   }
 
   logger.info("Updating changelog ended");
@@ -138,7 +138,9 @@ async function sendChangeLog(embedMessage) {
         throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
 
-      channel.send({ embeds: [embedMessage] });
+      channel
+        .send({ embeds: [embedMessage] })
+        .catch((err) => logger.error(err));
     } catch (error) {
       logger.error(error);
       logger.warn(`Can't send message to channel ${entry.channel_id}`);
