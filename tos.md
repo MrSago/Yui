@@ -1,7 +1,7 @@
-# Terms of Service for "Юи" discord bot
+# Terms of Service for "Юи" Discord Bot
 
 ## 1. Acceptance of Terms
-By accessing or using the Sirus API Interaction Discord Bot (the "Bot"), you agree to be bound by these terms and conditions (the "Terms"). If you do not agree to all the terms and conditions, then you may not access or use the Bot.
+By accessing or using the "Юи" (the "Bot"), you agree to be bound by these terms and conditions (the "Terms"). If you do not agree to all the terms and conditions, then you may not access or use the Bot.
 
 ## 2. Description of Service
 The Bot provides Discord users with features including but not limited to boss kill announcements, changelogs, and more, all relating to the Sirus API. The services offered by the Bot ("Service") are subject to change without notice.
@@ -30,3 +30,5 @@ If you have any feedback, questions, or comments about the Service or these Term
 By using the Bot, you agree to be bound by these Terms.
 
 Last updated: 05/22/2024
+
+MrS4g0
