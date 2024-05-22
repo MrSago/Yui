@@ -5,6 +5,12 @@ async function fetchAll(client) {
   });
 }
 
+async function fetchGuild(guild) {
+  await guild.fetch();
+  await guild.channels.fetch();
+}
+
 module.exports = {
   fetchAll: fetchAll,
+  fetchGuild: fetchGuild,
 };
