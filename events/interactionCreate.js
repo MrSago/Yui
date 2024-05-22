@@ -1,3 +1,5 @@
+const logger = require("../logger.js");
+
 const { Events } = require("discord.js");
 
 module.exports = {
@@ -12,16 +14,14 @@ module.exports = {
     const command = interaction.client.commands.get(interaction.commandName);
 
     if (!command) {
-      console.log(
-        `[WARNING] No command matching ${interaction.commandName} was found.`
-      );
+      logger.warn(`No command matching ${interaction.commandName} was found.`);
       return;
     }
 
     try {
       await command.execute(interaction);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       await interaction.reply({
         content: "Ошибка при выполнении команды!",
         ephemeral: true,

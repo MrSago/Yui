@@ -1,68 +1,61 @@
-const { EmbedBuilder } = require("discord.js");
+const logger = require("../logger.js");
+const db = require("../db/db.js");
+const { initBrowser, browserGet } = require("../browserGetter.js");
+
 const axios = require("axios");
+const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 
-const changeLogApi = "https://sirus.su/api/statistic/changelog";
+const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
 
-const settingsPath = "./settings";
-const settingsFile = `${settingsPath}/changelog.json`;
+const DATA_PATH = "./data";
+const LOG_FILE = `${DATA_PATH}/log.json`;
 
-const dataPath = "./data";
-const logFile = `${dataPath}/log.json`;
-
-const intervalUpdate = 1000 * 60 * 5;
+const INTERVAL_UPDATE_MS = 1000 * 60 * 60 * 10;
 
 var client;
-var settings = {};
+
+var browser;
 
 function init(discord) {
   client = discord;
 
-  loadSettings();
-
-  updateChangelog();
+  startUpdatingChangelog();
 }
 
-function setLogChannel(guild_id, channel_id) {
-  settings[guild_id] = channel_id;
-  fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
-}
+async function startUpdatingChangelog() {
+  logger.info("Updating changelog started");
 
-function clearLogChannel(guild_id) {
-  if (guild_id in settings) {
-    delete settings[guild_id];
-    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), "utf8");
-  }
-}
+  browser = await initBrowser();
 
-function loadSettings() {
-  console.log(`[LOG] Load settings from ${settingsFile}`);
+  let response;
   try {
-    settings = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
-    console.log(`[LOG] Settings successfully loaded from ${settingsFile}`);
+    response = await browserGet(browser, CHANGELOG_API_URL);
+
+    // response = (
+    //   await axios.get(CHANGELOG_API_URL, {
+    //     headers: { "accept-encoding": null },
+    //     cache: true,
+    //   })
+    // ).data;
   } catch (error) {
-    console.error(error);
-    console.log(`[WARNING] Can't parse ${settingsFile}`);
+    logger.error(error);
+    logger.warn("Can't get changelog from Sirus.su");
   }
+
+  await browser.close();
+  browser = null;
+
+  if (response && response.data) {
+    sendData(response.data);
+  }
+
+  logger.info("Updating changelog ended");
+
+  setTimeout(startUpdatingChangelog, INTERVAL_UPDATE_MS);
 }
 
-async function updateChangelog() {
-  axios
-    .get(changeLogApi, {
-      headers: { "accept-encoding": null },
-      cache: true,
-    })
-    .then((response) => sendData(response))
-    .catch((error) => {
-      console.error(error);
-      console.log("[WARNING] Can't get changelog from Sirus.su");
-    });
-
-  setTimeout(updateChangelog, intervalUpdate);
-}
-
-async function sendData(response) {
-  let data = response.data.data;
+async function sendData(data) {
   let logs = loadLogs();
   let cnt = parseData(data, logs);
   if (!cnt) {
@@ -92,7 +85,7 @@ async function sendData(response) {
 
   let message = "";
   for (let i = 0; i < cnt; ++i) {
-    // Embedded message can have maximum of 2^12 (4096) characters
+    // Embedded message can have maximum of 2**12 (4096) characters
     if (message.length + data[i].message.length + 2 >= 4096) {
       embedMessage.setDescription(message);
       await sendChangeLog(embedMessage);
@@ -121,38 +114,44 @@ function parseData(data, logs) {
 }
 
 function loadLogs() {
-  if (!fs.existsSync(dataPath)) {
-    fs.mkdirSync(dataPath);
+  if (!fs.existsSync(DATA_PATH)) {
+    fs.mkdirSync(DATA_PATH);
   }
-  if (!fs.existsSync(logFile)) {
-    fs.writeFileSync(logFile, "[]", "utf8");
+  if (!fs.existsSync(LOG_FILE)) {
+    fs.writeFileSync(LOG_FILE, "[]", "utf8");
     return [];
   }
-  return JSON.parse(fs.readFileSync(logFile, "utf8"));
+  return JSON.parse(fs.readFileSync(LOG_FILE, "utf8"));
 }
 
 async function sendChangeLog(embedMessage) {
-  for (const [guild_id, channel_id] of Object.entries(settings)) {
+  const settings = await db.getChangelogSettings();
+  if (!settings) {
+    logger.warn("Can't load changelog settings from DB");
+    return;
+  }
+
+  for (const entry of settings) {
     try {
-      const channel = client.channels.cache.get(channel_id);
-      if (channel) {
-        channel.send({ embeds: [embedMessage] });
-      } else {
-        clearLogChannel(guild_id);
+      const channel = client.channels.cache.get(entry.channel_id);
+      if (!channel) {
+        throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
+
+      channel
+        .send({ embeds: [embedMessage] })
+        .catch((err) => logger.error(err));
     } catch (error) {
-      console.error(error);
-      console.log(`[WARNING] Can't send message to channel ${channel_id}`);
+      logger.error(error);
+      logger.warn(`Can't send message to channel ${entry.channel_id}`);
     }
   }
 }
 
 function saveLogs(logs) {
-  fs.writeFileSync(logFile, JSON.stringify(logs, null, 2), "utf8");
+  fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2), "utf8");
 }
 
 module.exports = {
   init: init,
-  setLogChannel: setLogChannel,
-  clearLogChannel: clearLogChannel,
 };

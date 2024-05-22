@@ -1,6 +1,5 @@
-require("dotenv").config();
-const token = process.env["token"];
-const client_id = process.env["client_id"];
+const config = require("./environment.js").discord;
+const logger = require("./logger.js");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -17,13 +16,12 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildEmojisAndStickers,
-    GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+  partials: [Partials.Channel, Partials.Reaction],
   disableEveryone: false,
 });
-const rest = new REST({ version: "10" }).setToken(token);
+const rest = new REST({ version: "10" }).setToken(config.token);
 
 const commands = [];
 client.commands = new Collection();
@@ -37,15 +35,15 @@ for (const file of commandFiles) {
   const command = require(filePath);
 
   if (!("data" in command) || !("execute" in command)) {
-    console.log(
-      `[WARNING] The command at "${file}" is missing a required "data" or "execute" property`
+    logger.warn(
+      `The command at "${file}" is missing a required "data" or "execute" property`
     );
     continue;
   }
 
   commands.push(command.data.toJSON());
   client.commands.set(command.data.name, command);
-  console.log(`[LOG] The command at "${file}" is registered`);
+  logger.info(`The command at "${file}" is registered`);
 }
 
 const eventsPath = path.join(__dirname, "events");
@@ -58,8 +56,8 @@ for (const file of eventFiles) {
   const event = require(filePath);
 
   if (!("name" in event) || !("once" in event)) {
-    console.log(
-      `[WARNING] The event at "${file}" is missing a "name" or "once" property`
+    logger.warn(
+      `The event at "${file}" is missing a "name" or "once" property`
     );
     continue;
   }
@@ -69,25 +67,25 @@ for (const file of eventFiles) {
   } else {
     client.on(event.name, (...args) => event.execute(...args));
   }
-  console.log(`[LOG] The event at "${file}" is registered`);
+  logger.info(`The event at "${file}" is registered`);
 }
 
 (async () => {
   try {
-    console.log(
-      `[LOG] Started refreshing ${commands.length} application (/) commands`
+    logger.info(
+      `Started refreshing ${commands.length} application (/) commands`
     );
 
-    const data = await rest.put(Routes.applicationCommands(client_id), {
+    const data = await rest.put(Routes.applicationCommands(config.client_id), {
       body: commands,
     });
 
-    console.log(
-      `[LOG] Successfully reloaded ${data.length} application (/) commands`
+    logger.info(
+      `Successfully reloaded ${data.length} application (/) commands`
     );
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 })();
 
-client.login(token);
+client.login(config.token);
