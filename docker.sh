@@ -23,8 +23,7 @@ show_help() {
   status      - Показать статус контейнеров
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
-  clean       - Остановить и удалить контейнеры с образами
-  clean-db    - Очистить базу данных (удалить все данные)
+  clean       - Полностью удалить контейнеры, образы и volumes
   help        - Показать эту справку
 EOF
 }
@@ -88,14 +87,7 @@ enter_mongo_shell() {
 }
 
 clean_all() {
-    echo -e "${YELLOW}🧹 Очистка контейнеров и образов...${NC}"
-    docker compose down -v
-    docker rmi yui-yui-bot 2>/dev/null || true
-    echo -e "${GREEN}✅ Очистка завершена!${NC}"
-}
-
-clean_database() {
-    echo -e "${RED}⚠️  ВНИМАНИЕ: Эта операция удалит все данные из базы данных!${NC}"
+    echo -e "${RED}⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!${NC}"
     read -p "Вы уверены? Введите 'yes' для подтверждения: " confirmation
     
     if [ "$confirmation" != "yes" ]; then
@@ -103,30 +95,10 @@ clean_database() {
         return
     fi
     
-    echo -e "${YELLOW}🗑️  Очистка базы данных...${NC}"
-    
-    if ! docker compose ps | grep -q mongodb.*running; then
-        echo -e "${RED}❌ Контейнер MongoDB не запущен!${NC}"
-        echo -e "${CYAN}Запустите контейнеры командой: ./docker.sh start${NC}"
-        return
-    fi
-    
-    docker compose exec -T mongodb mongosh -u admin -p password --authenticationDatabase admin --eval "
-        const dbs = db.adminCommand('listDatabases').databases;
-        dbs.forEach(database => {
-            if (!['admin', 'config', 'local'].includes(database.name)) {
-                print('Удаление БД: ' + database.name);
-                db.getSiblingDB(database.name).dropDatabase();
-            }
-        });
-        print('База данных очищена!');
-    "
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✅ База данных успешно очищена!${NC}"
-    else
-        echo -e "${RED}❌ Ошибка при очистке базы данных${NC}"
-    fi
+    echo -e "${YELLOW}🧹 Очистка контейнеров, образов и volumes...${NC}"
+    docker compose down -v
+    docker rmi yui-yui-bot 2>/dev/null || true
+    echo -e "${GREEN}✅ Полная очистка завершена!${NC}"
 }
 
 if ! command -v docker &> /dev/null; then
@@ -174,9 +146,6 @@ case "$1" in
         ;;
     clean)
         clean_all
-        ;;
-    clean-db)
-        clean_database
         ;;
     help|--help|-h|"")
         show_help

@@ -1,6 +1,6 @@
 param(
     [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "logs", "logs-bot", "logs-mongo", "build", "status", "shell", "mongo-shell", "clean", "clean-db", "help")]
+    [ValidateSet("start", "stop", "restart", "logs", "logs-bot", "logs-mongo", "build", "status", "shell", "mongo-shell", "clean", "help")]
     [string]$Command = "help"
 )
 
@@ -19,8 +19,7 @@ function Show-Help {
   status      - Показать статус контейнеров
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
-  clean       - Остановить и удалить контейнеры с образами
-  clean-db    - Очистить базу данных (удалить все данные)
+  clean       - Полностью удалить контейнеры, образы и volumes
   help        - Показать эту справку
 "@
 }
@@ -92,14 +91,7 @@ function Enter-MongoShell {
 }
 
 function Clean-All {
-    Write-Host "🧹 Очистка контейнеров и образов..." -ForegroundColor Yellow
-    docker compose down -v
-    docker rmi yui-yui-bot 2>$null
-    Write-Host "✅ Очистка завершена!" -ForegroundColor Green
-}
-
-function Clean-Database {
-    Write-Host "⚠️  ВНИМАНИЕ: Эта операция удалит все данные из базы данных!" -ForegroundColor Red
+    Write-Host "⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!" -ForegroundColor Red
     $confirmation = Read-Host "Вы уверены? Введите 'yes' для подтверждения"
     
     if ($confirmation -ne "yes") {
@@ -107,31 +99,10 @@ function Clean-Database {
         return
     }
     
-    Write-Host "🗑️  Очистка базы данных..." -ForegroundColor Yellow
-    
-    $mongoStatus = docker compose ps -q mongodb
-    if (-not $mongoStatus) {
-        Write-Host "❌ Контейнер MongoDB не запущен!" -ForegroundColor Red
-        Write-Host "Запустите контейнеры командой: .\docker.ps1 start" -ForegroundColor Cyan
-        return
-    }
-    
-    docker compose exec -T mongodb mongosh -u admin -p password --authenticationDatabase admin --eval "
-        const dbs = db.adminCommand('listDatabases').databases;
-        dbs.forEach(database => {
-            if (!['admin', 'config', 'local'].includes(database.name)) {
-                print('Удаление БД: ' + database.name);
-                db.getSiblingDB(database.name).dropDatabase();
-            }
-        });
-        print('База данных очищена!');
-    "
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ База данных успешно очищена!" -ForegroundColor Green
-    } else {
-        Write-Host "❌ Ошибка при очистке базы данных" -ForegroundColor Red
-    }
+    Write-Host "🧹 Очистка контейнеров, образов и volumes..." -ForegroundColor Yellow
+    docker compose down -v
+    docker rmi yui-yui-bot 2>$null
+    Write-Host "✅ Полная очистка завершена!" -ForegroundColor Green
 }
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -158,7 +129,6 @@ switch ($Command) {
     "shell"       { Enter-Shell }
     "mongo-shell" { Enter-MongoShell }
     "clean"       { Clean-All }
-    "clean-db"    { Clean-Database }
     "help"        { Show-Help }
     default       { Show-Help }
 }
