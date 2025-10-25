@@ -1,0 +1,40 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Git
+.git
+.gitignore
+
+# Environment files
+.env
+
+# Documentation
+README.md
+readme-files/
+pp.md
+tos.md
+
+# Test files
+test.js
+
+# Scripts
+start.sh
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

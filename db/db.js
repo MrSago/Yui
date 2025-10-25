@@ -1,4 +1,5 @@
 const config = require("../environment.js").db;
+const logger = require("../logger.js");
 
 const { MongoClient } = require("mongodb");
 
@@ -8,31 +9,83 @@ const URI =
   `/?authMechanism=${config.auth_mechanism}` +
   `&authSource=${config.auth_source}`;
 
-const client = new MongoClient(URI);
-const db = client.db(config.auth_source);
+const client = new MongoClient(URI, {
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 10000,
+});
 
-const settings = db.collection("settings");
-const changelog = db.collection("changelog");
-const loot = db.collection("loot");
+let db;
+let settings;
+let changelog;
+let loot;
+let records;
+let isConnected = false;
 
-const records = db.collection("records");
-
-function init() {
-  settings.createIndex({ guild_id: 1 }, { unique: true });
-  settings.createIndex({ changelog_id: 2 });
-  settings.createIndex({ loot_id: 2 });
-
-  changelog.createIndex({ channel_id: 2 });
-
-  loot.createIndex({ channel_id: 2 });
-  loot.createIndex({ realm_id: 2 });
-  loot.createIndex({ guild_sirus_id: 2 });
-
-  records.createIndex({ guild_id: 1 }, { unique: true });
-  records.createIndex({ records: 2 });
+async function connectDB() {
+  try {
+    await client.connect();
+    logger.info("Successfully connected to MongoDB");
+    
+    db = client.db(config.auth_source);
+    settings = db.collection("settings");
+    changelog = db.collection("changelog");
+    loot = db.collection("loot");
+    records = db.collection("records");
+    
+    isConnected = true;
+    return true;
+  } catch (error) {
+    logger.error(`MongoDB connection error: ${error.message}`);
+    isConnected = false;
+    return false;
+  }
 }
 
+function ensureConnected() {
+  if (!isConnected || !settings || !changelog || !loot || !records) {
+    throw new Error("Database not connected. Please wait for connection to establish.");
+  }
+}
+
+async function init() {
+  const connected = await connectDB();
+  if (!connected) {
+    logger.warn("Failed to connect to MongoDB. Retrying in 10 seconds...");
+    setTimeout(init, 10000);
+    return;
+  }
+
+  try {
+    await settings.createIndex({ guild_id: 1 }, { unique: true });
+    await settings.createIndex({ changelog_id: 2 });
+    await settings.createIndex({ loot_id: 2 });
+
+    await changelog.createIndex({ channel_id: 2 });
+
+    await loot.createIndex({ channel_id: 2 });
+    await loot.createIndex({ realm_id: 2 });
+    await loot.createIndex({ guild_sirus_id: 2 });
+
+    await records.createIndex({ guild_id: 1 }, { unique: true });
+    await records.createIndex({ records: 2 });
+    
+    logger.info("MongoDB indexes created successfully");
+  } catch (error) {
+    logger.error(`Error creating indexes: ${error.message}`);
+  }
+}
+
+client.on('error', (error) => {
+  logger.error(`MongoDB client error: ${error.message}`);
+});
+
+client.on('close', () => {
+  logger.warn('MongoDB connection closed');
+  isConnected = false;
+});
+
 async function setChangelogChannel(guild_id, channel_id) {
+  ensureConnected();
   const guild_settings = await settings.findOne({ guild_id: guild_id });
   if (!guild_settings) {
     const result = await changelog.insertOne({ channel_id: channel_id });
@@ -59,6 +112,7 @@ async function setChangelogChannel(guild_id, channel_id) {
 }
 
 async function deleteChangelogChannel(guild_id) {
+  ensureConnected();
   const guild_settings = await settings.findOne({ guild_id: guild_id });
   if (!guild_settings || !guild_settings.changelog_id) {
     return;
@@ -78,6 +132,7 @@ async function deleteChangelogChannel(guild_id) {
 }
 
 async function getChangelogSettings() {
+  ensureConnected();
   const entry = changelog.find();
   if (!entry) {
     return null;
@@ -86,6 +141,7 @@ async function getChangelogSettings() {
 }
 
 async function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
+  ensureConnected();
   const guild_settings = await settings.findOne({ guild_id: guild_id });
   if (!guild_settings) {
     const result = await loot.insertOne({
@@ -126,6 +182,7 @@ async function setLootChannel(guild_id, channel_id, realm_id, guild_sirus_id) {
 }
 
 async function deleteLootChannel(guild_id) {
+  ensureConnected();
   const guild_settings = await settings.findOne({ guild_id: guild_id });
   if (!guild_settings || !guild_settings.loot_id) {
     return;
@@ -142,6 +199,7 @@ async function deleteLootChannel(guild_id) {
 }
 
 async function getLootSettings() {
+  ensureConnected();
   const entry = loot.find();
   if (!entry) {
     return null;
@@ -150,6 +208,7 @@ async function getLootSettings() {
 }
 
 async function getGuildIdByLootId(loot_id) {
+  ensureConnected();
   const entry = await settings.findOne(
     { loot_id: loot_id },
     { projection: { _id: 0, guild_id: 1 } }
@@ -161,6 +220,7 @@ async function getGuildIdByLootId(loot_id) {
 }
 
 async function initRecords(guild_id) {
+  ensureConnected();
   const entry = await records.findOne({ guild_id: guild_id });
   if (!entry) {
     await records.insertOne({ guild_id: guild_id, records: [] });
@@ -170,6 +230,7 @@ async function initRecords(guild_id) {
 }
 
 async function deleteRecords(guild_id) {
+  ensureConnected();
   const entry = await records.findOne({ guild_id: guild_id });
   if (!entry) {
     return;
@@ -178,6 +239,7 @@ async function deleteRecords(guild_id) {
 }
 
 async function pushRecords(guild_id, push_recs) {
+  ensureConnected();
   const entry = await records.findOne({ guild_id: guild_id });
   if (!entry) {
     return false;
@@ -190,6 +252,7 @@ async function pushRecords(guild_id, push_recs) {
 }
 
 async function checkRecord(guild_id, record) {
+  ensureConnected();
   const entry = await records.findOne({
     guild_id: guild_id,
     records: { $in: [record] },
@@ -201,10 +264,12 @@ async function checkRecord(guild_id, record) {
 }
 
 async function getSettingsArray() {
+  ensureConnected();
   return await settings.find({}).toArray();
 }
 
 function clearGuildSettings(guild_id) {
+  ensureConnected();
   deleteChangelogChannel(guild_id);
   deleteLootChannel(guild_id);
   deleteRecords(guild_id);
@@ -212,6 +277,7 @@ function clearGuildSettings(guild_id) {
 }
 
 async function getGuildsCount() {
+  ensureConnected();
   return await settings.countDocuments();
 }
 
