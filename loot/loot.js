@@ -159,11 +159,9 @@ async function entryProcess(entry, guild_id) {
   const promises = [];
 
   for (const record of records) {
-    if (first_init) {
-      sended_records.push(record.id);
-    } else {
+
       promises.push(getExtraInfoWrapper(entry, guild_id, record));
-    }
+    
   }
 
   if (promises.length > 0) {
