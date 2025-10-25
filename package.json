@@ -4,7 +4,6 @@
     "bottleneck": "^2.19.5",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
-    "mongodb": "^6.5.0",
-    "puppeteer": "^22.6.4"
+    "mongodb": "^6.5.0"
   }
 }

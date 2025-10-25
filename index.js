@@ -1,5 +1,6 @@
 const config = require("./environment.js").discord;
 const logger = require("./logger.js");
+const db = require("./db/db.js");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -87,5 +88,7 @@ for (const file of eventFiles) {
     logger.error(error);
   }
 })();
+
+db.init();
 
 client.login(config.token);

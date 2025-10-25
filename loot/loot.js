@@ -4,7 +4,6 @@
 
 const logger = require("../logger.js");
 const db = require("../db/db.js");
-const { initBrowser, browserGet } = require("../browserGetter.js");
 
 const { EmbedBuilder, ActivityType } = require("discord.js");
 const axios = require("axios");
@@ -18,6 +17,7 @@ const PVE_PROGRESS_URL = "https://sirus.su/base/pve-progression/boss-kill";
 
 const REALM_NAMES = {
   9: "Scourge x2",
+  22: "Neverest x3",
   33: "Algalon x4",
   42: "Soulseeker x1",
   57: "Sirus x5",
@@ -40,8 +40,6 @@ var client;
 var bossThumbnails = {};
 var classEmoji = {};
 var blacklist = [];
-
-var browser;
 
 function init(discord) {
   client = discord;
@@ -98,8 +96,6 @@ async function startRefreshingLoot() {
     status: "dnd",
   });
 
-  browser = await initBrowser();
-
   const settings = await db.getLootSettings();
   if (!settings) {
     logger.warn("Can't load loot settings from DB");
@@ -117,9 +113,6 @@ async function startRefreshingLoot() {
   }
   await Promise.all(entry_promises);
 
-  await browser.close();
-  browser = null;
-
   client.user.setPresence({
     activities: [{ name: `Чилю`, type: ActivityType.Custom }],
     status: "online",
@@ -134,14 +127,12 @@ async function entryProcess(entry, guild_id) {
   try {
     const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}&lang=ru`;
 
-    response = await browserGet(browser, api_url);
-
-    // response = (
-    //   await axios.get(api_url, {
-    //     headers: { "accept-encoding": null },
-    //     cache: true,
-    //   })
-    // ).data;
+    response = (
+      await axios.get(api_url, {
+        headers: { "accept-encoding": null },
+        cache: true,
+      })
+    ).data;
   } catch (error) {
     logger.error(error);
     logger.warn(
@@ -213,14 +204,12 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}?lang=ru`;
     let response;
 
-    response = await browserGet(browser, api_url);
-
-    // response = (
-    //   await axios.get(api_url, {
-    //     headers: { "accept-encoding": null },
-    //     cache: true,
-    //   })
-    // ).data;
+    response = (
+      await axios.get(api_url, {
+        headers: { "accept-encoding": null },
+        cache: true,
+      })
+    ).data;
 
     data_boss_kill_info = response.data;
   } catch (error) {
