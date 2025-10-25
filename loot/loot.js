@@ -5,30 +5,17 @@
 const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
+const config = require("../config").loot;
 
 const { EmbedBuilder, ActivityType } = require("discord.js");
 const fs = require("fs");
 
-const REALM_NAMES = {
-  9: "Scourge x2",
-  22: "Neverest x3",
-  33: "Algalon x4",
-  42: "Soulseeker x1",
-  57: "Sirus x5",
-};
-const getRealmNameById = (realm_id) => {
-  if (REALM_NAMES[realm_id]) {
-    return REALM_NAMES[realm_id];
-  }
-  return null;
-};
+const LOOT_PATH = config.dataPath;
+const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/${config.files.bossThumbnails}`;
+const CLASS_EMOJI_FILE = `${LOOT_PATH}/${config.files.classEmoji}`;
+const BLACKLIST_FILE = `${LOOT_PATH}/${config.files.blacklist}`;
 
-const LOOT_PATH = "./loot";
-const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/bossThumbnails.json`;
-const CLASS_EMOJI_FILE = `${LOOT_PATH}/classEmoji.json`;
-const BLACKLIST_FILE = `${LOOT_PATH}/blacklist.json`;
-
-const INTERVAL_UPDATE_MS = 1000 * 60 * 30;
+const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
 var client;
 var bossThumbnails = {};
@@ -85,9 +72,12 @@ async function startRefreshingLoot() {
 
   client.user.setPresence({
     activities: [
-      { name: `Обрабатываю киллы боссов`, type: ActivityType.Custom },
+      {
+        name: config.activity.processingStatus.name,
+        type: ActivityType[config.activity.processingStatus.type],
+      },
     ],
-    status: "dnd",
+    status: config.activity.processingStatus.status,
   });
 
   const settings = await db.getLootSettings();
@@ -108,8 +98,13 @@ async function startRefreshingLoot() {
   await Promise.all(entry_promises);
 
   client.user.setPresence({
-    activities: [{ name: `Чилю`, type: ActivityType.Custom }],
-    status: "online",
+    activities: [
+      {
+        name: config.activity.idleStatus.name,
+        type: ActivityType[config.activity.idleStatus.type],
+      },
+    ],
+    status: config.activity.idleStatus.status,
   });
   logger.info("Refreshing loot ended");
 
@@ -117,11 +112,14 @@ async function startRefreshingLoot() {
 }
 
 async function entryProcess(entry, guild_id) {
-  const records = await sirusApi.getLatestBossKills(entry.realm_id, entry.guild_sirus_id);
-  
+  const records = await sirusApi.getLatestBossKills(
+    entry.realm_id,
+    entry.guild_sirus_id
+  );
+
   if (!records) {
     logger.warn(
-      `Can't get loot from realm ${getRealmNameById(
+      `Can't get loot from realm ${sirusApi.getRealmNameById(
         entry.realm_id
       )} with guild sirus id ${entry.guild_sirus_id}`
     );
@@ -183,15 +181,18 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
 }
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
-  const data_boss_kill_info = await sirusApi.getBossKillDetails(realm_id, record_id);
-  
+  const data_boss_kill_info = await sirusApi.getBossKillDetails(
+    realm_id,
+    record_id
+  );
+
   if (!data_boss_kill_info) {
     return null;
   }
 
-  const realm_name = getRealmNameById(realm_id);
+  const realm_name = sirusApi.getRealmNameById(realm_id);
   let embed_message = new EmbedBuilder()
-    .setColor("#0099ff")
+    .setColor(config.embed.color)
     .setAuthor({
       name:
         `${data_boss_kill_info.guild.name}` +
@@ -202,8 +203,8 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     .setTitle(`Убийство босса ${data_boss_kill_info.boss_name}`)
     .setURL(sirusApi.getPveProgressUrl(realm_id, record_id))
     .setFooter({
-      text: "Юи, Ваш ассистент",
-      iconURL: "https://i.imgur.com/LvlhrPY.png",
+      text: config.embed.footerText,
+      iconURL: config.embed.footerIconUrl,
     })
     .addFields(
       {
@@ -347,10 +348,6 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
 }
 
 function parseDpsPlayers(data) {
-  // Furatoru - x5
-  const easterEgg = ["Furatoru"];
-  const easterEggEmojiId = "1067786576639295488";
-
   data.sort((a, b) => b.dps - a.dps);
 
   let i = 1;
@@ -364,8 +361,8 @@ function parseDpsPlayers(data) {
     try {
       const spec = classEmoji[player.class_id].spec[player.spec];
       if (spec.heal) continue;
-      if (easterEgg.find((item) => item === player.name)) {
-        emoji = client.emojis.cache.get(easterEggEmojiId);
+      if (config.easterEgg.players.includes(player.name)) {
+        emoji = client.emojis.cache.get(config.easterEgg.emojiId);
       } else {
         emoji = client.emojis.cache.get(spec.emoji_id);
       }

@@ -1,14 +1,15 @@
 const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
+const config = require("../config").changelog;
 
 const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 
-const DATA_PATH = "./data";
+const DATA_PATH = config.dataPath;
 const LOG_FILE = `${DATA_PATH}/log.json`;
 
-const INTERVAL_UPDATE_MS = 1000 * 60 * 60 * 10;
+const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
 var client;
 
@@ -22,7 +23,7 @@ async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
   const data = await sirusApi.getChangelog();
-  
+
   if (data) {
     sendData(data);
   }
@@ -47,17 +48,17 @@ async function sendData(data) {
   })();
 
   const embedMessage = new EmbedBuilder()
-    .setColor("#ff00ff")
+    .setColor(config.embed.color)
     .setAuthor({
-      name: "Sirus.su",
-      iconURL: "https://i.imgur.com/2ZKDaJQ.png",
-      url: "https://sirus.su",
+      name: config.embed.authorName,
+      iconURL: config.embed.authorIconUrl,
+      url: config.embed.authorUrl,
     })
-    .setTitle("Новые изменения на сервере Sirus.su")
+    .setTitle(config.embed.title)
     .setURL(sirusApi.getChangelogUrl())
     .setFooter({
-      text: "Юи, Ваш ассистент",
-      iconURL: "https://i.imgur.com/LvlhrPY.png",
+      text: config.embed.footerText,
+      iconURL: config.embed.footerIconUrl,
     });
 
   let message = "";

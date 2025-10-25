@@ -25,13 +25,13 @@ async function connectDB() {
   try {
     await client.connect();
     logger.info("Successfully connected to MongoDB");
-    
+
     db = client.db(config.auth_source);
     settings = db.collection("settings");
     changelog = db.collection("changelog");
     loot = db.collection("loot");
     records = db.collection("records");
-    
+
     isConnected = true;
     return true;
   } catch (error) {
@@ -43,7 +43,9 @@ async function connectDB() {
 
 function ensureConnected() {
   if (!isConnected || !settings || !changelog || !loot || !records) {
-    throw new Error("Database not connected. Please wait for connection to establish.");
+    throw new Error(
+      "Database not connected. Please wait for connection to establish."
+    );
   }
 }
 
@@ -68,19 +70,19 @@ async function init() {
 
     await records.createIndex({ guild_id: 1 }, { unique: true });
     await records.createIndex({ records: 2 });
-    
+
     logger.info("MongoDB indexes created successfully");
   } catch (error) {
     logger.error(`Error creating indexes: ${error.message}`);
   }
 }
 
-client.on('error', (error) => {
+client.on("error", (error) => {
   logger.error(`MongoDB client error: ${error.message}`);
 });
 
-client.on('close', () => {
-  logger.warn('MongoDB connection closed');
+client.on("close", () => {
+  logger.warn("MongoDB connection closed");
   isConnected = false;
 });
 

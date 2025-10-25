@@ -1,6 +1,15 @@
 const axios = require("axios");
 const logger = require("../logger.js");
 
+// Realm names mapping
+const REALM_NAMES = {
+  9: "Scourge x2",
+  22: "Neverest x3",
+  33: "Algalon x4",
+  42: "Soulseeker x1",
+  57: "Sirus x5",
+};
+
 // API URLs
 const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
 const API_BASE_URL = "https://sirus.su/api/base";
@@ -14,11 +23,12 @@ const CHANGELOG_URL = "https://sirus.su/statistic/changelog";
 
 // Default headers for requests
 const DEFAULT_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
   "Accept-Encoding": "gzip, deflate, br",
-  "Connection": "keep-alive",
+  Connection: "keep-alive",
   "Upgrade-Insecure-Requests": "1",
   "Sec-Fetch-Dest": "document",
   "Sec-Fetch-Mode": "navigate",
@@ -53,12 +63,12 @@ async function makeRequest(url, options = {}) {
 async function getChangelog() {
   logger.info(`Fetching changelog from ${CHANGELOG_API_URL}`);
   const data = await makeRequest(CHANGELOG_API_URL);
-  
+
   if (!data || !data.data) {
     logger.warn("Failed to get changelog from Sirus.su");
     return null;
   }
-  
+
   return data.data;
 }
 
@@ -70,15 +80,19 @@ async function getChangelog() {
  */
 async function getLatestBossKills(realmId, guildSirusId) {
   const url = `${API_BASE_URL}/${realmId}/${LATEST_FIGHTS_API}?guild=${guildSirusId}&lang=ru`;
-  logger.info(`Fetching latest boss kills for guild ${guildSirusId} on realm ${realmId}`);
-  
+  logger.info(
+    `Fetching latest boss kills for guild ${guildSirusId} on realm ${realmId}`
+  );
+
   const data = await makeRequest(url);
-  
+
   if (!data || !data.data) {
-    logger.warn(`Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`);
+    logger.warn(
+      `Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`
+    );
     return null;
   }
-  
+
   return data.data;
 }
 
@@ -90,15 +104,19 @@ async function getLatestBossKills(realmId, guildSirusId) {
  */
 async function getBossKillDetails(realmId, recordId) {
   const url = `${API_BASE_URL}/${realmId}/${BOSS_KILL_API}/${recordId}?lang=ru`;
-  logger.info(`Fetching boss kill details for record ${recordId} on realm ${realmId}`);
-  
+  logger.info(
+    `Fetching boss kill details for record ${recordId} on realm ${realmId}`
+  );
+
   const data = await makeRequest(url);
-  
+
   if (!data || !data.data) {
-    logger.warn(`Failed to get boss kill details for record ${recordId} on realm ${realmId}`);
+    logger.warn(
+      `Failed to get boss kill details for record ${recordId} on realm ${realmId}`
+    );
     return null;
   }
-  
+
   return data.data;
 }
 
@@ -130,6 +148,15 @@ function getChangelogUrl() {
   return CHANGELOG_URL;
 }
 
+/**
+ * Get realm name by ID
+ * @param {number} realmId - Realm ID
+ * @returns {string|null} Realm name or null if not found
+ */
+function getRealmNameById(realmId) {
+  return REALM_NAMES[realmId] || null;
+}
+
 module.exports = {
   getChangelog,
   getLatestBossKills,
@@ -137,4 +164,5 @@ module.exports = {
   getGuildUrl,
   getPveProgressUrl,
   getChangelogUrl,
+  getRealmNameById,
 };
