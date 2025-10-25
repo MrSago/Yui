@@ -1,3 +1,8 @@
+/**
+ * @file Changelog tracking module
+ * @description Monitors and announces Sirus.su changelog updates
+ */
+
 const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
@@ -9,12 +14,19 @@ const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
 var client;
 
+/**
+ * Initializes changelog tracking
+ * @param {import('discord.js').Client} discord - Discord client instance
+ */
 function init(discord) {
   client = discord;
 
   startUpdatingChangelog();
 }
 
+/**
+ * Starts the changelog update loop
+ */
 async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
@@ -29,6 +41,10 @@ async function startUpdatingChangelog() {
   setTimeout(startUpdatingChangelog, INTERVAL_UPDATE_MS);
 }
 
+/**
+ * Processes and sends changelog data
+ * @param {Array<Object>} data - Changelog data from API
+ */
 async function sendData(data) {
   const logs = await loadLogs();
   const cnt = parseData(data, logs);
@@ -72,6 +88,12 @@ async function sendData(data) {
   }
 }
 
+/**
+ * Parses changelog data and counts new entries
+ * @param {Array<Object>} data - Changelog data
+ * @param {Array<string>} logs - Previously logged message IDs
+ * @returns {number} Number of new changelog entries
+ */
 function parseData(data, logs) {
   let cnt = 0;
   for (let i = 0; i < data.length; ++i) {
@@ -103,6 +125,10 @@ async function saveLogs(logs) {
   await db.saveChangelogLogs(logs);
 }
 
+/**
+ * Sends changelog embed to configured Discord channels
+ * @param {import('discord.js').EmbedBuilder} embedMessage - Embed message to send
+ */
 async function sendChangeLog(embedMessage) {
   const settings = await db.getChangelogSettings();
   if (!settings) {

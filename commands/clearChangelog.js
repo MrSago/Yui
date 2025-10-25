@@ -1,3 +1,8 @@
+/**
+ * @file Clear changelog command
+ * @description Removes changelog notification settings for the guild
+ */
+
 const logger = require("../logger.js");
 const { deleteChangelogChannel } = require("../db/db.js");
 
@@ -9,6 +14,10 @@ module.exports = {
     .setDescription("Удалить настройки оповещений об изменениях Sirus.su")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
+  /**
+   * Executes the clearchangelog command
+   * @param {import('discord.js').CommandInteraction} interaction - Command interaction
+   */
   async execute(interaction) {
     const guild = interaction.guild;
     const guild_name = interaction.guild?.name ?? "USER";

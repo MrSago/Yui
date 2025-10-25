@@ -1,3 +1,8 @@
+/**
+ * @file Set changelog command
+ * @description Configures channel for Sirus.su changelog notifications
+ */
+
 const logger = require("../logger.js");
 const { setChangelogChannel } = require("../db/db.js");
 
@@ -15,6 +20,10 @@ module.exports = {
         .setRequired(true)
     ),
 
+  /**
+   * Executes the setchangelog command
+   * @param {import('discord.js').CommandInteraction} interaction - Command interaction
+   */
   async execute(interaction) {
     const guild = interaction.guild;
     const guild_name = interaction.guild?.name ?? "USER";

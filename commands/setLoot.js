@@ -1,3 +1,8 @@
+/**
+ * @file Set loot command
+ * @description Configures channel for boss kill loot notifications
+ */
+
 const logger = require("../logger.js");
 const { setLootChannel } = require("../db/db.js");
 
@@ -34,6 +39,10 @@ module.exports = {
         .setRequired(true)
     ),
 
+  /**
+   * Executes the setloot command
+   * @param {import('discord.js').CommandInteraction} interaction - Command interaction
+   */
   async execute(interaction) {
     const guild = interaction.guild;
     const guild_name = interaction.guild?.name ?? "USER";

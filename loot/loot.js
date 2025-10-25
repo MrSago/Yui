@@ -1,6 +1,8 @@
-/*
-    Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
-*/
+/**
+ * @file Loot tracking module
+ * @description Monitors and announces boss kills and loot information
+ * @note Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
+ */
 
 const logger = require("../logger.js");
 const db = require("../db/db.js");
@@ -29,6 +31,10 @@ var bossThumbnails = {};
 var classEmoji = {};
 var blacklist = [];
 
+/**
+ * Initializes loot tracking
+ * @param {import('discord.js').Client} discord - Discord client instance
+ */
 function init(discord) {
   client = discord;
 
@@ -39,6 +45,9 @@ function init(discord) {
   startRefreshingLoot();
 }
 
+/**
+ * Loads boss thumbnail images from JSON file
+ */
 function loadBossThumbnails() {
   bossThumbnails = loadJsonFileWithDefault(
     BOSS_THUMBNAILS_FILE,
@@ -47,14 +56,23 @@ function loadBossThumbnails() {
   );
 }
 
+/**
+ * Loads class emoji mappings from JSON file
+ */
 function loadClassEmoji() {
   classEmoji = loadJsonFileWithDefault(CLASS_EMOJI_FILE, {}, "class emoji");
 }
 
+/**
+ * Loads blacklisted items from JSON file
+ */
 function loadBlacklist() {
   blacklist = loadJsonFileWithDefault(BLACKLIST_FILE, [], "loot blacklist");
 }
 
+/**
+ * Starts the loot refresh loop
+ */
 async function startRefreshingLoot() {
   logger.info("Refreshing loot started");
 
@@ -99,6 +117,11 @@ async function startRefreshingLoot() {
   setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
 }
 
+/**
+ * Processes a single loot entry for a guild
+ * @param {Object} entry - Loot settings entry
+ * @param {string} guild_id - Discord guild ID
+ */
 async function entryProcess(entry, guild_id) {
   const records = await sirusApi.getLatestBossKills(
     entry.realm_id,
@@ -136,6 +159,13 @@ async function entryProcess(entry, guild_id) {
   }
 }
 
+/**
+ * Wrapper for getting boss kill extra info and sending to Discord
+ * @param {Object} entry - Loot settings entry
+ * @param {string} guild_id - Discord guild ID
+ * @param {Object} record - Boss kill record
+ * @returns {Promise<number|null>} Record ID if sent successfully, null otherwise
+ */
 async function getExtraInfoWrapper(entry, guild_id, record) {
   if (!client.guilds.cache.get(guild_id)) {
     return null;
@@ -168,6 +198,13 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
   return null;
 }
 
+/**
+ * Gets detailed boss kill information and formats embed message
+ * @param {string} guild_id - Discord guild ID
+ * @param {number} record_id - Boss kill record ID
+ * @param {number} realm_id - Realm ID
+ * @returns {Promise<Object|null>} Formatted message object or null
+ */
 async function getExtraInfo(guild_id, record_id, realm_id) {
   const data_boss_kill_info = await sirusApi.getBossKillDetails(
     realm_id,

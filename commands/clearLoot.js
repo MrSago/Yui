@@ -1,3 +1,8 @@
+/**
+ * @file Clear loot command
+ * @description Removes loot notification settings for the guild
+ */
+
 const logger = require("../logger.js");
 const { deleteLootChannel } = require("../db/db.js");
 
@@ -9,6 +14,10 @@ module.exports = {
     .setDescription("Удалить настройки оповещений об убийствах боссов")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
+  /**
+   * Executes the clearloot command
+   * @param {import('discord.js').CommandInteraction} interaction - Command interaction
+   */
   async execute(interaction) {
     const guild = interaction.guild;
     const guild_name = interaction.guild?.name ?? "USER";

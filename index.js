@@ -1,3 +1,8 @@
+/**
+ * @file Main application entry point
+ * @description Discord bot initialization with command and event handlers
+ */
+
 const config = require("./environment.js").discord;
 const logger = require("./logger.js");
 const db = require("./db/db.js");
@@ -13,6 +18,7 @@ const {
   Partials,
 } = require("discord.js");
 
+// Initialize Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -24,6 +30,7 @@ const client = new Client({
 });
 const rest = new REST({ version: "10" }).setToken(config.token);
 
+// Load commands
 const commands = [];
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, "commands");
@@ -47,6 +54,7 @@ for (const file of commandFiles) {
   logger.info(`The command at "${file}" is registered`);
 }
 
+// Load events
 const eventsPath = path.join(__dirname, "events");
 const eventFiles = fs
   .readdirSync(eventsPath)
@@ -71,6 +79,7 @@ for (const file of eventFiles) {
   logger.info(`The event at "${file}" is registered`);
 }
 
+// Register slash commands with Discord API
 (async () => {
   try {
     logger.info(
@@ -89,6 +98,7 @@ for (const file of eventFiles) {
   }
 })();
 
+// Initialize database and login
 db.init();
 
 client.login(config.token);

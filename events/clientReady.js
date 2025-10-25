@@ -1,3 +1,8 @@
+/**
+ * @file Client ready event handler
+ * @description Handles bot initialization when Discord client is ready
+ */
+
 const logger = require("../logger.js");
 const {
   getSettingsArray,
@@ -11,6 +16,10 @@ module.exports = {
   name: Events.ClientReady,
   once: true,
 
+  /**
+   * Executes when Discord client becomes ready
+   * @param {import('discord.js').Client} client - Discord client instance
+   */
   async execute(client) {
     //await require("../browserGetter.js").init();
     await require("../fetch.js").fetchAll(client);
@@ -29,6 +38,11 @@ module.exports = {
   },
 };
 
+/**
+ * Removes guilds from database that bot is no longer a member of
+ * @param {import('discord.js').Client} client - Discord client instance
+ * @returns {Promise<number>} Number of guilds removed
+ */
 async function clearInactiveGuildsFromDb(client) {
   const current_guild_ids = client.guilds.cache.map((guild) => guild.id);
 

@@ -1,3 +1,8 @@
+/**
+ * @file Changelog configuration
+ * @description Configuration settings for changelog tracking and embed formatting
+ */
+
 module.exports = {
   dataPath: "./data",
 

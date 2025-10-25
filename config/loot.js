@@ -1,3 +1,8 @@
+/**
+ * @file Loot configuration
+ * @description Configuration settings for loot tracking, embeds, and bot activity
+ */
+
 module.exports = {
   dataPath: "./loot",
 

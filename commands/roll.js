@@ -1,3 +1,8 @@
+/**
+ * @file Roll command
+ * @description Dice rolling command with customizable range
+ */
+
 const logger = require("../logger.js");
 const { randInt } = require("../tools.js");
 
@@ -22,6 +27,10 @@ module.exports = {
         .setMinValue(1)
     ),
 
+  /**
+   * Executes the roll command
+   * @param {import('discord.js').CommandInteraction} interaction - Command interaction
+   */
   async execute(interaction) {
     const guild_name = interaction.guild?.name ?? "USER";
     const guild_id = interaction.guild?.id ?? interaction.user.id;
