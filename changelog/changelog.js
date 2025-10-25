@@ -2,16 +2,8 @@ const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").changelog;
-const {
-  loadJsonFileWithDefault,
-  saveJsonFile,
-  ensureDirectoryExists,
-} = require("../utils");
 
 const { EmbedBuilder } = require("discord.js");
-
-const DATA_PATH = config.dataPath;
-const LOG_FILE = `${DATA_PATH}/log.json`;
 
 const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
@@ -38,18 +30,17 @@ async function startUpdatingChangelog() {
 }
 
 async function sendData(data) {
-  let logs = loadLogs();
-  let cnt = parseData(data, logs);
+  const logs = await loadLogs();
+  const cnt = parseData(data, logs);
   if (!cnt) {
     return;
   }
 
-  (async () => {
-    for (let i = cnt - 1; i >= 0; --i) {
-      logs.push(data[i].message);
-    }
-    saveLogs(logs);
-  })();
+  const newMessages = [];
+  for (let i = cnt - 1; i >= 0; --i) {
+    newMessages.push(data[i].message);
+  }
+  await saveLogs([...logs, ...newMessages]);
 
   const embedMessage = new EmbedBuilder()
     .setColor(config.embed.color)
@@ -95,13 +86,21 @@ function parseData(data, logs) {
   return cnt;
 }
 
-function loadLogs() {
-  ensureDirectoryExists(DATA_PATH);
-  return loadJsonFileWithDefault(LOG_FILE, [], "changelog logs");
+/**
+ * Loads changelog logs from the database
+ * @returns {Promise<string[]>} Array of changelog message IDs
+ */
+async function loadLogs() {
+  return await db.getChangelogLogs();
 }
 
-function saveLogs(logs) {
-  saveJsonFile(LOG_FILE, logs, "changelog logs");
+/**
+ * Saves changelog logs to the database
+ * @param {string[]} logs - Array of changelog message IDs to save
+ * @returns {Promise<void>}
+ */
+async function saveLogs(logs) {
+  await db.saveChangelogLogs(logs);
 }
 
 async function sendChangeLog(embedMessage) {
