@@ -130,11 +130,13 @@ async function entryProcess(entry, guild_id) {
     response = (
       await axios.get(api_url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
           "Accept-Encoding": "gzip, deflate, br",
-          "Connection": "keep-alive",
+          Connection: "keep-alive",
           "Upgrade-Insecure-Requests": "1",
           "Sec-Fetch-Dest": "document",
           "Sec-Fetch-Mode": "navigate",
@@ -159,9 +161,11 @@ async function entryProcess(entry, guild_id) {
   const promises = [];
 
   for (const record of records) {
-
+    if (first_init) {
+      sended_records.push(record.id);
+    } else {
       promises.push(getExtraInfoWrapper(entry, guild_id, record));
-    
+    }
   }
 
   if (promises.length > 0) {
@@ -215,11 +219,13 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     response = (
       await axios.get(api_url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
           "Accept-Encoding": "gzip, deflate, br",
-          "Connection": "keep-alive",
+          Connection: "keep-alive",
           "Upgrade-Insecure-Requests": "1",
           "Sec-Fetch-Dest": "document",
           "Sec-Fetch-Mode": "navigate",
