@@ -2,9 +2,13 @@ const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").changelog;
+const {
+  loadJsonFileWithDefault,
+  saveJsonFile,
+  ensureDirectoryExists,
+} = require("../utils");
 
 const { EmbedBuilder } = require("discord.js");
-const fs = require("fs");
 
 const DATA_PATH = config.dataPath;
 const LOG_FILE = `${DATA_PATH}/log.json`;
@@ -92,14 +96,12 @@ function parseData(data, logs) {
 }
 
 function loadLogs() {
-  if (!fs.existsSync(DATA_PATH)) {
-    fs.mkdirSync(DATA_PATH);
-  }
-  if (!fs.existsSync(LOG_FILE)) {
-    fs.writeFileSync(LOG_FILE, "[]", "utf8");
-    return [];
-  }
-  return JSON.parse(fs.readFileSync(LOG_FILE, "utf8"));
+  ensureDirectoryExists(DATA_PATH);
+  return loadJsonFileWithDefault(LOG_FILE, [], "changelog logs");
+}
+
+function saveLogs(logs) {
+  saveJsonFile(LOG_FILE, logs, "changelog logs");
 }
 
 async function sendChangeLog(embedMessage) {
@@ -124,10 +126,6 @@ async function sendChangeLog(embedMessage) {
       logger.warn(`Can't send message to channel ${entry.channel_id}`);
     }
   }
-}
-
-function saveLogs(logs) {
-  fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2), "utf8");
 }
 
 module.exports = {

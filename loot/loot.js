@@ -6,9 +6,16 @@ const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").loot;
+const {
+  parseDpsPlayers,
+  parseHealPlayers,
+  loadJsonFileWithDefault,
+  addDpsSection,
+  addHpsSection,
+  addLootSection,
+} = require("../utils");
 
 const { EmbedBuilder, ActivityType } = require("discord.js");
-const fs = require("fs");
 
 const LOOT_PATH = config.dataPath;
 const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/${config.files.bossThumbnails}`;
@@ -33,38 +40,19 @@ function init(discord) {
 }
 
 function loadBossThumbnails() {
-  logger.info(`Load boss thumbnails from ${BOSS_THUMBNAILS_FILE}`);
-  try {
-    bossThumbnails = JSON.parse(fs.readFileSync(BOSS_THUMBNAILS_FILE, "utf8"));
-    logger.info(
-      `Boss thumbnails successfully loaded from ${BOSS_THUMBNAILS_FILE}`
-    );
-  } catch (error) {
-    logger.error(error);
-    logger.warn(`Can't load ${BOSS_THUMBNAILS_FILE}`);
-  }
+  bossThumbnails = loadJsonFileWithDefault(
+    BOSS_THUMBNAILS_FILE,
+    {},
+    "boss thumbnails"
+  );
 }
 
 function loadClassEmoji() {
-  logger.info(`Load class emoji from ${CLASS_EMOJI_FILE}`);
-  try {
-    classEmoji = JSON.parse(fs.readFileSync(CLASS_EMOJI_FILE, "utf8"));
-    logger.info(`Class emoji successfully loaded from ${CLASS_EMOJI_FILE}`);
-  } catch (error) {
-    logger.error(error);
-    logger.warn(`Can't load ${CLASS_EMOJI_FILE}`);
-  }
+  classEmoji = loadJsonFileWithDefault(CLASS_EMOJI_FILE, {}, "class emoji");
 }
 
 function loadBlacklist() {
-  logger.info(`Load loot blacklist from ${BLACKLIST_FILE}`);
-  try {
-    blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, "utf8"));
-    logger.info(`Blacklist successfully loaded from ${BLACKLIST_FILE}`);
-  } catch (error) {
-    logger.error(error);
-    logger.warn(`Can't load ${BLACKLIST_FILE}`);
-  }
+  blacklist = loadJsonFileWithDefault(BLACKLIST_FILE, [], "loot blacklist");
 }
 
 async function startRefreshingLoot() {
@@ -229,94 +217,19 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
   }
 
   const [places_dps, players_dps, dps, summary_dps] = parseDpsPlayers(
-    data_boss_kill_info.players
+    data_boss_kill_info.players,
+    classEmoji,
+    client,
+    config.easterEgg
   );
-  if (places_dps && players_dps && dps && summary_dps) {
-    embed_message
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields(
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "Общий DPS",
-          value: `${intToShortFormat(summary_dps)}k`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: "Место",
-          value: places_dps,
-          inline: true,
-        },
-        {
-          name: "Имя",
-          value: players_dps,
-          inline: true,
-        },
-        {
-          name: "DPS",
-          value: dps,
-          inline: true,
-        }
-      );
-  }
+  addDpsSection(embed_message, places_dps, players_dps, dps, summary_dps);
 
   const [places_heal, players_heal, hps, summary_hps] = parseHealPlayers(
-    data_boss_kill_info.players
+    data_boss_kill_info.players,
+    classEmoji,
+    client
   );
-  if (places_heal && places_heal && hps && summary_hps) {
-    embed_message
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields(
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-          inline: true,
-        },
-        {
-          name: "Общий HPS",
-          value: `${intToShortFormat(summary_hps)}k`,
-          inline: true,
-        }
-      )
-      .addFields(
-        {
-          name: "Место",
-          value: places_heal,
-          inline: true,
-        },
-        {
-          name: "Имя",
-          value: players_heal,
-          inline: true,
-        },
-        {
-          name: "HPS",
-          value: hps,
-          inline: true,
-        }
-      );
-  }
+  addHpsSection(embed_message, places_heal, players_heal, hps, summary_hps);
 
   let loot_str = "";
   try {
@@ -332,107 +245,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     logger.warning("Shit happens...");
     return;
   }
-  if (loot_str !== "") {
-    embed_message
-      .addFields({
-        name: "\u200b",
-        value: "\u200b",
-      })
-      .addFields({
-        name: "Лут",
-        value: loot_str,
-      });
-  }
+
+  addLootSection(embed_message, loot_str);
 
   return { embeds: [embed_message] };
-}
-
-function parseDpsPlayers(data) {
-  data.sort((a, b) => b.dps - a.dps);
-
-  let i = 1;
-  let places = "";
-  let players = "";
-  let dps = "";
-  let summary_dps = 0;
-
-  for (const player of data) {
-    let emoji;
-    try {
-      const spec = classEmoji[player.class_id].spec[player.spec];
-      if (spec.heal) continue;
-      if (config.easterEgg.players.includes(player.name)) {
-        emoji = client.emojis.cache.get(config.easterEgg.emojiId);
-      } else {
-        emoji = client.emojis.cache.get(spec.emoji_id);
-      }
-    } catch (error) {
-      logger.error(error);
-      logger.warn(`Can't get emoji for ${player.name}`);
-    }
-
-    places += `**${i++}**\n`;
-
-    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
-
-    const dps_int = parseInt(player.dps);
-    if (dps_int) {
-      dps += `${intToShortFormat(dps_int)}k\n`;
-      summary_dps += dps_int;
-    } else {
-      dps += "0k\n";
-    }
-  }
-
-  if (places === "" || players === "" || dps === "") {
-    return ["\u200b", "\u200b", "\u200b", 0];
-  }
-
-  return [places, players, dps, summary_dps];
-}
-
-function parseHealPlayers(data) {
-  data.sort((a, b) => b.hps - a.hps);
-
-  let i = 1;
-  let places = "";
-  let players = "";
-  let hps = "";
-  let summary_hps = 0;
-
-  for (const player of data) {
-    let emoji;
-    try {
-      const spec = classEmoji[player.class_id].spec[player.spec];
-      if (!spec.heal) continue;
-      emoji = client.emojis.cache.get(spec.emoji_id);
-    } catch (error) {
-      logger.error(error);
-      logger.warn(`Can't get emoji for ${player.name}`);
-    }
-
-    places += `**${i++}**\n`;
-
-    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
-
-    const hpsInt = parseInt(player.hps);
-    if (hpsInt) {
-      hps += `${intToShortFormat(hpsInt)}k\n`;
-      summary_hps += hpsInt;
-    } else {
-      hps += "0k\n";
-    }
-  }
-
-  if (places === "" || players === "" || hps === "") {
-    return ["\u200b", "\u200b", "\u200b", 0];
-  }
-
-  return [places, players, hps, summary_hps];
-}
-
-function intToShortFormat(value) {
-  return +(value.toFixed(1) / 1000).toFixed(1);
 }
 
 module.exports = {
