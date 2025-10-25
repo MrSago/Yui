@@ -4,16 +4,10 @@
 
 const logger = require("../logger.js");
 const db = require("../db/db.js");
+const sirusApi = require("../api/sirusApi.js");
 
 const { EmbedBuilder, ActivityType } = require("discord.js");
-const axios = require("axios");
 const fs = require("fs");
-
-const API_BASE_URL = "https://sirus.su/api/base";
-const LATEST_FIGHTS_API = "progression/pve/latest-boss-kills";
-const BOSS_KILL_API = "details/bossfight";
-const GUILDS_URL = "https://sirus.su/base/guilds";
-const PVE_PROGRESS_URL = "https://sirus.su/base/pve-progression/boss-kill";
 
 const REALM_NAMES = {
   9: "Scourge x2",
@@ -123,30 +117,9 @@ async function startRefreshingLoot() {
 }
 
 async function entryProcess(entry, guild_id) {
-  let response;
-  try {
-    const api_url = `${API_BASE_URL}/${entry.realm_id}/${LATEST_FIGHTS_API}?guild=${entry.guild_sirus_id}&lang=ru`;
-
-    response = (
-      await axios.get(api_url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          "Sec-Fetch-Dest": "document",
-          "Sec-Fetch-Mode": "navigate",
-          "Sec-Fetch-Site": "cross-site",
-        },
-        cache: true,
-      })
-    ).data;
-  } catch (error) {
-    logger.error(error);
+  const records = await sirusApi.getLatestBossKills(entry.realm_id, entry.guild_sirus_id);
+  
+  if (!records) {
     logger.warn(
       `Can't get loot from realm ${getRealmNameById(
         entry.realm_id
@@ -156,7 +129,6 @@ async function entryProcess(entry, guild_id) {
   }
 
   const first_init = await db.initRecords(guild_id);
-  const records = response.data;
   const sended_records = [];
   const promises = [];
 
@@ -211,34 +183,10 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
 }
 
 async function getExtraInfo(guild_id, record_id, realm_id) {
-  let data_boss_kill_info;
-  try {
-    const api_url = `${API_BASE_URL}/${realm_id}/${BOSS_KILL_API}/${record_id}?lang=ru`;
-    let response;
-
-    response = (
-      await axios.get(api_url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          "Sec-Fetch-Dest": "document",
-          "Sec-Fetch-Mode": "navigate",
-          "Sec-Fetch-Site": "cross-site",
-        },
-        cache: true,
-      })
-    ).data;
-
-    data_boss_kill_info = response.data;
-  } catch (error) {
-    logger.error(error);
-    return;
+  const data_boss_kill_info = await sirusApi.getBossKillDetails(realm_id, record_id);
+  
+  if (!data_boss_kill_info) {
+    return null;
   }
 
   const realm_name = getRealmNameById(realm_id);
@@ -249,10 +197,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         `${data_boss_kill_info.guild.name}` +
         (realm_name ? ` - ${realm_name}` : ""),
       iconURL: client.guilds.cache.get(guild_id).iconURL(),
-      url: `${GUILDS_URL}/${realm_id}/${data_boss_kill_info.guild.id}`,
+      url: sirusApi.getGuildUrl(realm_id, data_boss_kill_info.guild.id),
     })
     .setTitle(`Убийство босса ${data_boss_kill_info.boss_name}`)
-    .setURL(`${PVE_PROGRESS_URL}/${realm_id}/${record_id}`)
+    .setURL(sirusApi.getPveProgressUrl(realm_id, record_id))
     .setFooter({
       text: "Юи, Ваш ассистент",
       iconURL: "https://i.imgur.com/LvlhrPY.png",

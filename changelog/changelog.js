@@ -1,11 +1,9 @@
 const logger = require("../logger.js");
 const db = require("../db/db.js");
+const sirusApi = require("../api/sirusApi.js");
 
-const axios = require("axios");
 const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
-
-const CHANGELOG_API_URL = "https://sirus.su/api/statistic/changelog";
 
 const DATA_PATH = "./data";
 const LOG_FILE = `${DATA_PATH}/log.json`;
@@ -23,31 +21,10 @@ function init(discord) {
 async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
-  let response;
-  try {
-    response = (
-      await axios.get(CHANGELOG_API_URL, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.7,ru;q=0.3",
-          "Accept-Encoding": "gzip, deflate, br",
-          "Connection": "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          "Sec-Fetch-Dest": "document",
-          "Sec-Fetch-Mode": "navigate",
-          "Sec-Fetch-Site": "cross-site",
-        },
-        cache: true,
-      })
-    ).data;
-  } catch (error) {
-    logger.error(error);
-    logger.warn("Can't get changelog from Sirus.su");
-  }
-
-  if (response && response.data) {
-    sendData(response.data);
+  const data = await sirusApi.getChangelog();
+  
+  if (data) {
+    sendData(data);
   }
 
   logger.info("Updating changelog ended");
@@ -77,7 +54,7 @@ async function sendData(data) {
       url: "https://sirus.su",
     })
     .setTitle("Новые изменения на сервере Sirus.su")
-    .setURL("https://sirus.su/statistic/changelog")
+    .setURL(sirusApi.getChangelogUrl())
     .setFooter({
       text: "Юи, Ваш ассистент",
       iconURL: "https://i.imgur.com/LvlhrPY.png",
