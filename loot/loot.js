@@ -243,7 +243,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
         `${data_boss_kill_info.guild.name}` +
         (realm_name ? ` - ${realm_name}` : ""),
       iconURL: client.guilds.cache.get(guild_id).iconURL(),
-      url: `${GUILDS_URL}/${realm_id}/${data_boss_kill_info.guild.entry}`,
+      url: `${GUILDS_URL}/${realm_id}/${data_boss_kill_info.guild.id}`,
     })
     .setTitle(`Убийство босса ${data_boss_kill_info.boss_name}`)
     .setURL(`${PVE_PROGRESS_URL}/${realm_id}/${record_id}`)
