@@ -6,7 +6,7 @@
 module.exports = {
   dataPath: "./data",
 
-  updateIntervalMs: 1000 * 60 * 60 * 10,
+  updateIntervalMs: 1000 * 60 * 60,
 
   embed: {
     color: "#ff00ff",

@@ -6,7 +6,7 @@
 module.exports = {
   dataPath: "./loot",
 
-  updateIntervalMs: 1000 * 60 * 30,
+  updateIntervalMs: 1000 * 60 * 5,
 
   files: {
     bossThumbnails: "bossThumbnails.json",
@@ -27,14 +27,14 @@ module.exports = {
       status: "dnd",
     },
     idleStatus: {
-      name: "Чилю",
+      name: "С возвращением!",
       type: "Custom",
       status: "online",
     },
   },
 
   easterEgg: {
-    players: ["Furatoru"],
+    players: ["Захотаю"],
     emojiId: "1067786576639295488",
   },
 };
