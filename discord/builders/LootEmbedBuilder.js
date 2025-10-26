@@ -73,6 +73,24 @@ class LootEmbedBuilder extends BaseEmbedBuilder {
     this.addEmptyField(embed);
     embed.addFields(
       {
+        name: "\u200b",
+        value: "\u200b",
+        inline: true,
+      },
+      {
+        name: "\u200b",
+        value: "\u200b",
+        inline: true,
+      },
+      {
+        name: "Общий DPS",
+        value: `**${intToShortFormat(summaryDps)}**`,
+        inline: true,
+      }
+    );
+    this.addEmptyField(embed);
+    embed.addFields(
+      {
         name: "Место",
         value: places,
         inline: true,
@@ -86,11 +104,6 @@ class LootEmbedBuilder extends BaseEmbedBuilder {
         name: "Урон",
         value: dps,
         inline: true,
-      },
-      {
-        name: "\u200b",
-        value: `Всего: **${intToShortFormat(summaryDps)}**`,
-        inline: false,
       }
     );
     return embed;
@@ -109,6 +122,24 @@ class LootEmbedBuilder extends BaseEmbedBuilder {
     this.addEmptyField(embed);
     embed.addFields(
       {
+        name: "\u200b",
+        value: "\u200b",
+        inline: true,
+      },
+      {
+        name: "\u200b",
+        value: "\u200b",
+        inline: true,
+      },
+      {
+        name: "Общий HPS",
+        value: `**${intToShortFormat(summaryHps)}**`,
+        inline: true,
+      }
+    );
+    this.addEmptyField(embed);
+    embed.addFields(
+      {
         name: "Место",
         value: places,
         inline: true,
@@ -122,11 +153,6 @@ class LootEmbedBuilder extends BaseEmbedBuilder {
         name: "Лечение",
         value: hps,
         inline: true,
-      },
-      {
-        name: "\u200b",
-        value: `Всего: **${intToShortFormat(summaryHps)}**`,
-        inline: false,
       }
     );
     return embed;
