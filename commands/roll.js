@@ -4,7 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const { randInt } = require("../tools.js");
+const { randInt } = require("../utils");
 
 const { SlashCommandBuilder } = require("discord.js");
 
