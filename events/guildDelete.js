@@ -4,7 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const { clearGuildSettings } = require("../db/db.js");
+const { clearGuildSettings } = require("../db/database.js");
 
 const { Events } = require("discord.js");
 

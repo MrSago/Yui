@@ -5,7 +5,7 @@
  */
 
 const logger = require("../logger.js");
-const db = require("../db/db.js");
+const db = require("../db/database.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").loot;
 const {
@@ -38,36 +38,15 @@ var blacklist = [];
 function init(discord) {
   client = discord;
 
-  loadBossThumbnails();
-  loadClassEmoji();
-  loadBlacklist();
-
-  startRefreshingLoot();
-}
-
-/**
- * Loads boss thumbnail images from JSON file
- */
-function loadBossThumbnails() {
   bossThumbnails = loadJsonFileWithDefault(
     BOSS_THUMBNAILS_FILE,
     {},
     "boss thumbnails"
   );
-}
-
-/**
- * Loads class emoji mappings from JSON file
- */
-function loadClassEmoji() {
   classEmoji = loadJsonFileWithDefault(CLASS_EMOJI_FILE, {}, "class emoji");
-}
-
-/**
- * Loads blacklisted items from JSON file
- */
-function loadBlacklist() {
   blacklist = loadJsonFileWithDefault(BLACKLIST_FILE, [], "loot blacklist");
+
+  startRefreshingLoot();
 }
 
 /**

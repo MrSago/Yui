@@ -4,6 +4,7 @@
     "bottleneck": "^2.19.5",
     "discord.js": "^14.24.0",
     "dotenv": "^17.2.3",
-    "mongodb": "^6.20.0"
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.2"
   }
 }

@@ -4,7 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const db = require("../db/db.js");
+const db = require("../db/database.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").changelog;
 
@@ -46,7 +46,7 @@ async function startUpdatingChangelog() {
  * @param {Array<Object>} data - Changelog data from API
  */
 async function sendData(data) {
-  const logs = await loadLogs();
+  const logs = await db.getChangelogData();
   const cnt = parseData(data, logs);
   if (!cnt) {
     return;
@@ -56,7 +56,8 @@ async function sendData(data) {
   for (let i = cnt - 1; i >= 0; --i) {
     newMessages.push(data[i].message);
   }
-  await saveLogs([...logs, ...newMessages]);
+
+  await db.appendChangelogData(newMessages);
 
   const embedMessage = new EmbedBuilder()
     .setColor(config.embed.color)
@@ -89,12 +90,17 @@ async function sendData(data) {
 }
 
 /**
- * Parses changelog data and counts new entries
- * @param {Array<Object>} data - Changelog data
- * @param {Array<string>} logs - Previously logged message IDs
+ * Parses changelog data and finds new entries
+ * @param {Array<Object>} data - Changelog data from API
+ * @param {string[]|null} logs - Existing changelog logs
  * @returns {number} Number of new changelog entries
  */
 function parseData(data, logs) {
+  // If no logs exist or logs is null, all data is new
+  if (!logs || logs.length === 0) {
+    return data.length;
+  }
+
   let cnt = 0;
   for (let i = 0; i < data.length; ++i) {
     if (data[i].message[data[i].message.length - 1] === ">") {
@@ -106,23 +112,6 @@ function parseData(data, logs) {
     ++cnt;
   }
   return cnt;
-}
-
-/**
- * Loads changelog logs from the database
- * @returns {Promise<string[]>} Array of changelog message IDs
- */
-async function loadLogs() {
-  return await db.getChangelogLogs();
-}
-
-/**
- * Saves changelog logs to the database
- * @param {string[]} logs - Array of changelog message IDs to save
- * @returns {Promise<void>}
- */
-async function saveLogs(logs) {
-  await db.saveChangelogLogs(logs);
 }
 
 /**
