@@ -66,65 +66,16 @@ function addEmptyField(embed) {
   });
 }
 
-/**
- * Adds three empty inline fields in one row (for alignment)
- * @param {EmbedBuilder} embed - Embed message
- * @returns {EmbedBuilder}
- */
-function addEmptyInlineFields(embed) {
-  return embed.addFields(
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    }
-  );
-}
-
-/**
- * Splits long description into multiple embeds if needed
- * @param {string} content - Content to split
- * @param {number} maxLength - Maximum length per embed (default: 4096)
- * @returns {string[]} Array of content chunks
- */
-function splitContent(content, maxLength = 4096) {
-  if (content.length <= maxLength) {
-    return [content];
-  }
-
-  const chunks = [];
-  let currentChunk = "";
-
-  const lines = content.split("\n");
-  for (const line of lines) {
-    if (currentChunk.length + line.length + 1 > maxLength) {
-      chunks.push(currentChunk);
-      currentChunk = line;
-    } else {
-      currentChunk += (currentChunk ? "\n" : "") + line;
-    }
-  }
-
-  if (currentChunk) {
-    chunks.push(currentChunk);
-  }
-
-  return chunks;
+function addSupportLink(embed) {
+  embed.addFields({
+    name: "\u200b",
+    value: "Тех. поддержка: <@234742888666234880>",
+    inline: true,
+  });
 }
 
 module.exports = {
   createEmbed,
   addEmptyField,
-  addEmptyInlineFields,
-  splitContent,
+  addSupportLink,
 };

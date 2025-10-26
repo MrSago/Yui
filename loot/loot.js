@@ -13,14 +13,7 @@ const {
   parseHealPlayers,
   loadJsonFileWithDefault,
 } = require("../utils");
-const {
-  createBossKillEmbed,
-  setBossThumbnail,
-  addDpsSection,
-  addHpsSection,
-  addSimpleLootSection,
-  sendToChannel,
-} = require("../discord");
+const { createCompleteBossKillEmbed, sendToChannel } = require("../discord");
 
 const { ActivityType } = require("discord.js");
 
@@ -192,41 +185,25 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return null;
   }
 
-  let embed_message = createBossKillEmbed({
-    bossKillInfo: data_boss_kill_info,
-    realmId: realm_id,
-    recordId: record_id,
-    guildId: guild_id,
-    client: client,
-  });
-
-  setBossThumbnail(
-    embed_message,
-    data_boss_kill_info.boss_name,
-    bossThumbnails
-  );
-
-  const [places_dps, players_dps, dps, summary_dps] = parseDpsPlayers(
+  const dpsData = parseDpsPlayers(
     data_boss_kill_info.players,
     classEmoji,
     client,
     config.easterEgg
   );
-  addDpsSection(embed_message, places_dps, players_dps, dps, summary_dps);
 
-  const [places_heal, players_heal, hps, summary_hps] = parseHealPlayers(
+  const hpsData = parseHealPlayers(
     data_boss_kill_info.players,
     classEmoji,
     client
   );
-  addHpsSection(embed_message, places_heal, players_heal, hps, summary_hps);
 
-  let loot_str = "";
+  const lootItems = [];
   try {
     await Promise.all(
       data_boss_kill_info.loots.map((loot) => {
         if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
-          loot_str += `${loot.item.name}\n`;
+          lootItems.push(loot.item.name);
         }
       })
     );
@@ -236,9 +213,19 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return;
   }
 
-  addSimpleLootSection(embed_message, loot_str);
+  const embed = createCompleteBossKillEmbed({
+    bossKillInfo: data_boss_kill_info,
+    realmId: realm_id,
+    recordId: record_id,
+    guildId: guild_id,
+    client: client,
+    bossThumbnails: bossThumbnails,
+    dpsData: dpsData,
+    hpsData: hpsData,
+    lootItems: lootItems,
+  });
 
-  return { embeds: [embed_message] };
+  return { embeds: [embed] };
 }
 
 module.exports = {

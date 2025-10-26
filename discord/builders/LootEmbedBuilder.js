@@ -3,10 +3,64 @@
  * @description Creates embeds for boss kill and loot information
  */
 
-const { createEmbed, addEmptyField } = require("./baseEmbedBuilder.js");
+const {
+  createEmbed,
+  addEmptyField,
+  addSupportLink,
+} = require("./baseEmbedBuilder.js");
 const sirusApi = require("../../api/sirusApi.js");
 const config = require("../../config").loot;
 const { intToShortFormat } = require("../../utils/formatters.js");
+
+/**
+ * Creates a complete boss kill message with all sections
+ * @param {Object} params - Message parameters
+ * @param {Object} params.bossKillInfo - Boss kill information
+ * @param {string} params.realmId - Realm ID
+ * @param {string} params.recordId - Record ID
+ * @param {string} params.guildId - Discord guild ID
+ * @param {import('discord.js').Client} params.client - Discord client
+ * @param {Object} params.bossThumbnails - Boss thumbnails mapping
+ * @param {Object} params.classEmoji - Class emoji mapping
+ * @param {Array<string>} params.lootItems - Array of loot item names
+ * @param {Object} params.dpsData - DPS data [places, players, dps, summaryDps]
+ * @param {Object} params.hpsData - HPS data [places, players, hps, summaryHps]
+ * @returns {import('discord.js').EmbedBuilder}
+ */
+function createCompleteBossKillEmbed({
+  bossKillInfo,
+  realmId,
+  recordId,
+  guildId,
+  client,
+  bossThumbnails,
+  dpsData,
+  hpsData,
+  lootItems,
+}) {
+  const embed = createBossKillEmbed({
+    bossKillInfo,
+    realmId,
+    recordId,
+    guildId,
+    client,
+  });
+
+  setBossThumbnail(embed, bossKillInfo.boss_name, bossThumbnails);
+
+  const [placesDps, playersDps, dps, summaryDps] = dpsData;
+  addDpsSection(embed, placesDps, playersDps, dps, summaryDps);
+
+  const [placesHps, playersHps, hps, summaryHps] = hpsData;
+  addHpsSection(embed, placesHps, playersHps, hps, summaryHps);
+
+  const lootStr = lootItems.join("\n");
+  addSimpleLootSection(embed, lootStr);
+
+  addSupportLink(embed);
+
+  return embed;
+}
 
 /**
  * Creates a boss kill embed
@@ -221,10 +275,5 @@ function setBossThumbnail(embed, bossName, bossThumbnails) {
 }
 
 module.exports = {
-  createBossKillEmbed,
-  addDpsSection,
-  addHpsSection,
-  addLootSection,
-  addSimpleLootSection,
-  setBossThumbnail,
+  createCompleteBossKillEmbed,
 };
