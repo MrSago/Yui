@@ -22,7 +22,7 @@ const { intToShortFormat } = require("../../utils/formatters.js");
  * @param {import('discord.js').Client} params.client - Discord client
  * @param {Object} params.bossThumbnails - Boss thumbnails mapping
  * @param {Object} params.classEmoji - Class emoji mapping
- * @param {Array<string>} params.lootItems - Array of loot item names
+ * @param {Array<Object>} params.lootItems - Array of loot item objects
  * @param {Object} params.dpsData - DPS data [places, players, dps, summaryDps]
  * @param {Object} params.hpsData - HPS data [places, players, hps, summaryHps]
  * @returns {import('discord.js').EmbedBuilder}
@@ -54,9 +54,14 @@ function createCompleteBossKillEmbed({
   const [placesHps, playersHps, hps, summaryHps] = hpsData;
   addHpsSection(embed, placesHps, playersHps, hps, summaryHps);
 
-  const lootStr = lootItems.join("\n");
-  addSimpleLootSection(embed, lootStr);
+  if (lootItems && lootItems.length > 0) {
+    addLootSectionToEmbed(embed, lootItems, realmId);
+  }
 
+  embed.setFooter({
+    text: config.embed.footerText,
+    iconURL: config.embed.footerIconUrl,
+  });
   addSupportLink(embed);
 
   return embed;
@@ -91,10 +96,6 @@ function createBossKillEmbed({
     },
     title: `Убийство босса ${bossKillInfo.boss_name}`,
     url: sirusApi.getPveProgressUrl(realmId, recordId),
-    footer: {
-      text: config.embed.footerText,
-      iconURL: config.embed.footerIconUrl,
-    },
   }).addFields(
     {
       name: "Попытки",
@@ -211,45 +212,19 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
 }
 
 /**
- * Adds loot section to embed
+ * Adds loot section to embed with item links
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} lootNames - String with loot names
- * @param {string} lootLinks - String with quality links
- * @param {string} lootPlayers - String with player names
+ * @param {Array<Object>} lootItems - Array of loot item objects
+ * @param {number} realmId - Realm ID
  * @returns {import('discord.js').EmbedBuilder}
  */
-function addLootSection(embed, lootNames, lootLinks, lootPlayers) {
-  addEmptyField(embed);
-  embed.addFields(
-    {
-      name: "Предмет",
-      value: lootNames,
-      inline: true,
-    },
-    {
-      name: "Качество",
-      value: lootLinks,
-      inline: true,
-    },
-    {
-      name: "Игрок",
-      value: lootPlayers,
-      inline: true,
-    }
-  );
-  return embed;
-}
-
-/**
- * Adds simple loot section to embed (just item names)
- * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} lootString - String with item names
- * @returns {import('discord.js').EmbedBuilder}
- */
-function addSimpleLootSection(embed, lootString) {
-  if (!lootString || lootString === "") {
-    return embed;
-  }
+function addLootSectionToEmbed(embed, lootItems, realmId) {
+  const lootString = lootItems
+    .map((item) => {
+      const itemUrl = sirusApi.getItemUrl(item.entry, realmId);
+      return `[${item.name}](${itemUrl})`;
+    })
+    .join("\n");
 
   addEmptyField(embed);
   embed.addFields({

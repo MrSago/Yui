@@ -17,6 +17,7 @@ const LATEST_FIGHTS_API = "progression/pve/latest-boss-kills";
 const BOSS_KILL_API = "details/bossfight";
 
 // Public URLs
+const ITEM_URL = "https://sirus.su/base/item";
 const GUILDS_URL = "https://sirus.su/base/guilds";
 const PVE_PROGRESS_URL = "https://sirus.su/base/pve-progression/boss-kill";
 const CHANGELOG_URL = "https://sirus.su/statistic/changelog";
@@ -121,6 +122,16 @@ async function getBossKillDetails(realmId, recordId) {
 }
 
 /**
+ * Build item URL
+ * @param {number} itemEntry - Item entry ID
+ * @param {number} realmId - Realm ID
+ * @returns {string} Item URL
+ */
+function getItemUrl(itemEntry, realmId) {
+  return `${ITEM_URL}/${itemEntry}/${realmId}`;
+}
+
+/**
  * Build guild URL
  * @param {number} realmId - Realm ID
  * @param {number} guildId - Guild ID
@@ -161,6 +172,7 @@ module.exports = {
   getChangelog,
   getLatestBossKills,
   getBossKillDetails,
+  getItemUrl,
   getGuildUrl,
   getPveProgressUrl,
   getChangelogUrl,

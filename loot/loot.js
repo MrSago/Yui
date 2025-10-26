@@ -203,7 +203,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     await Promise.all(
       data_boss_kill_info.loots.map((loot) => {
         if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
-          lootItems.push(loot.item.name);
+          lootItems.push(loot.item);
         }
       })
     );
@@ -213,7 +213,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return;
   }
 
-  const embed = createCompleteBossKillEmbed({
+  const embeds = createCompleteBossKillEmbed({
     bossKillInfo: data_boss_kill_info,
     realmId: realm_id,
     recordId: record_id,
@@ -225,7 +225,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     lootItems: lootItems,
   });
 
-  return { embeds: [embed] };
+  return { embeds: [embeds] };
 }
 
 module.exports = {
