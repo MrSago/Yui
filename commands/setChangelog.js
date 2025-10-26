@@ -4,7 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const { setChangelogChannel } = require("../db/db.js");
+const { setChangelogChannel } = require("../db/database.js");
 
 const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 

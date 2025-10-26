@@ -4,7 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const { clearInactiveGuildsFromDb, getGuildsCount } = require("../db/db.js");
+const { clearInactiveGuildsFromDb, getGuildsCount } = require("../db/database.js");
 
 const { Events } = require("discord.js");
 
@@ -17,7 +17,7 @@ module.exports = {
    * @param {import('discord.js').Client} client - Discord client instance
    */
   async execute(client) {
-    await require("../db/db.js").init();
+    await require("../db/database.js").init();
     await require("../fetch.js").fetchAll(client);
     require("../logger.js").init(client, "debug");
     require("../changelog/changelog.js").init(client);
