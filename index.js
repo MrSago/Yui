@@ -1,101 +1,18 @@
 /**
  * @file Main application entry point
- * @description Discord bot initialization with command and event handlers
+ * @description Discord bot initialization and startup
  */
 
 const config = require("./environment.js").discord;
 const logger = require("./logger.js");
+const { initializeClient } = require("./discord");
 
-const fs = require("node:fs");
-const path = require("node:path");
-const {
-  Client,
-  GatewayIntentBits,
-  REST,
-  Collection,
-  Routes,
-  Partials,
-} = require("discord.js");
-
-// Initialize Discord client
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildEmojisAndStickers,
-    GatewayIntentBits.GuildMessageReactions,
-  ],
-  partials: [Partials.Channel, Partials.Reaction],
-  disableEveryone: false,
-});
-const rest = new REST({ version: "10" }).setToken(config.token);
-
-// Load commands
-const commands = [];
-client.commands = new Collection();
-const commandsPath = path.join(__dirname, "commands");
-const commandFiles = fs
-  .readdirSync(commandsPath)
-  .filter((file) => file.endsWith(".js"));
-
-for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = require(filePath);
-
-  if (!("data" in command) || !("execute" in command)) {
-    logger.warn(
-      `The command at "${file}" is missing a required "data" or "execute" property`
-    );
-    continue;
-  }
-
-  commands.push(command.data.toJSON());
-  client.commands.set(command.data.name, command);
-  logger.info(`The command at "${file}" is registered`);
-}
-
-// Load events
-const eventsPath = path.join(__dirname, "events");
-const eventFiles = fs
-  .readdirSync(eventsPath)
-  .filter((file) => file.endsWith(".js"));
-
-for (const file of eventFiles) {
-  const filePath = path.join(eventsPath, file);
-  const event = require(filePath);
-
-  if (!("name" in event) || !("once" in event)) {
-    logger.warn(
-      `The event at "${file}" is missing a "name" or "once" property`
-    );
-    continue;
-  }
-
-  if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args));
-  } else {
-    client.on(event.name, (...args) => event.execute(...args));
-  }
-  logger.info(`The event at "${file}" is registered`);
-}
-
-// Register slash commands with Discord API
 (async () => {
   try {
-    logger.info(
-      `Started refreshing ${commands.length} application (/) commands`
-    );
-
-    const data = await rest.put(Routes.applicationCommands(config.client_id), {
-      body: commands,
-    });
-
-    logger.info(
-      `Successfully reloaded ${data.length} application (/) commands`
-    );
+    const client = await initializeClient(config);
+    await client.login(config.token);
   } catch (error) {
-    logger.error(error);
+    logger.error("Failed to start bot:", error);
+    process.exit(1);
   }
 })();
-
-// Login to Discord
-client.login(config.token);

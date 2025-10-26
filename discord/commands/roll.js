@@ -3,8 +3,8 @@
  * @description Dice rolling command with customizable range
  */
 
-const logger = require("../logger.js");
-const { randInt } = require("../utils");
+const logger = require("../../logger.js");
+const { randInt } = require("../../utils");
 
 const { SlashCommandBuilder } = require("discord.js");
 

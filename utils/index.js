@@ -8,7 +8,6 @@ const playerParsers = require("./playerParsers.js");
 const fileLoader = require("./fileLoader.js");
 const timeUtils = require("./timeUtils.js");
 const randomUtils = require("./randomUtils.js");
-const discordUtils = require("./discordUtils.js");
 
 module.exports = {
   ...formatters,
@@ -16,5 +15,4 @@ module.exports = {
   ...fileLoader,
   ...timeUtils,
   ...randomUtils,
-  ...discordUtils,
 };

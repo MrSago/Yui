@@ -3,8 +3,8 @@
  * @description Handles bot being removed from a Discord server
  */
 
-const logger = require("../logger.js");
-const { clearGuildSettings } = require("../db/database.js");
+const logger = require("../../logger.js");
+const { clearGuildSettings } = require("../../db/database.js");
 
 const { Events } = require("discord.js");
 

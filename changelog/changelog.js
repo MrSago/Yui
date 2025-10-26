@@ -7,7 +7,7 @@ const logger = require("../logger.js");
 const db = require("../db/database.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").changelog;
-const { ChangelogEmbedBuilder, ChannelHelper } = require("../discord");
+const { createChangelogEmbeds, sendToChannels } = require("../discord");
 
 const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
@@ -58,7 +58,7 @@ async function sendData(data) {
   await db.appendChangelogData(newMessages);
 
   const newChangelog = data.slice(0, cnt);
-  const embeds = ChangelogEmbedBuilder.createChangelogEmbeds(newChangelog);
+  const embeds = createChangelogEmbeds(newChangelog);
 
   await sendChangeLog(embeds);
 }
@@ -98,7 +98,7 @@ async function sendChangeLog(embeds) {
     return;
   }
 
-  await ChannelHelper.sendToChannels(client, settings, embeds);
+  await sendToChannels(client, settings, embeds);
 }
 
 module.exports = {

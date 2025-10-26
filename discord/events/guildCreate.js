@@ -3,7 +3,7 @@
  * @description Handles bot joining a new Discord server
  */
 
-const logger = require("../logger.js");
+const logger = require("../../logger.js");
 const { fetchGuild } = require("../fetch.js");
 
 const { Events } = require("discord.js");

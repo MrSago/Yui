@@ -13,7 +13,14 @@ const {
   parseHealPlayers,
   loadJsonFileWithDefault,
 } = require("../utils");
-const { LootEmbedBuilder, ChannelHelper } = require("../discord");
+const {
+  createBossKillEmbed,
+  setBossThumbnail,
+  addDpsSection,
+  addHpsSection,
+  addSimpleLootSection,
+  sendToChannel,
+} = require("../discord");
 
 const { ActivityType } = require("discord.js");
 
@@ -155,11 +162,7 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
         throw new Error("Empty message getted!");
       }
 
-      await ChannelHelper.sendToChannel(
-        client,
-        entry.channel_id,
-        message.embeds
-      );
+      await sendToChannel(client, entry.channel_id, message.embeds);
       return record.id;
     } catch (error) {
       logger.error(error);
@@ -189,7 +192,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return null;
   }
 
-  let embed_message = LootEmbedBuilder.createBossKillEmbed({
+  let embed_message = createBossKillEmbed({
     bossKillInfo: data_boss_kill_info,
     realmId: realm_id,
     recordId: record_id,
@@ -197,7 +200,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     client: client,
   });
 
-  LootEmbedBuilder.setBossThumbnail(
+  setBossThumbnail(
     embed_message,
     data_boss_kill_info.boss_name,
     bossThumbnails
@@ -209,26 +212,14 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     client,
     config.easterEgg
   );
-  LootEmbedBuilder.addDpsSection(
-    embed_message,
-    places_dps,
-    players_dps,
-    dps,
-    summary_dps
-  );
+  addDpsSection(embed_message, places_dps, players_dps, dps, summary_dps);
 
   const [places_heal, players_heal, hps, summary_hps] = parseHealPlayers(
     data_boss_kill_info.players,
     classEmoji,
     client
   );
-  LootEmbedBuilder.addHpsSection(
-    embed_message,
-    places_heal,
-    players_heal,
-    hps,
-    summary_hps
-  );
+  addHpsSection(embed_message, places_heal, players_heal, hps, summary_hps);
 
   let loot_str = "";
   try {
@@ -245,7 +236,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return;
   }
 
-  LootEmbedBuilder.addSimpleLootSection(embed_message, loot_str);
+  addSimpleLootSection(embed_message, loot_str);
 
   return { embeds: [embed_message] };
 }

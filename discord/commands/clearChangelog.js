@@ -1,10 +1,10 @@
 /**
- * @file Set changelog command
- * @description Configures channel for Sirus.su changelog notifications
+ * @file Clear changelog command
+ * @description Removes changelog notification settings for the guild
  */
 
-const logger = require("../logger.js");
-const { setChangelogChannel } = require("../db/database.js");
+const logger = require("../../logger.js");
+const { deleteChangelogChannel } = require("../../db/database.js");
 
 const {
   SlashCommandBuilder,
@@ -14,18 +14,12 @@ const {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("setchangelog")
-    .setDescription("Установить канал для списка изменений Sirus.su")
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-    .addChannelOption((option) =>
-      option
-        .setName("channel")
-        .setDescription("Выберите канал")
-        .setRequired(true)
-    ),
+    .setName("clearchangelog")
+    .setDescription("Удалить настройки оповещений об изменениях Sirus.su")
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
-   * Executes the setchangelog command
+   * Executes the clearchangelog command
    * @param {import('discord.js').CommandInteraction} interaction - Command interaction
    */
   async execute(interaction) {
@@ -35,12 +29,9 @@ module.exports = {
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
-    const channel = interaction.options.getChannel("channel");
-
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name} ` +
-        `[${channel.id}]`
+        `Using command: /${command_name} `
     );
 
     if (!interaction.guild) {
@@ -52,8 +43,10 @@ module.exports = {
       return;
     }
 
-    setChangelogChannel(guild.id, channel.id);
+    deleteChangelogChannel(guild.id);
 
-    await interaction.reply(`Канал ${channel} для списка изменений установлен`);
+    await interaction.reply(
+      "Настройки оповещений об изменениях Sirus.su успешно сброшены!"
+    );
   },
 };

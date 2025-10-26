@@ -3,7 +3,7 @@
  * @description Simple ping-pong command for testing bot responsiveness
  */
 
-const logger = require("../logger.js");
+const logger = require("../../logger.js");
 
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 

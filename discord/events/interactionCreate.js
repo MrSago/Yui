@@ -3,7 +3,7 @@
  * @description Handles Discord slash command interactions
  */
 
-const logger = require("../logger.js");
+const logger = require("../../logger.js");
 
 const { Events } = require("discord.js");
 

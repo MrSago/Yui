@@ -3,8 +3,8 @@
  * @description Configures channel for boss kill loot notifications
  */
 
-const logger = require("../logger.js");
-const { setLootChannel } = require("../db/database.js");
+const logger = require("../../logger.js");
+const { setLootChannel } = require("../../db/database.js");
 
 const {
   SlashCommandBuilder,

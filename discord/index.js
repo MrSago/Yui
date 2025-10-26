@@ -1,19 +1,23 @@
 /**
  * Discord Module
- * Provides builders and helpers for Discord interactions
+ * Provides Discord client, builders, helpers and utilities
  */
 
-const BaseEmbedBuilder = require("./builders/BaseEmbedBuilder.js");
-const ChangelogEmbedBuilder = require("./builders/ChangelogEmbedBuilder.js");
-const LootEmbedBuilder = require("./builders/LootEmbedBuilder.js");
-const ChannelHelper = require("./helpers/ChannelHelper.js");
+const { initializeClient } = require("./client.js");
+const { fetchAll, fetchGuild } = require("./fetch.js");
+const baseEmbedBuilder = require("./builders/baseEmbedBuilder.js");
+const changelogEmbedBuilder = require("./builders/changelogEmbedBuilder.js");
+const lootEmbedBuilder = require("./builders/lootEmbedBuilder.js");
+const channelHelper = require("./helpers/channelHelper.js");
+const { setVoiceStatus } = require("./helpers/discordUtils.js");
 
 module.exports = {
-  // Builders
-  BaseEmbedBuilder,
-  ChangelogEmbedBuilder,
-  LootEmbedBuilder,
-
-  // Helpers
-  ChannelHelper,
+  initializeClient,
+  fetchAll,
+  fetchGuild,
+  ...baseEmbedBuilder,
+  ...changelogEmbedBuilder,
+  ...lootEmbedBuilder,
+  ...channelHelper,
+  setVoiceStatus,
 };

@@ -1,10 +1,10 @@
 /**
- * @file Clear loot command
- * @description Removes loot notification settings for the guild
+ * @file Set changelog command
+ * @description Configures channel for Sirus.su changelog notifications
  */
 
-const logger = require("../logger.js");
-const { deleteLootChannel } = require("../db/database.js");
+const logger = require("../../logger.js");
+const { setChangelogChannel } = require("../../db/database.js");
 
 const {
   SlashCommandBuilder,
@@ -14,12 +14,18 @@ const {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("clearloot")
-    .setDescription("Удалить настройки оповещений об убийствах боссов")
-    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+    .setName("setchangelog")
+    .setDescription("Установить канал для списка изменений Sirus.su")
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
+    .addChannelOption((option) =>
+      option
+        .setName("channel")
+        .setDescription("Выберите канал")
+        .setRequired(true)
+    ),
 
   /**
-   * Executes the clearloot command
+   * Executes the setchangelog command
    * @param {import('discord.js').CommandInteraction} interaction - Command interaction
    */
   async execute(interaction) {
@@ -29,9 +35,12 @@ module.exports = {
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
+    const channel = interaction.options.getChannel("channel");
+
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name} `
+        `Using command: /${command_name} ` +
+        `[${channel.id}]`
     );
 
     if (!interaction.guild) {
@@ -43,10 +52,8 @@ module.exports = {
       return;
     }
 
-    deleteLootChannel(guild.id);
+    setChangelogChannel(guild.id, channel.id);
 
-    await interaction.reply(
-      "Настройки оповещений об убийствах боссов успешно сброшены!"
-    );
+    await interaction.reply(`Канал ${channel} для списка изменений установлен`);
   },
 };

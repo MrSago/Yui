@@ -3,7 +3,7 @@
  * @description Provides utility functions for Discord API operations
  */
 
-const config = require("../environment.js");
+const config = require("../../environment.js");
 const { REST } = require("discord.js");
 
 /**

@@ -1,10 +1,10 @@
 /**
- * @file Clear changelog command
- * @description Removes changelog notification settings for the guild
+ * @file Clear loot command
+ * @description Removes loot notification settings for the guild
  */
 
-const logger = require("../logger.js");
-const { deleteChangelogChannel } = require("../db/database.js");
+const logger = require("../../logger.js");
+const { deleteLootChannel } = require("../../db/database.js");
 
 const {
   SlashCommandBuilder,
@@ -14,12 +14,12 @@ const {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("clearchangelog")
-    .setDescription("Удалить настройки оповещений об изменениях Sirus.su")
+    .setName("clearloot")
+    .setDescription("Удалить настройки оповещений об убийствах боссов")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
-   * Executes the clearchangelog command
+   * Executes the clearloot command
    * @param {import('discord.js').CommandInteraction} interaction - Command interaction
    */
   async execute(interaction) {
@@ -43,10 +43,10 @@ module.exports = {
       return;
     }
 
-    deleteChangelogChannel(guild.id);
+    deleteLootChannel(guild.id);
 
     await interaction.reply(
-      "Настройки оповещений об изменениях Sirus.su успешно сброшены!"
+      "Настройки оповещений об убийствах боссов успешно сброшены!"
     );
   },
 };
