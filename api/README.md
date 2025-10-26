@@ -8,7 +8,7 @@
 
 Получает список изменений с сервера Sirus.su.
 
-**Возвращает:** `Promise<Array|null>` - Массив изменений или null при ошибке
+**Возвращает:** `Promise<Object|null>` - объект с данными изменений или null при ошибке
 
 ---
 
@@ -21,7 +21,7 @@
 - `realmId` (number) - ID сервера
 - `guildSirusId` (number) - ID гильдии на Sirus
 
-**Возвращает:** `Promise<Array|null>` - Массив убийств боссов или null при ошибке
+**Возвращает:** `Promise<Array|null>` - массив убийств боссов или null при ошибке
 
 ---
 
@@ -34,7 +34,7 @@
 - `realmId` (number) - ID сервера
 - `recordId` (number) - ID записи об убийстве босса
 
-**Возвращает:** `Promise<Object|null>` - Данные об убийстве босса или null при ошибке
+**Возвращает:** `Promise<Object|null>` - данные об убийстве босса или null при ошибке
 
 ---
 
@@ -80,35 +80,12 @@
 
 - `realmId` (number) - ID сервера
 
-**Возвращает:** `string|null` - Название сервера или null если не найден
+**Возвращает:** `string|null` - название сервера или null если не найден
 
-**Доступные серверы:**
+**Доступные реалмы:**
 
 - 9: "Scourge x2"
 - 22: "Neverest x3"
 - 33: "Algalon x4"
 - 42: "Soulseeker x1"
 - 57: "Sirus x5"
-
----
-
-## Использование
-
-```js
-const sirusApi = require("../api/sirusApi.js");
-
-// Получить список изменений
-const changelog = await sirusApi.getChangelog();
-
-// Получить последние убийства боссов
-const bossKills = await sirusApi.getLatestBossKills(33, 247);
-
-// Получить детальную информацию об убийстве босса
-const details = await sirusApi.getBossKillDetails(33, 12345);
-
-// Получить URL гильдии
-const guildUrl = sirusApi.getGuildUrl(33, 247);
-
-// Получить название сервера по ID
-const realmName = sirusApi.getRealmNameById(33); // "Algalon x4"
-```

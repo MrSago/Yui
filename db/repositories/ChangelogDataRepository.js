@@ -53,11 +53,10 @@ class ChangelogDataRepository extends BaseRepository {
       }
 
       const currentData = existing[0].data;
-      
-      // Check if data is an array or object and merge accordingly
+
       let mergedData;
       if (Array.isArray(currentData)) {
-        mergedData = Array.isArray(newData) 
+        mergedData = Array.isArray(newData)
           ? [...currentData, ...newData]
           : [...currentData, newData];
       } else {

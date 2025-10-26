@@ -23,7 +23,7 @@ class ChannelHelper {
     for (const entry of settings) {
       try {
         const channel = client.channels.cache.get(entry.channel_id);
-        
+
         if (!channel) {
           throw new Error(`Can't get channel with id: ${entry.channel_id}`);
         }
@@ -46,7 +46,7 @@ class ChannelHelper {
   static async sendToChannel(client, channelId, embeds) {
     try {
       const channel = client.channels.cache.get(channelId);
-      
+
       if (!channel) {
         throw new Error(`Can't get channel with id: ${channelId}`);
       }
@@ -68,7 +68,7 @@ class ChannelHelper {
   static getChannel(client, channelId) {
     try {
       const channel = client.channels.cache.get(channelId);
-      
+
       if (!channel) {
         logger.warn(`Channel with id ${channelId} not found`);
         return null;

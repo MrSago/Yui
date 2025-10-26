@@ -155,9 +155,7 @@ class BaseRepository {
     try {
       return await this.model.countDocuments(query);
     } catch (error) {
-      logger.error(
-        `Error counting ${this.model.modelName}: ${error.message}`
-      );
+      logger.error(`Error counting ${this.model.modelName}: ${error.message}`);
       throw error;
     }
   }

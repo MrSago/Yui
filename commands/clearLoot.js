@@ -6,7 +6,11 @@
 const logger = require("../logger.js");
 const { deleteLootChannel } = require("../db/database.js");
 
-const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  MessageFlags,
+} = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -34,7 +38,7 @@ module.exports = {
       await interaction.reply({
         content:
           "Используйте эту комманду в текстовом канале Вашего дискорд сервера!",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -42,7 +46,7 @@ module.exports = {
     deleteLootChannel(guild.id);
 
     await interaction.reply(
-      `Настройки оповещений об убийствах боссов успешно сброшены!`
+      "Настройки оповещений об убийствах боссов успешно сброшены!"
     );
   },
 };

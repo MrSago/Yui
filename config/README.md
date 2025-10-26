@@ -8,15 +8,14 @@
 
 ### Параметры changelog.js
 
-- **`dataPath`** - Путь к директории с данными (лог изменений)
-- **`updateIntervalMs`** - Интервал обновления в миллисекундах (по умолчанию: 10 часов)
-- **`embed`** - Настройки для Discord Embed сообщений:
-  - `color` - Цвет боковой линии embed
-  - `authorName` - Имя автора
+- **`updateIntervalMs`** - интервал обновления в миллисекундах
+- **`embed`** - настройки для Discord Embed сообщений:
+  - `color` - цвет боковой линии embed (hex-код)
+  - `authorName` - имя автора
   - `authorIconUrl` - URL иконки автора
   - `authorUrl` - URL ссылки автора
-  - `title` - Заголовок сообщения
-  - `footerText` - Текст в футере
+  - `title` - заголовок сообщения
+  - `footerText` - текст в футере
   - `footerIconUrl` - URL иконки в футере
 
 ---
@@ -27,16 +26,25 @@
 
 ### Параметры loot.js
 
-- **`dataPath`** - Путь к директории с данными
-- **`updateIntervalMs`** - Интервал обновления в миллисекундах (по умолчанию: 30 минут)
-- **`files`** - Пути к файлам с данными:
-  - `bossThumbnails` - Файл с thumbnails боссов
-  - `classEmoji` - Файл с emoji классов
-  - `blacklist` - Файл с blacklist предметов
-- **`embed`** - Настройки для Discord Embed сообщений
-- **`activity`** - Настройки Discord активности бота:
-  - `processingStatus` - Статус во время обработки
-  - `idleStatus` - Статус в режиме ожидания
+- **`dataPath`** - путь к директории с данными (по умолчанию: "./loot")
+- **`updateIntervalMs`** - интервал обновления в миллисекундах
+- **`files`** - пути к файлам с данными:
+  - `bossThumbnails` - файл с thumbnails боссов
+  - `classEmoji` - файл с emoji классов
+  - `blacklist` - файл с blacklist предметов
+- **`embed`** - настройки для Discord Embed сообщений:
+  - `color` - цвет боковой линии embed (hex-код)
+  - `footerText` - текст в футере
+  - `footerIconUrl` - URL иконки в футере
+- **`activity`** - настройки Discord активности бота:
+  - `processingStatus` - статус во время обработки:
+    - `name` - название статуса
+    - `type` - тип активности
+    - `status` - статус (dnd, online, idle, offline)
+  - `idleStatus` - статус в режиме ожидания:
+    - `name` - название статуса
+    - `type` - тип активности
+    - `status` - статус (dnd, online, idle, offline)
 - **`easterEgg`** - Easter egg настройки:
-  - `players` - Массив имен игроков для особого emoji
+  - `players` - массив имен игроков для особого emoji
   - `emojiId` - ID особого emoji

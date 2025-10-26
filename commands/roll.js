@@ -57,6 +57,6 @@ module.exports = {
       result = 1 + randInt(99);
     }
 
-    await interaction.reply({ content: `Rolls: ${result}`, ephemeral: false });
+    await interaction.reply({ content: `Rolls: ${result}` });
   },
 };

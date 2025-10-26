@@ -9,7 +9,6 @@ const LootRepository = require("./LootRepository.js");
 const RecordsRepository = require("./RecordsRepository.js");
 const ChangelogDataRepository = require("./ChangelogDataRepository.js");
 
-// Create singleton instances
 const settingsRepository = new SettingsRepository();
 const changelogRepository = new ChangelogRepository();
 const lootRepository = new LootRepository();

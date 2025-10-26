@@ -39,14 +39,14 @@ class ChangelogEmbedBuilder extends BaseEmbedBuilder {
 
     for (let i = 0; i < changelogData.length; i++) {
       const entry = changelogData[i].message;
-      
+
       if (currentMessage.length + entry.length + 2 >= 4096) {
         const embed = this.createChangelogEmbed();
         embed.setDescription(currentMessage);
         embeds.push(embed);
         currentMessage = "";
       }
-      
+
       currentMessage += `${entry}\n\n`;
     }
 

@@ -33,7 +33,7 @@ module.exports = {
       logger.error(error);
       await interaction.reply({
         content: "Ошибка при выполнении команды!",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
   },

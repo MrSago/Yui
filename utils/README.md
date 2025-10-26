@@ -14,12 +14,6 @@
 - `formatNumber(value)` - Форматирует число с разделителем тысяч (1234567 → "1,234,567")
 - `formatDpsValue(value)` - Форматирует DPS/HPS значение (12345 → "12.3k")
 
-```javascript
-const { intToShortFormat } = require("../utils");
-
-console.log(intToShortFormat(12345)); // 12.3
-```
-
 ---
 
 ### playerParsers.js
@@ -31,17 +25,6 @@ console.log(intToShortFormat(12345)); // 12.3
 - `getPlayerEmoji(player, classEmoji, client, easterEggConfig)` - Получает emoji для игрока
 - `parseDpsPlayers(data, classEmoji, client, easterEggConfig)` - Парсит DPS игроков
 - `parseHealPlayers(data, classEmoji, client)` - Парсит HPS хилеров
-
-```javascript
-const { parseDpsPlayers } = require("../utils");
-
-const [places, players, dps, summaryDps] = parseDpsPlayers(
-  playersData,
-  classEmoji,
-  discordClient,
-  easterEggConfig
-);
-```
 
 ---
 
@@ -57,36 +40,33 @@ const [places, players, dps, summaryDps] = parseDpsPlayers(
 - `fileExists(filePath)` - Проверяет существование файла
 - `ensureDirectoryExists(dirPath)` - Создаёт директорию если не существует
 
-```javascript
-const { loadJsonFileWithDefault, saveJsonFile } = require("../utils");
-
-// Загрузка с дефолтным значением
-const config = loadJsonFileWithDefault("./config.json", {}, "configuration");
-
-// Сохранение
-saveJsonFile("./data.json", myData, "user data");
-```
-
 ---
 
-### embedHelpers.js
+### discordUtils.js
 
-Помощники для создания Discord Embed сообщений.
+Утилиты для работы с Discord API.
 
 **Функции:**
 
-- `addEmptyField(embed)` - Добавляет пустое поле (разделитель)
-- `addEmptyInlineFields(embed)` - Добавляет три пустых inline поля
-- `addDpsSection(embed, places, players, dps, summaryDps)` - Добавляет секцию DPS
-- `addHpsSection(embed, places, players, hps, summaryHps)` - Добавляет секцию HPS
-- `addLootSection(embed, lootString)` - Добавляет секцию лута
+- `setVoiceStatus(channel_id, status)` - Устанавливает статус голосового канала
 
-```javascript
-const { addDpsSection, addLootSection } = require("../utils");
+---
 
-let embed = new EmbedBuilder().setTitle("Boss Kill");
+### randomUtils.js
 
-// Добавляем секции
-addDpsSection(embed, places, players, dps, totalDps);
-addLootSection(embed, lootItems);
-```
+Утилиты для генерации случайных чисел.
+
+**Функции:**
+
+- `randInt(max)` - Генерирует случайное целое число от 0 до max (не включая max)
+
+---
+
+### timeUtils.js
+
+Утилиты для работы со временем и форматирования длительности.
+
+**Функции:**
+
+- `dayInterval(hours, minutes, seconds, milliseconds)` - Вычисляет интервал от времени запуска до указанного времени суток
+- `getDurationString(duration_ms)` - Преобразует длительность в миллисекундах в формат HH:MM:SS

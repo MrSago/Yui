@@ -16,26 +16,20 @@ module.exports = {
   init,
 
   // Changelog operations
-  setChangelogChannel: changelogService.setChangelogChannel.bind(
-    changelogService
-  ),
-  deleteChangelogChannel: changelogService.deleteChangelogChannel.bind(
-    changelogService
-  ),
-  getChangelogSettings: changelogService.getChangelogSettings.bind(
-    changelogService
-  ),
+  setChangelogChannel:
+    changelogService.setChangelogChannel.bind(changelogService),
+  deleteChangelogChannel:
+    changelogService.deleteChangelogChannel.bind(changelogService),
+  getChangelogSettings:
+    changelogService.getChangelogSettings.bind(changelogService),
 
   // Changelog data operations
-  getChangelogData: changelogDataService.getChangelogData.bind(
-    changelogDataService
-  ),
-  saveChangelogData: changelogDataService.saveChangelogData.bind(
-    changelogDataService
-  ),
-  appendChangelogData: changelogDataService.appendChangelogData.bind(
-    changelogDataService
-  ),
+  getChangelogData:
+    changelogDataService.getChangelogData.bind(changelogDataService),
+  saveChangelogData:
+    changelogDataService.saveChangelogData.bind(changelogDataService),
+  appendChangelogData:
+    changelogDataService.appendChangelogData.bind(changelogDataService),
 
   // Loot operations
   setLootChannel: lootService.setLootChannel.bind(lootService),
@@ -51,9 +45,8 @@ module.exports = {
 
   // Settings operations
   getSettingsArray: settingsService.getSettingsArray.bind(settingsService),
-  clearInactiveGuildsFromDb: settingsService.clearInactiveGuildsFromDb.bind(
-    settingsService
-  ),
+  clearInactiveGuildsFromDb:
+    settingsService.clearInactiveGuildsFromDb.bind(settingsService),
   clearGuildSettings: settingsService.clearGuildSettings.bind(settingsService),
   getGuildsCount: settingsService.getGuildsCount.bind(settingsService),
 };

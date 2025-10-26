@@ -4,8 +4,6 @@
  */
 
 module.exports = {
-  dataPath: "./data",
-
   updateIntervalMs: 1000 * 60 * 60,
 
   embed: {

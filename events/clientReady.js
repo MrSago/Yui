@@ -4,7 +4,10 @@
  */
 
 const logger = require("../logger.js");
-const { clearInactiveGuildsFromDb, getGuildsCount } = require("../db/database.js");
+const {
+  clearInactiveGuildsFromDb,
+  getGuildsCount,
+} = require("../db/database.js");
 
 const { Events } = require("discord.js");
 

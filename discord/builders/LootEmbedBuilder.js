@@ -18,7 +18,13 @@ class LootEmbedBuilder extends BaseEmbedBuilder {
    * @param {import('discord.js').Client} params.client - Discord client
    * @returns {import('discord.js').EmbedBuilder}
    */
-  static createBossKillEmbed({ bossKillInfo, realmId, recordId, guildId, client }) {
+  static createBossKillEmbed({
+    bossKillInfo,
+    realmId,
+    recordId,
+    guildId,
+    client,
+  }) {
     const realmName = sirusApi.getRealmNameById(realmId);
     const guildIcon = client.guilds.cache.get(guildId)?.iconURL();
 

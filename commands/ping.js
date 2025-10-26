@@ -5,7 +5,7 @@
 
 const logger = require("../logger.js");
 
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,6 +27,9 @@ module.exports = {
         `Using command: /${command_name}`
     );
 
-    await interaction.reply({ content: "Pong!", ephemeral: true });
+    await interaction.reply({
+      content: "Pong!",
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };
