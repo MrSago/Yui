@@ -84,11 +84,10 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
     },
     {
       name: "Общий DPS",
-      value: `**${intToShortFormat(summaryDps)}**`,
+      value: `${intToShortFormat(summaryDps)}k`,
       inline: true,
     }
   );
-  addEmptyField(embed);
   embed.addFields(
     {
       name: "Место",
@@ -133,11 +132,10 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
     },
     {
       name: "Общий HPS",
-      value: `**${intToShortFormat(summaryHps)}**`,
+      value: `${intToShortFormat(summaryHps)}k`,
       inline: true,
     }
   );
-  addEmptyField(embed);
   embed.addFields(
     {
       name: "Место",
@@ -145,7 +143,7 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
       inline: true,
     },
     {
-      name: "HPS",
+      name: "Имя",
       value: players,
       inline: true,
     },
