@@ -4,11 +4,7 @@
  */
 
 const logger = require("../logger.js");
-const {
-  getSettingsArray,
-  getGuildsCount,
-  clearGuildSettings,
-} = require("../db/db.js");
+const { clearInactiveGuildsFromDb, getGuildsCount } = require("../db/db.js");
 
 const { Events } = require("discord.js");
 
@@ -21,10 +17,9 @@ module.exports = {
    * @param {import('discord.js').Client} client - Discord client instance
    */
   async execute(client) {
-    //await require("../browserGetter.js").init();
+    await require("../db/db.js").init();
     await require("../fetch.js").fetchAll(client);
     require("../logger.js").init(client, "debug");
-    require("../db/db.js").init();
     require("../changelog/changelog.js").init(client);
     require("../loot/loot.js").init(client);
 
@@ -37,26 +32,3 @@ module.exports = {
     logger.discord(`Removed guilds: ${removed_guilds}`);
   },
 };
-
-/**
- * Removes guilds from database that bot is no longer a member of
- * @param {import('discord.js').Client} client - Discord client instance
- * @returns {Promise<number>} Number of guilds removed
- */
-async function clearInactiveGuildsFromDb(client) {
-  const current_guild_ids = client.guilds.cache.map((guild) => guild.id);
-
-  const stored_guild_ids = (await getSettingsArray()).map(
-    (settings) => settings.guild_id
-  );
-
-  const removed_guild_ids = stored_guild_ids.filter(
-    (stored_guild_id) => !current_guild_ids.includes(stored_guild_id)
-  );
-
-  for (const guild_id of removed_guild_ids) {
-    clearGuildSettings(guild_id);
-  }
-
-  return removed_guild_ids.length;
-}

@@ -20,6 +20,29 @@ async function getSettingsArray() {
 }
 
 /**
+ * Removes guilds from database that bot is no longer a member of
+ * @param {import('discord.js').Client} client - Discord client instance
+ * @returns {Promise<number>} Number of guilds removed
+ */
+async function clearInactiveGuildsFromDb(client) {
+  const current_guild_ids = client.guilds.cache.map((guild) => guild.id);
+
+  const stored_guild_ids = (await getSettingsArray()).map(
+    (settings) => settings.guild_id
+  );
+
+  const removed_guild_ids = stored_guild_ids.filter(
+    (stored_guild_id) => !current_guild_ids.includes(stored_guild_id)
+  );
+
+  for (const guild_id of removed_guild_ids) {
+    clearGuildSettings(guild_id);
+  }
+
+  return removed_guild_ids.length;
+}
+
+/**
  * Clears all settings for a guild
  * @param {string} guild_id - Discord guild ID
  * @returns {Promise<void>}
@@ -56,6 +79,7 @@ async function getGuildsCount() {
 
 module.exports = {
   getSettingsArray,
+  clearInactiveGuildsFromDb,
   clearGuildSettings,
   getGuildsCount,
 };

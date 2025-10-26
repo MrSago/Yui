@@ -32,6 +32,7 @@ module.exports = {
 
   // Settings operations
   getSettingsArray: settings.getSettingsArray,
+  clearInactiveGuildsFromDb: settings.clearInactiveGuildsFromDb,
   clearGuildSettings: settings.clearGuildSettings,
   getGuildsCount: settings.getGuildsCount,
 };

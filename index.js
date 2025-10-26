@@ -5,7 +5,6 @@
 
 const config = require("./environment.js").discord;
 const logger = require("./logger.js");
-const db = require("./db/db.js");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -98,7 +97,5 @@ for (const file of eventFiles) {
   }
 })();
 
-// Initialize database and login
-db.init();
-
+// Login to Discord
 client.login(config.token);
