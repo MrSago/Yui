@@ -12,12 +12,10 @@ const {
   parseDpsPlayers,
   parseHealPlayers,
   loadJsonFileWithDefault,
-  addDpsSection,
-  addHpsSection,
-  addLootSection,
 } = require("../utils");
+const { LootEmbedBuilder, ChannelHelper } = require("../discord");
 
-const { EmbedBuilder, ActivityType } = require("discord.js");
+const { ActivityType } = require("discord.js");
 
 const LOOT_PATH = config.dataPath;
 const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/${config.files.bossThumbnails}`;
@@ -157,14 +155,11 @@ async function getExtraInfoWrapper(entry, guild_id, record) {
         throw new Error("Empty message getted!");
       }
 
-      const channel = client.guilds.cache
-        .get(guild_id)
-        .channels.cache.get(entry.channel_id);
-      if (!channel || !channel.send) {
-        throw new Error(`Can't get channel with id: ${entry.channel_id}`);
-      }
-
-      channel.send(message).catch((err) => logger.error(err));
+      await ChannelHelper.sendToChannel(
+        client,
+        entry.channel_id,
+        message.embeds
+      );
       return record.id;
     } catch (error) {
       logger.error(error);
@@ -194,43 +189,19 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return null;
   }
 
-  const realm_name = sirusApi.getRealmNameById(realm_id);
-  let embed_message = new EmbedBuilder()
-    .setColor(config.embed.color)
-    .setAuthor({
-      name:
-        `${data_boss_kill_info.guild.name}` +
-        (realm_name ? ` - ${realm_name}` : ""),
-      iconURL: client.guilds.cache.get(guild_id).iconURL(),
-      url: sirusApi.getGuildUrl(realm_id, data_boss_kill_info.guild.id),
-    })
-    .setTitle(`Убийство босса ${data_boss_kill_info.boss_name}`)
-    .setURL(sirusApi.getPveProgressUrl(realm_id, record_id))
-    .setFooter({
-      text: config.embed.footerText,
-      iconURL: config.embed.footerIconUrl,
-    })
-    .addFields(
-      {
-        name: "Попытки",
-        value: `${data_boss_kill_info.attempts}`,
-        inline: true,
-      },
-      {
-        name: "Когда убили",
-        value: data_boss_kill_info.killed_at,
-        inline: true,
-      },
-      {
-        name: "Время боя",
-        value: data_boss_kill_info.fight_length,
-        inline: true,
-      }
-    );
+  let embed_message = LootEmbedBuilder.createBossKillEmbed({
+    bossKillInfo: data_boss_kill_info,
+    realmId: realm_id,
+    recordId: record_id,
+    guildId: guild_id,
+    client: client,
+  });
 
-  if (data_boss_kill_info.boss_name in bossThumbnails) {
-    embed_message.setThumbnail(bossThumbnails[data_boss_kill_info.boss_name]);
-  }
+  LootEmbedBuilder.setBossThumbnail(
+    embed_message,
+    data_boss_kill_info.boss_name,
+    bossThumbnails
+  );
 
   const [places_dps, players_dps, dps, summary_dps] = parseDpsPlayers(
     data_boss_kill_info.players,
@@ -238,14 +209,26 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     client,
     config.easterEgg
   );
-  addDpsSection(embed_message, places_dps, players_dps, dps, summary_dps);
+  LootEmbedBuilder.addDpsSection(
+    embed_message,
+    places_dps,
+    players_dps,
+    dps,
+    summary_dps
+  );
 
   const [places_heal, players_heal, hps, summary_hps] = parseHealPlayers(
     data_boss_kill_info.players,
     classEmoji,
     client
   );
-  addHpsSection(embed_message, places_heal, players_heal, hps, summary_hps);
+  LootEmbedBuilder.addHpsSection(
+    embed_message,
+    places_heal,
+    players_heal,
+    hps,
+    summary_hps
+  );
 
   let loot_str = "";
   try {
@@ -262,7 +245,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return;
   }
 
-  addLootSection(embed_message, loot_str);
+  LootEmbedBuilder.addSimpleLootSection(embed_message, loot_str);
 
   return { embeds: [embed_message] };
 }
