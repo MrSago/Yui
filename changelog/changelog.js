@@ -7,8 +7,7 @@ const logger = require("../logger.js");
 const db = require("../db/db.js");
 const sirusApi = require("../api/sirusApi.js");
 const config = require("../config").changelog;
-
-const { EmbedBuilder } = require("discord.js");
+const { ChangelogEmbedBuilder, ChannelHelper } = require("../discord");
 
 const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
@@ -31,7 +30,6 @@ async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
   const data = await sirusApi.getChangelog();
-
   if (data) {
     sendData(data);
   }
@@ -58,34 +56,10 @@ async function sendData(data) {
   }
   await saveLogs([...logs, ...newMessages]);
 
-  const embedMessage = new EmbedBuilder()
-    .setColor(config.embed.color)
-    .setAuthor({
-      name: config.embed.authorName,
-      iconURL: config.embed.authorIconUrl,
-      url: config.embed.authorUrl,
-    })
-    .setTitle(config.embed.title)
-    .setURL(sirusApi.getChangelogUrl())
-    .setFooter({
-      text: config.embed.footerText,
-      iconURL: config.embed.footerIconUrl,
-    });
+  const newChangelog = data.slice(0, cnt);
+  const embeds = ChangelogEmbedBuilder.createChangelogEmbeds(newChangelog);
 
-  let message = "";
-  for (let i = 0; i < cnt; ++i) {
-    // Embedded message can have maximum of 2**12 (4096) characters
-    if (message.length + data[i].message.length + 2 >= 4096) {
-      embedMessage.setDescription(message);
-      await sendChangeLog(embedMessage);
-      message = "";
-    }
-    message += `${data[i].message}\n\n`;
-  }
-  if (message.length) {
-    embedMessage.setDescription(message);
-    await sendChangeLog(embedMessage);
-  }
+  await sendChangeLog(embeds);
 }
 
 /**
@@ -95,6 +69,10 @@ async function sendData(data) {
  * @returns {number} Number of new changelog entries
  */
 function parseData(data, logs) {
+  if (!logs || logs.length === 0) {
+    return data.length;
+  }
+
   let cnt = 0;
   for (let i = 0; i < data.length; ++i) {
     if (data[i].message[data[i].message.length - 1] === ">") {
@@ -126,31 +104,17 @@ async function saveLogs(logs) {
 }
 
 /**
- * Sends changelog embed to configured Discord channels
- * @param {import('discord.js').EmbedBuilder} embedMessage - Embed message to send
+ * Sends changelog embeds to configured Discord channels
+ * @param {Array<import('discord.js').EmbedBuilder>} embeds - Array of embed messages
  */
-async function sendChangeLog(embedMessage) {
+async function sendChangeLog(embeds) {
   const settings = await db.getChangelogSettings();
   if (!settings) {
     logger.warn("Can't load changelog settings from DB");
     return;
   }
 
-  for (const entry of settings) {
-    try {
-      const channel = client.channels.cache.get(entry.channel_id);
-      if (!channel) {
-        throw new Error(`Can't get channel with id: ${entry.channel_id}`);
-      }
-
-      channel
-        .send({ embeds: [embedMessage] })
-        .catch((err) => logger.error(err));
-    } catch (error) {
-      logger.error(error);
-      logger.warn(`Can't send message to channel ${entry.channel_id}`);
-    }
-  }
+  await ChannelHelper.sendToChannels(client, settings, embeds);
 }
 
 module.exports = {
