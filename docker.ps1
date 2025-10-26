@@ -1,6 +1,5 @@
 param(
-    [Parameter(Position=0)]
-    [ValidateSet("start", "stop", "restart", "logs", "logs-bot", "logs-mongo", "build", "status", "shell", "mongo-shell", "clean", "help")]
+    [Parameter(Position = 0)]
     [string]$Command = "help"
 )
 
@@ -12,14 +11,13 @@ function Show-Help {
   start       - Запустить бота и MongoDB в Docker
   stop        - Остановить контейнеры
   restart     - Перезапустить контейнеры
-  logs        - Показать логи всех контейнеров
-  logs-bot    - Показать только логи бота
+  logs        - Показать логи бота
   logs-mongo  - Показать только логи MongoDB
   build       - Пересобрать Docker образ
   status      - Показать статус контейнеров
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
-  clean       - Полностью удалить контейнеры, образы и volumes
+  clear       - Полностью удалить контейнеры, образы и volumes
   help        - Показать эту справку
 "@
 }
@@ -51,11 +49,6 @@ function Restart-Bot {
 }
 
 function Show-Logs {
-    Write-Host "📋 Логи всех контейнеров (Ctrl+C для выхода):" -ForegroundColor Cyan
-    docker compose logs -f --tail=100
-}
-
-function Show-BotLogs {
     Write-Host "🤖 Логи бота (Ctrl+C для выхода):" -ForegroundColor Cyan
     docker compose logs -f --tail=100 yui-bot
 }
@@ -70,6 +63,8 @@ function Build-Image {
     docker compose build --no-cache
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Образ успешно пересобран!" -ForegroundColor Green
+        Write-Host "🧹 Удаление старых неиспользуемых образов..." -ForegroundColor Yellow
+        docker image prune -f
         Write-Host "Для запуска используйте: .\docker.ps1 start" -ForegroundColor Cyan
     }
 }
@@ -90,7 +85,7 @@ function Enter-MongoShell {
     docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin
 }
 
-function Clean-All {
+function Clear-All {
     Write-Host "⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!" -ForegroundColor Red
     $confirmation = Read-Host "Вы уверены? Введите 'yes' для подтверждения"
     
@@ -110,6 +105,15 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+# Проверка допустимых команд
+$validCommands = @("start", "stop", "restart", "logs", "logs-mongo", "build", "status", "shell", "mongo-shell", "clear", "help")
+if ($Command -notin $validCommands) {
+    Write-Host "❌ Неизвестная команда: $Command" -ForegroundColor Red
+    Write-Host ""
+    Show-Help
+    exit 1
+}
+
 if ($Command -ne "help" -and -not (Test-Path .env)) {
     Write-Host "⚠️  Файл .env не найден!" -ForegroundColor Yellow
     Write-Host "Скопируйте .env.example в .env и заполните необходимые параметры:" -ForegroundColor Cyan
@@ -118,17 +122,15 @@ if ($Command -ne "help" -and -not (Test-Path .env)) {
 }
 
 switch ($Command) {
-    "start"       { Start-Bot }
-    "stop"        { Stop-Bot }
-    "restart"     { Restart-Bot }
-    "logs"        { Show-Logs }
-    "logs-bot"    { Show-BotLogs }
-    "logs-mongo"  { Show-MongoLogs }
-    "build"       { Build-Image }
-    "status"      { Show-Status }
-    "shell"       { Enter-Shell }
+    "start" { Start-Bot }
+    "stop" { Stop-Bot }
+    "restart" { Restart-Bot }
+    "logs" { Show-Logs }
+    "logs-mongo" { Show-MongoLogs }
+    "build" { Build-Image }
+    "status" { Show-Status }
+    "shell" { Enter-Shell }
     "mongo-shell" { Enter-MongoShell }
-    "clean"       { Clean-All }
-    "help"        { Show-Help }
-    default       { Show-Help }
+    "clear" { Clear-All }
+    "help" { Show-Help }
 }

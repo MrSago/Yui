@@ -16,14 +16,13 @@ show_help() {
   start       - Запустить бота и MongoDB в Docker
   stop        - Остановить контейнеры
   restart     - Перезапустить контейнеры
-  logs        - Показать логи всех контейнеров
-  logs-bot    - Показать только логи бота
+  logs        - Показать логи бота
   logs-mongo  - Показать только логи MongoDB
   build       - Пересобрать Docker образ
   status      - Показать статус контейнеров
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
-  clean       - Полностью удалить контейнеры, образы и volumes
+  clear       - Полностью удалить контейнеры, образы и volumes
   help        - Показать эту справку
 EOF
 }
@@ -49,11 +48,6 @@ restart_bot() {
 }
 
 show_logs() {
-    echo -e "${CYAN}📋 Логи всех контейнеров (Ctrl+C для выхода):${NC}"
-    docker compose logs -f --tail=100
-}
-
-show_bot_logs() {
     echo -e "${CYAN}🤖 Логи бота (Ctrl+C для выхода):${NC}"
     docker compose logs -f --tail=100 yui-bot
 }
@@ -67,6 +61,8 @@ build_image() {
     echo -e "${YELLOW}🔨 Пересборка Docker образа...${NC}"
     docker compose build --no-cache
     echo -e "${GREEN}✅ Образ успешно пересобран!${NC}"
+    echo -e "${YELLOW}🧹 Удаление старых неиспользуемых образов...${NC}"
+    docker image prune -f
     echo -e "${CYAN}Для запуска используйте: ./docker.sh start${NC}"
 }
 
@@ -86,7 +82,7 @@ enter_mongo_shell() {
     docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin
 }
 
-clean_all() {
+clear_all() {
     echo -e "${RED}⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!${NC}"
     read -p "Вы уверены? Введите 'yes' для подтверждения: " confirmation
     
@@ -126,9 +122,6 @@ case "$1" in
     logs)
         show_logs
         ;;
-    logs-bot)
-        show_bot_logs
-        ;;
     logs-mongo)
         show_mongo_logs
         ;;
@@ -144,8 +137,8 @@ case "$1" in
     mongo-shell)
         enter_mongo_shell
         ;;
-    clean)
-        clean_all
+    clear)
+        clear_all
         ;;
     help|--help|-h|"")
         show_help
