@@ -94,6 +94,8 @@ clear_all() {
     echo -e "${YELLOW}🧹 Очистка контейнеров, образов и volumes...${NC}"
     docker compose down -v
     docker rmi yui-yui-bot 2>/dev/null || true
+    echo -e "${YELLOW}🧹 Очистка кеша Docker...${NC}"
+    docker builder prune -f
     echo -e "${GREEN}✅ Полная очистка завершена!${NC}"
 }
 

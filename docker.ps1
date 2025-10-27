@@ -97,6 +97,8 @@ function Clear-All {
     Write-Host "🧹 Очистка контейнеров, образов и volumes..." -ForegroundColor Yellow
     docker compose down -v
     docker rmi yui-yui-bot 2>$null
+    Write-Host "🧹 Очистка кеша Docker..." -ForegroundColor Yellow
+    docker builder prune -f
     Write-Host "✅ Полная очистка завершена!" -ForegroundColor Green
 }
 
