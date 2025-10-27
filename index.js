@@ -7,6 +7,16 @@ const config = require("./environment.js").discord;
 const logger = require("./logger.js");
 const { initializeClient } = require("./discord");
 
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error("Unhandled Rejection:", reason);
+  process.exit(1);
+});
+
 (async () => {
   try {
     logger.info("=".repeat(50));
