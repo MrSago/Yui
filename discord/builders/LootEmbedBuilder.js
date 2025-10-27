@@ -9,7 +9,7 @@ const {
   addSupportLink,
 } = require("./baseEmbedBuilder.js");
 const sirusApi = require("../../api/sirusApi.js");
-const config = require("../../config").loot;
+const config = require("../../config/index.js").loot;
 const { intToShortFormat } = require("../../utils/formatters.js");
 
 /**
