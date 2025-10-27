@@ -1,6 +1,5 @@
 # Node modules
 node_modules
-npm-debug.log
 
 # Git
 .git
@@ -8,33 +7,26 @@ npm-debug.log
 
 # Environment files
 .env
+.env.example
 
 # Documentation
-README.md
+*.md
 readme-files/
-pp.md
-tos.md
-
-# Test files
-test.js
-
-# Scripts
-start.sh
 
 # Docker files
 Dockerfile
 .dockerignore
 docker-compose.yml
+docker.ps1
+docker.sh
 
 # IDE
 .vscode
 .idea
-*.swp
-*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
 # Logs
-*.log
+logs
