@@ -9,19 +9,41 @@ const { log_guild_id, log_channel_id } = require("./environment.js").discord;
  * Log levels mapping
  * @type {Object.<string, number>}
  */
-const LEVELS = { error: 0, warn: 1, info: 2, discord: 3, debug: 4 };
+const LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
 
 var client;
 var currentLevel = "info";
 
 /**
+ * Determines the default log level based on environment
+ * @returns {string} Default log level
+ */
+function getDefaultLogLevel() {
+  const { nodeEnv, logLevel } = require("./environment.js").app;
+
+  if (logLevel && logLevel in LEVELS) {
+    return logLevel;
+  }
+
+  if (nodeEnv === "production") {
+    return "info";
+  }
+
+  return "debug";
+}
+
+/**
  * Initializes the logger with Discord client and log level
  * @param {import('discord.js').Client} discord - Discord client instance
- * @param {string} level - Log level to set
+ * @param {string} [level] - Log level to set (optional, uses environment if not provided)
  */
 function init(discord, level) {
   client = discord;
-  setLevel(level);
+
+  const logLevel = level || getDefaultLogLevel();
+  setLevel(logLevel);
+
+  info(`Logger initialized with level: ${currentLevel.toUpperCase()}`);
 }
 
 /**
@@ -41,8 +63,6 @@ function log(message, level = "info") {
     case "error":
       console.error(log_message, message.stack);
       break;
-    case "discord":
-      sendToDiscord(log_message);
     case "warn":
     case "info":
     case "debug":
@@ -78,19 +98,19 @@ function info(message) {
 }
 
 /**
- * Logs message to Discord and console
- * @param {string} message - Message to log
- */
-function discord(message) {
-  log(message, "discord");
-}
-
-/**
  * Logs debug message
  * @param {string} message - Debug message to log
  */
 function debug(message) {
   log(message, "debug");
+}
+
+/**
+ * Logs message to Discord and console
+ * @param {string} message - Message to log
+ */
+function discord(message) {
+  sendToDiscord(message);
 }
 
 /**
@@ -100,6 +120,11 @@ function debug(message) {
 function setLevel(newLevel) {
   if (newLevel in LEVELS) {
     currentLevel = newLevel;
+    console.log(`[LOGGER] Log level set to: ${newLevel.toUpperCase()}`);
+  } else {
+    console.warn(
+      `[LOGGER] Invalid log level: ${newLevel}. Using default: ${currentLevel.toUpperCase()}`
+    );
   }
 }
 
@@ -120,6 +145,6 @@ module.exports = {
   error: error,
   warn: warn,
   info: info,
-  discord: discord,
   debug: debug,
+  discord: discord,
 };

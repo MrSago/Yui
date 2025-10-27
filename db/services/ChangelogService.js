@@ -17,6 +17,10 @@ class ChangelogService {
    */
   async setChangelogChannel(guildId, channelId) {
     try {
+      logger.info(
+        `Setting changelog channel for guild ${guildId}: channel=${channelId}`
+      );
+
       const settings = await settingsRepository.findByGuildId(guildId);
 
       if (!settings) {
@@ -27,6 +31,7 @@ class ChangelogService {
           guild_id: guildId,
           changelog_id: changelog._id,
         });
+        logger.info(`Created new changelog settings for guild ${guildId}`);
         return;
       }
 
@@ -37,6 +42,9 @@ class ChangelogService {
         await settingsRepository.upsertByGuildId(guildId, {
           changelog_id: changelog._id,
         });
+        logger.info(
+          `Updated changelog settings for guild ${guildId} (no previous changelog_id)`
+        );
         return;
       }
 
@@ -44,8 +52,11 @@ class ChangelogService {
         settings.changelog_id,
         channelId
       );
+      logger.info(`Updated existing changelog settings for guild ${guildId}`);
     } catch (error) {
-      logger.error(`Error setting changelog channel: ${error.message}`);
+      logger.error(
+        `Error setting changelog channel for guild ${guildId}: ${error.message}`
+      );
       throw error;
     }
   }
@@ -57,8 +68,11 @@ class ChangelogService {
    */
   async deleteChangelogChannel(guildId) {
     try {
+      logger.info(`Deleting changelog channel for guild ${guildId}`);
+
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.changelog_id) {
+        logger.debug(`No changelog settings found for guild ${guildId}`);
         return;
       }
 
@@ -66,8 +80,13 @@ class ChangelogService {
       await settingsRepository.upsertByGuildId(guildId, {
         $unset: { changelog_id: 1 },
       });
+      logger.info(
+        `Successfully deleted changelog settings for guild ${guildId}`
+      );
     } catch (error) {
-      logger.error(`Error deleting changelog channel: ${error.message}`);
+      logger.error(
+        `Error deleting changelog channel for guild ${guildId}: ${error.message}`
+      );
       throw error;
     }
   }

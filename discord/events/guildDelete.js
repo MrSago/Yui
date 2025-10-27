@@ -17,7 +17,18 @@ module.exports = {
    * @param {import('discord.js').Guild} guild - Discord guild object
    */
   async execute(guild) {
-    logger.discord(`Discord server deleted: ${guild.name} (${guild.id})`);
-    clearGuildSettings(guild.id);
+    logger.info(`Bot removed from Discord server: ${guild.name} (${guild.id})`);
+
+    logger.discord(`➖ Left server: **${guild.name}** (${guild.id})`);
+
+    try {
+      await clearGuildSettings(guild.id);
+      logger.info(`Successfully cleared settings for guild ${guild.id}`);
+    } catch (error) {
+      logger.error(
+        `Error clearing settings for guild ${guild.id}: ${error.message}`
+      );
+      logger.error(error);
+    }
   },
 };

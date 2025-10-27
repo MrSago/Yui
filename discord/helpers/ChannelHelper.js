@@ -18,7 +18,11 @@ async function sendToChannels(client, settings, embeds) {
     return;
   }
 
+  logger.debug(`Sending message to ${settings.length} channels`);
+
   const embedArray = Array.isArray(embeds) ? embeds : [embeds];
+  let successCount = 0;
+  let failCount = 0;
 
   for (const entry of settings) {
     try {
@@ -29,11 +33,20 @@ async function sendToChannels(client, settings, embeds) {
       }
 
       await channel.send({ embeds: embedArray });
+      successCount++;
+      logger.debug(`Successfully sent message to channel ${entry.channel_id}`);
     } catch (error) {
-      logger.error(error);
+      failCount++;
+      logger.error(
+        `Failed to send message to channel ${entry.channel_id}: ${error.message}`
+      );
       logger.warn(`Can't send message to channel ${entry.channel_id}`);
     }
   }
+
+  logger.debug(
+    `Message delivery complete: ${successCount} success, ${failCount} failed`
+  );
 }
 
 /**
@@ -45,6 +58,8 @@ async function sendToChannels(client, settings, embeds) {
  */
 async function sendToChannel(client, channelId, embeds) {
   try {
+    logger.debug(`Sending message to channel ${channelId}`);
+
     const channel = client.channels.cache.get(channelId);
 
     if (!channel) {
@@ -53,8 +68,12 @@ async function sendToChannel(client, channelId, embeds) {
 
     const embedArray = Array.isArray(embeds) ? embeds : [embeds];
     await channel.send({ embeds: embedArray });
+
+    logger.debug(`Successfully sent message to channel ${channelId}`);
   } catch (error) {
-    logger.error(error);
+    logger.error(
+      `Failed to send message to channel ${channelId}: ${error.message}`
+    );
     logger.warn(`Can't send message to channel ${channelId}`);
   }
 }

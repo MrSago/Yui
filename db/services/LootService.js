@@ -19,6 +19,10 @@ class LootService {
    */
   async setLootChannel(guildId, channelId, realmId, guildSirusId) {
     try {
+      logger.info(
+        `Setting loot channel for guild ${guildId}: channel=${channelId}, realm=${realmId}, sirus_id=${guildSirusId}`
+      );
+
       const settings = await settingsRepository.findByGuildId(guildId);
 
       if (!settings) {
@@ -31,6 +35,7 @@ class LootService {
           guild_id: guildId,
           loot_id: loot._id,
         });
+        logger.info(`Created new loot settings for guild ${guildId}`);
         return;
       }
 
@@ -43,6 +48,9 @@ class LootService {
         await settingsRepository.upsertByGuildId(guildId, {
           loot_id: loot._id,
         });
+        logger.info(
+          `Updated loot settings for guild ${guildId} (no previous loot_id)`
+        );
         return;
       }
 
@@ -52,8 +60,11 @@ class LootService {
         realmId,
         guildSirusId
       );
+      logger.info(`Updated existing loot settings for guild ${guildId}`);
     } catch (error) {
-      logger.error(`Error setting loot channel: ${error.message}`);
+      logger.error(
+        `Error setting loot channel for guild ${guildId}: ${error.message}`
+      );
       throw error;
     }
   }
@@ -65,8 +76,11 @@ class LootService {
    */
   async deleteLootChannel(guildId) {
     try {
+      logger.info(`Deleting loot channel for guild ${guildId}`);
+
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.loot_id) {
+        logger.debug(`No loot settings found for guild ${guildId}`);
         return;
       }
 
@@ -74,8 +88,11 @@ class LootService {
       await settingsRepository.upsertByGuildId(guildId, {
         $unset: { loot_id: 1 },
       });
+      logger.info(`Successfully deleted loot settings for guild ${guildId}`);
     } catch (error) {
-      logger.error(`Error deleting loot channel: ${error.message}`);
+      logger.error(
+        `Error deleting loot channel for guild ${guildId}: ${error.message}`
+      );
       throw error;
     }
   }

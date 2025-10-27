@@ -44,15 +44,20 @@ const DEFAULT_HEADERS = {
  */
 async function makeRequest(url, options = {}) {
   try {
+    logger.debug(`Making API request to: ${url}`);
     const response = await axios.get(url, {
       headers: DEFAULT_HEADERS,
       cache: true,
       ...options,
     });
+    logger.debug(`API request successful: ${url}`);
     return response.data;
   } catch (error) {
     logger.error(`Sirus API request failed: ${url}`);
-    logger.error(error);
+    logger.error(`Error details: ${error.message}`);
+    if (error.response) {
+      logger.error(`Response status: ${error.response.status}`);
+    }
     return null;
   }
 }

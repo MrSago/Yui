@@ -20,18 +20,33 @@ module.exports = {
    * @param {import('discord.js').Client} client - Discord client instance
    */
   async execute(client) {
+    logger.info("Initializing logger with Discord client...");
+    require("../../logger.js").init(client);
+
+    logger.info("Discord client ready event triggered");
+    logger.info(`Logged in as ${client.user.tag}`);
+
+    logger.info("Initializing database connection...");
     await require("../../db/database.js").init();
+
+    logger.info("Fetching Discord data...");
     await require("../fetch.js").fetchAll(client);
-    require("../../logger.js").init(client, "debug");
+
+    logger.info("Initializing changelog module...");
     require("../../changelog/changelog.js").init(client);
+
+    logger.info("Initializing loot module...");
     require("../../loot/loot.js").init(client);
 
+    logger.info("Cleaning up inactive guilds from database...");
     const removed_guilds = await clearInactiveGuildsFromDb(client);
     const db_guilds = await getGuildsCount();
 
-    logger.discord(`Ready! Logged in as ${client.user}`);
-    logger.discord(`Discord guilds: ${client.guilds.cache.size}`);
-    logger.discord(`Database records: ${db_guilds}`);
-    logger.discord(`Removed guilds: ${removed_guilds}`);
+    logger.discord(`✅ Bot Ready! Logged in as ${client.user}`);
+    logger.discord(`📊 Discord guilds: ${client.guilds.cache.size}`);
+    logger.discord(`💾 Database records: ${db_guilds}`);
+    logger.discord(`🗑️ Removed inactive guilds: ${removed_guilds}`);
+
+    logger.info("Bot initialization completed successfully");
   },
 };

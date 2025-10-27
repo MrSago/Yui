@@ -20,6 +20,9 @@ var client;
 function init(discord) {
   client = discord;
 
+  logger.info("Initializing changelog tracking module");
+  logger.info("Changelog tracking module initialized successfully");
+
   startUpdatingChangelog();
 }
 
@@ -29,9 +32,17 @@ function init(discord) {
 async function startUpdatingChangelog() {
   logger.info("Updating changelog started");
 
-  const data = await sirusApi.getChangelog();
-  if (data) {
-    sendData(data);
+  try {
+    const data = await sirusApi.getChangelog();
+    if (data) {
+      logger.debug(`Retrieved ${data.length} changelog entries from API`);
+      await sendData(data);
+    } else {
+      logger.warn("Failed to retrieve changelog data from API");
+    }
+  } catch (error) {
+    logger.error(`Error updating changelog: ${error.message}`);
+    logger.error(error);
   }
 
   logger.info("Updating changelog ended");
@@ -47,8 +58,11 @@ async function sendData(data) {
   const logs = await db.getChangelogData();
   const cnt = parseData(data, logs);
   if (!cnt) {
+    logger.debug("No new changelog entries found");
     return;
   }
+
+  logger.info(`Found ${cnt} new changelog entries`);
 
   const newMessages = [];
   for (let i = cnt - 1; i >= 0; --i) {
@@ -56,6 +70,9 @@ async function sendData(data) {
   }
 
   await db.appendChangelogData(newMessages);
+  logger.debug(
+    `Saved ${newMessages.length} new changelog messages to database`
+  );
 
   const newChangelog = data.slice(0, cnt);
   const embeds = createChangelogEmbeds(newChangelog);
@@ -98,7 +115,11 @@ async function sendChangeLog(embeds) {
     return;
   }
 
+  logger.debug(`Sending changelog to ${settings.length} configured channels`);
+
   await sendToChannels(client, settings, embeds);
+
+  logger.info(`Changelog notifications sent to ${settings.length} channels`);
 }
 
 module.exports = {

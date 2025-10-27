@@ -20,20 +20,27 @@ require("dotenv").config();
  * @property {string} db.pwd - MongoDB password
  * @property {string} db.auth_mechanism - MongoDB authentication mechanism
  * @property {string} db.auth_source - MongoDB authentication database
+ * @property {Object} app - Application configuration
+ * @property {string} app.nodeEnv - Node environment (development, production)
+ * @property {string} app.logLevel - Log level (error, warn, info, discord, debug)
  */
 module.exports = {
   discord: {
-    token: process.env.discord_token,
-    client_id: process.env.discord_client_id,
-    log_guild_id: process.env.discord_log_guild_id,
-    log_channel_id: process.env.discord_log_channel_id,
+    token: process.env.DISCORD_TOKEN,
+    client_id: process.env.DISCORD_CLIENT_ID,
+    log_guild_id: process.env.DISCORD_LOG_GUILD_ID,
+    log_channel_id: process.env.DISCORD_LOG_CHANNEL_ID,
   },
   db: {
-    cluster_url: process.env.db_cluster_url,
-    port: process.env.db_port,
-    user: process.env.db_user,
-    pwd: process.env.db_pwd,
-    auth_mechanism: process.env.db_auth_mechanism,
-    auth_source: process.env.db_auth_source,
+    cluster_url: process.env.DB_CLUSTER_URL,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    pwd: process.env.DB_PWD,
+    auth_mechanism: process.env.DB_AUTH_MECHANISM,
+    auth_source: process.env.DB_AUTH_SOURCE,
+  },
+  app: {
+    nodeEnv: process.env.NODE_ENV || "development",
+    logLevel: process.env.LOG_LEVEL || null,
   },
 };

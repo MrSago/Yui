@@ -42,6 +42,8 @@ async function initializeClient(config) {
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith(".js"));
 
+  logger.info(`Loading ${commandFiles.length} commands...`);
+
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     const command = require(filePath);
@@ -55,13 +57,15 @@ async function initializeClient(config) {
 
     commands.push(command.data.toJSON());
     client.commands.set(command.data.name, command);
-    logger.info(`The command at "${file}" is registered`);
+    logger.info(`✓ Loaded command: ${command.data.name} (${file})`);
   }
 
   const eventsPath = path.join(__dirname, "events");
   const eventFiles = fs
     .readdirSync(eventsPath)
     .filter((file) => file.endsWith(".js"));
+
+  logger.info(`Loading ${eventFiles.length} event handlers...`);
 
   for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
@@ -79,7 +83,7 @@ async function initializeClient(config) {
     } else {
       client.on(event.name, (...args) => event.execute(...args));
     }
-    logger.info(`The event at "${file}" is registered`);
+    logger.info(`✓ Loaded event: ${event.name} (${file})`);
   }
 
   try {
