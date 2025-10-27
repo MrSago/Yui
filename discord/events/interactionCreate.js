@@ -56,10 +56,15 @@ module.exports = {
         `Error executing command /${command_name} by ${user_tag} in ${guild_name}: ${error.message}`
       );
       logger.error(error);
-      await interaction.reply({
-        content: "Ошибка при выполнении команды!",
-        flags: MessageFlags.Ephemeral,
-      });
+      try {
+        await interaction.reply({
+          content: "Ошибка при выполнении команды!",
+          flags: MessageFlags.Ephemeral,
+        });
+      } catch (replyError) {
+        logger.error(`Failed to send error reply: ${replyError.message}`);
+        logger.error(replyError);
+      }
     }
   },
 };
