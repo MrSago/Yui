@@ -8,13 +8,17 @@ const logger = require("./logger.js");
 const { initializeClient } = require("./discord");
 
 process.on("uncaughtException", (err) => {
-  logger.error("Uncaught Exception:", err);
+  console.error("Uncaught Exception:", err);
   process.exit(1);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-  logger.error("Unhandled Rejection:", reason);
+  console.error("Unhandled Rejection:", reason);
   process.exit(1);
+});
+
+process.on("warning", (e) => {
+  console.warn("Warning:", e.name, e.message, e.stack);
 });
 
 (async () => {
