@@ -1,0 +1,47 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_DIR }}
+
+            echo "Pulling latest changes..."
+            git pull origin master
+
+            echo "Stopping containers..."
+            docker compose down
+
+            echo "Clearing build cache..."
+            docker builder prune -a -f
+
+            echo "Building and starting containers..."
+            docker compose up -d --build
+
+            echo "Waiting for containers to start..."
+            sleep 20
+
+            echo "Checking container status..."
+            if ! docker-compose ps | grep -E "yui.*Up"; then
+              echo "Failed to start containers"
+              docker compose logs --tail=50
+              exit 1
+            fi
+
+            echo "Deployment successful"
