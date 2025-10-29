@@ -61,8 +61,6 @@ build_image() {
     echo -e "${YELLOW}🔨 Пересборка Docker образа...${NC}"
     docker compose build --no-cache
     echo -e "${GREEN}✅ Образ успешно пересобран!${NC}"
-    echo -e "${YELLOW}🧹 Удаление старых неиспользуемых образов...${NC}"
-    docker image prune -f
     echo -e "${CYAN}Для запуска используйте: ./docker.sh start${NC}"
 }
 
@@ -90,9 +88,10 @@ clear_all() {
         echo -e "${YELLOW}❌ Операция отменена${NC}"
         return
     fi
-    
+
     echo -e "${YELLOW}🧹 Очистка контейнеров, образов и volumes...${NC}"
     docker compose down -v
+    docker image prune -f
     docker rmi yui-yui-bot 2>/dev/null || true
     echo -e "${YELLOW}🧹 Очистка кеша Docker...${NC}"
     docker builder prune -f

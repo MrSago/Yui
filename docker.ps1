@@ -63,8 +63,6 @@ function Build-Image {
     docker compose build --no-cache
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Образ успешно пересобран!" -ForegroundColor Green
-        Write-Host "🧹 Удаление старых неиспользуемых образов..." -ForegroundColor Yellow
-        docker image prune -f
         Write-Host "Для запуска используйте: .\docker.ps1 start" -ForegroundColor Cyan
     }
 }
@@ -93,9 +91,10 @@ function Clear-All {
         Write-Host "❌ Операция отменена" -ForegroundColor Yellow
         return
     }
-    
+
     Write-Host "🧹 Очистка контейнеров, образов и volumes..." -ForegroundColor Yellow
     docker compose down -v
+    docker image prune -f
     docker rmi yui-yui-bot 2>$null
     Write-Host "🧹 Очистка кеша Docker..." -ForegroundColor Yellow
     docker builder prune -f
@@ -107,7 +106,6 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# Проверка допустимых команд
 $validCommands = @("start", "stop", "restart", "logs", "logs-mongo", "build", "status", "shell", "mongo-shell", "clear", "help")
 if ($Command -notin $validCommands) {
     Write-Host "❌ Неизвестная команда: $Command" -ForegroundColor Red
