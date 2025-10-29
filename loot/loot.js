@@ -135,8 +135,8 @@ async function entryProcess(entry, guild_id) {
     `Retrieved ${records.length} boss kill records for guild ${guild_id}`
   );
 
-  const first_init = await db.initRecords(guild_id);
-  if (first_init) {
+  const exists = await db.initRecords(guild_id);
+  if (!exists) {
     logger.info(
       `First initialization for guild ${guild_id}, skipping notifications`
     );
@@ -146,7 +146,7 @@ async function entryProcess(entry, guild_id) {
   const promises = [];
 
   for (const record of records) {
-    if (first_init) {
+    if (!exists) {
       sended_records.push(record.id);
     } else {
       promises.push(getExtraInfoWrapper(entry, guild_id, record));
