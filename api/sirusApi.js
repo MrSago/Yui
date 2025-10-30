@@ -1,4 +1,7 @@
 const axios = require("axios");
+const bottleneck = require("bottleneck");
+
+const { sirus: config } = require("../config/index.js");
 const logger = require("../logger.js");
 
 // Realm names mapping
@@ -36,31 +39,11 @@ const DEFAULT_HEADERS = {
   "Sec-Fetch-Site": "cross-site",
 };
 
-/**
- * Makes a GET request to Sirus API
- * @param {string} url - Full URL to request
- * @param {Object} options - Additional axios options
- * @returns {Promise<Object|null>} Response data or null on error
- */
-async function makeRequest(url, options = {}) {
-  try {
-    logger.debug(`Making API request to: ${url}`);
-    const response = await axios.get(url, {
-      headers: DEFAULT_HEADERS,
-      cache: true,
-      ...options,
-    });
-    logger.debug(`API request successful: ${url}`);
-    return response.data;
-  } catch (error) {
-    logger.error(`Sirus API request failed: ${url}`);
-    logger.error(`Error details: ${error.message}`);
-    if (error.response) {
-      logger.error(`Response status: ${error.response.status}`);
-    }
-    return null;
-  }
-}
+// Initialize Bottleneck rate limiter
+const apiLimiter = new bottleneck({
+  minTime: config.apiLimiter.minTime,
+  maxConcurrent: config.apiLimiter.maxConcurrent,
+});
 
 /**
  * Get changelog from Sirus.su
@@ -68,7 +51,7 @@ async function makeRequest(url, options = {}) {
  */
 async function getChangelog() {
   logger.info(`Fetching changelog from ${CHANGELOG_API_URL}`);
-  const data = await makeRequest(CHANGELOG_API_URL);
+  const data = await makeGetRequest(CHANGELOG_API_URL);
 
   if (!data || !data.data) {
     logger.warn("Failed to get changelog from Sirus.su");
@@ -90,7 +73,7 @@ async function getLatestBossKills(realmId, guildSirusId) {
     `Fetching latest boss kills for guild ${guildSirusId} on realm ${realmId}`
   );
 
-  const data = await makeRequest(url);
+  const data = await makeGetRequest(url);
 
   if (!data || !data.data) {
     logger.warn(
@@ -114,7 +97,7 @@ async function getBossKillDetails(realmId, recordId) {
     `Fetching boss kill details for record ${recordId} on realm ${realmId}`
   );
 
-  const data = await makeRequest(url);
+  const data = await makeGetRequest(url);
 
   if (!data || !data.data) {
     logger.warn(
@@ -171,6 +154,84 @@ function getChangelogUrl() {
  */
 function getRealmNameById(realmId) {
   return REALM_NAMES[realmId] || null;
+}
+
+/**
+ * Wrapper for axios GET requests with rate limiting
+ * @param {string} url - Full URL to request
+ */
+async function limitedGet(url, options = {}) {
+  return apiLimiter.schedule(() => axios.get(url, options));
+}
+
+/** Sleep for specified milliseconds
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise<void>}
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Makes a GET request to Sirus API
+ * @param {string} url - Full URL to request
+ * @param {Object} options - Additional axios options
+ * @returns {Promise<Object|null>} Response data or null on error
+ */
+async function makeGetRequest(url, options = {}) {
+  const axiosOptions = {
+    headers: DEFAULT_HEADERS,
+    timeout: config.axios.timeoutMs,
+    cache: true,
+    ...options,
+  };
+
+  let attempt = 0;
+  while (attempt <= config.axios.maxRetries) {
+    try {
+      logger.debug(`Making API request to: ${url} (attempt ${attempt + 1})`);
+      const response = await limitedGet(url, axiosOptions);
+      logger.debug(`API request successful: ${url}`);
+      return response.data;
+    } catch (error) {
+      attempt += 1;
+
+      // Determine if error is retryable: network error, timeout, 5xx or 429
+      const status = error && error.response && error.response.status;
+      const isNetworkError = !error.response;
+      const isTimeout = error && error.code === "ECONNABORTED";
+      const isRetryableStatus = status >= 500 || status === 429;
+
+      if (
+        attempt > config.axios.maxRetries ||
+        (!isNetworkError && !isTimeout && !isRetryableStatus)
+      ) {
+        logger.error(
+          `Sirus API request failed: ${url} after ${attempt} attempts`
+        );
+        logger.error(`Error details: ${error.message}`);
+        if (error.response) {
+          logger.error(`Response status: ${error.response.status}`);
+        }
+        return null;
+      }
+
+      const backoff = Math.min(
+        config.backoff.maxMs,
+        config.backoff.baseMs * Math.pow(2, attempt - 1)
+      );
+      const jitter = Math.floor(Math.random() * backoff);
+      const waitMs = backoff + jitter;
+
+      logger.warn(`Transient error on request to ${url} (status: ${status}).`);
+      logger.warn(
+        `Retrying in ${waitMs} ms (attempt ${attempt} of ${config.axios.maxRetries})`
+      );
+
+      await sleep(waitMs);
+    }
+  }
+  return null;
 }
 
 module.exports = {
