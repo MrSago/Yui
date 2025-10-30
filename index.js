@@ -3,9 +3,9 @@
  * @description Discord bot initialization and startup
  */
 
-const config = require("./environment.js").discord;
+const { initializeClient } = require("./discord/index.js");
+const { discord: env } = require("./environment.js");
 const logger = require("./logger.js");
-const { initializeClient } = require("./discord");
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
@@ -28,10 +28,10 @@ process.on("warning", (e) => {
     logger.info("=".repeat(50));
 
     logger.info("Initializing Discord client...");
-    const client = await initializeClient(config);
+    const client = await initializeClient(env);
 
     logger.info("Logging in to Discord...");
-    await client.login(config.token);
+    await client.login(env.token);
 
     logger.info("Login successful!");
   } catch (error) {

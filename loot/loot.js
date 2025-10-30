@@ -4,18 +4,21 @@
  * @note Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
  */
 
-const logger = require("../logger.js");
+const { ActivityType } = require("discord.js");
+
+const { loot: config } = require("../config/index.js");
 const db = require("../db/database.js");
+const {
+  createCompleteBossKillEmbed,
+  sendToChannel,
+} = require("../discord/index.js");
+const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
-const config = require("../config").loot;
 const {
   parseDpsPlayers,
   parseHealPlayers,
   loadJsonFileWithDefault,
-} = require("../utils");
-const { createCompleteBossKillEmbed, sendToChannel } = require("../discord");
-
-const { ActivityType } = require("discord.js");
+} = require("../utils/index.js");
 
 const LOOT_PATH = config.dataPath;
 const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/${config.files.bossThumbnails}`;
@@ -149,7 +152,7 @@ async function entryProcess(entry, guild_id) {
     // if (!exists) {
     //   sended_records.push(record.id);
     // } else {
-      promises.push(getExtraInfoWrapper(entry, guild_id, record));
+    promises.push(getExtraInfoWrapper(entry, guild_id, record));
     // }
   }
 

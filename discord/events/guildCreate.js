@@ -3,10 +3,10 @@
  * @description Handles bot joining a new Discord server
  */
 
-const logger = require("../../logger.js");
-const { fetchGuild } = require("../fetch.js");
-
 const { Events } = require("discord.js");
+
+const { fetchGuild } = require("../fetch.js");
+const logger = require("../../logger.js");
 
 module.exports = {
   name: Events.GuildCreate,

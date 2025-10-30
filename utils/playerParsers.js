@@ -1,5 +1,5 @@
-const logger = require("../logger.js");
 const { formatDpsValue } = require("./formatters.js");
+const logger = require("../logger.js");
 
 /**
  * Gets emoji for a player

@@ -3,13 +3,14 @@
  * @description Monitors and announces Sirus.su changelog updates
  */
 
-const logger = require("../logger.js");
+const { changelog: config } = require("../config/index.js");
 const db = require("../db/database.js");
+const {
+  createChangelogEmbeds,
+  sendToChannels,
+} = require("../discord/index.js");
+const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
-const config = require("../config").changelog;
-const { createChangelogEmbeds, sendToChannels } = require("../discord");
-
-const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
 var client;
 
@@ -47,7 +48,7 @@ async function startUpdatingChangelog() {
 
   logger.info("Updating changelog ended");
 
-  setTimeout(startUpdatingChangelog, INTERVAL_UPDATE_MS);
+  setTimeout(startUpdatingChangelog, config.updateIntervalMs);
 }
 
 /**

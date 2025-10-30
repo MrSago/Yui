@@ -3,14 +3,14 @@
  * @description Removes changelog notification settings for the guild
  */
 
-const logger = require("../../logger.js");
-const { deleteChangelogChannel } = require("../../db/database.js");
-
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
+
+const { deleteChangelogChannel } = require("../../db/database.js");
+const logger = require("../../logger.js");
 
 module.exports = {
   data: new SlashCommandBuilder()

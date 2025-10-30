@@ -3,8 +3,9 @@
  * @description Provides utility functions for Discord API operations
  */
 
-const config = require("../../environment.js");
 const { REST } = require("discord.js");
+
+const { discord: env } = require("../../environment.js");
 
 /**
  * Sets voice status for a Discord channel
@@ -13,7 +14,7 @@ const { REST } = require("discord.js");
  * @returns {Promise<void>}
  */
 async function setVoiceStatus(channel_id, status) {
-  const rest = new REST({ version: "10" }).setToken(config.discord.token);
+  const rest = new REST({ version: "10" }).setToken(env.token);
   payload = { status: status };
   await rest.put(`/channels/${channel_id}/voice-status`, {
     body: payload,

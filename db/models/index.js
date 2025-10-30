@@ -3,16 +3,16 @@
  * Exports all Mongoose models
  */
 
-const Settings = require("./Settings.model.js");
 const Changelog = require("./Changelog.model.js");
+const ChangelogData = require("./ChangelogData.model.js");
 const Loot = require("./Loot.model.js");
 const Records = require("./Records.model.js");
-const ChangelogData = require("./ChangelogData.model.js");
+const Settings = require("./Settings.model.js");
 
 module.exports = {
-  Settings,
   Changelog,
+  ChangelogData,
   Loot,
   Records,
-  ChangelogData,
+  Settings,
 };

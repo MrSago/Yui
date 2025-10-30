@@ -15,7 +15,8 @@
 
 module.exports = require("./database.js");
 
+module.exports.models = require("./models/index.js");
 module.exports.repositories = require("./repositories/index.js");
 module.exports.services = require("./services/index.js");
-module.exports.models = require("./models/index.js");
+
 module.exports.connection = require("./mongoose.connection.js");

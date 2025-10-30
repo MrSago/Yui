@@ -1,10 +1,11 @@
 const { init } = require("./mongoose.connection.js");
+
 const {
   changelogService,
+  changelogDataService,
   lootService,
   recordsService,
   settingsService,
-  changelogDataService,
 } = require("./services/index.js");
 
 /**

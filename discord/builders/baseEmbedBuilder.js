@@ -66,6 +66,11 @@ function addEmptyField(embed) {
   });
 }
 
+/**
+ * Adds a support link field to embed
+ * @param {EmbedBuilder} embed - Embed message
+ * @returns {EmbedBuilder}
+ */
 function addSupportLink(embed) {
   embed.addFields({
     name: "\u200b",
