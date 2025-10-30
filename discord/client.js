@@ -5,6 +5,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+
 const {
   Client,
   GatewayIntentBits,
@@ -13,6 +14,7 @@ const {
   Routes,
   Partials,
 } = require("discord.js");
+
 const logger = require("../logger.js");
 
 /**

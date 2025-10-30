@@ -3,7 +3,7 @@
  * @description Provides logging functionality with multiple levels and Discord integration
  */
 
-const { log_guild_id, log_channel_id } = require("./environment.js").discord;
+const { app: appEnv, discord: disEnv } = require("./environment.js");
 
 /**
  * Log levels mapping
@@ -19,13 +19,11 @@ var currentLevel = "info";
  * @returns {string} Default log level
  */
 function getDefaultLogLevel() {
-  const { nodeEnv, logLevel } = require("./environment.js").app;
-
-  if (logLevel && logLevel in LEVELS) {
-    return logLevel;
+  if (appEnv.logLevel && appEnv.logLevel in LEVELS) {
+    return appEnv.logLevel;
   }
 
-  if (nodeEnv === "production") {
+  if (appEnv.nodeEnv === "production") {
     return "info";
   }
 
@@ -134,8 +132,8 @@ function setLevel(newLevel) {
  */
 async function sendToDiscord(message) {
   client.guilds.cache
-    .get(log_guild_id)
-    .channels.cache.get(log_channel_id)
+    .get(disEnv.log_guild_id)
+    .channels.cache.get(disEnv.log_channel_id)
     .send(message)
     .catch((err) => error(err));
 }

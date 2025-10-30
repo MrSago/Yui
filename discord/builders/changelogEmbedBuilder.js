@@ -4,8 +4,8 @@
  */
 
 const { createEmbed, addSupportLink } = require("./baseEmbedBuilder.js");
+const { changelog: config } = require("../../config/index.js");
 const sirusApi = require("../../api/sirusApi.js");
-const config = require("../../config/index.js").changelog;
 
 /**
  * Creates embeds for changelog data with automatic splitting

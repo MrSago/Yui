@@ -8,9 +8,9 @@ const {
   addEmptyField,
   addSupportLink,
 } = require("./baseEmbedBuilder.js");
-const sirusApi = require("../../api/sirusApi.js");
-const config = require("../../config/index.js").loot;
+const { loot: config } = require("../../config/index.js");
 const { intToShortFormat } = require("../../utils/formatters.js");
+const sirusApi = require("../../api/sirusApi.js");
 
 /**
  * Creates a complete boss kill message with all sections

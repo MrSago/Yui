@@ -3,14 +3,14 @@
  * @description Configures channel for Sirus.su changelog notifications
  */
 
-const logger = require("../../logger.js");
-const { setChangelogChannel } = require("../../db/database.js");
-
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
+
+const { setChangelogChannel } = require("../../db/database.js");
+const logger = require("../../logger.js");
 
 module.exports = {
   data: new SlashCommandBuilder()

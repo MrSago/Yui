@@ -1,6 +1,7 @@
+const logger = require("../../logger.js");
+
 const BaseRepository = require("./BaseRepository.js");
 const { Changelog } = require("../models/index.js");
-const logger = require("../../logger.js");
 
 /**
  * Changelog Repository

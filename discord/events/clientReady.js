@@ -3,13 +3,13 @@
  * @description Handles bot initialization when Discord client is ready
  */
 
-const logger = require("../../logger.js");
+const { Events } = require("discord.js");
+
 const {
   clearInactiveGuildsFromDb,
   getGuildsCount,
 } = require("../../db/database.js");
-
-const { Events } = require("discord.js");
+const logger = require("../../logger.js");
 
 module.exports = {
   name: Events.ClientReady,

@@ -1,13 +1,14 @@
-const config = require("../environment.js").db;
-const logger = require("../logger.js");
 const mongoose = require("mongoose");
 
+const { db: env } = require("../environment.js");
+const logger = require("../logger.js");
+
 const URI =
-  `mongodb://${config.user}:${config.pwd}` +
-  `@${config.cluster_url}:${config.port}` +
-  `/${config.auth_source}` +
-  `?authMechanism=${config.auth_mechanism}` +
-  `&authSource=${config.auth_source}`;
+  `mongodb://${env.user}:${env.pwd}` +
+  `@${env.cluster_url}:${env.port}` +
+  `/${env.auth_source}` +
+  `?authMechanism=${env.auth_mechanism}` +
+  `&authSource=${env.auth_source}`;
 
 /**
  * Initializes database connection with retry logic

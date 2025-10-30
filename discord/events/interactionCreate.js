@@ -3,9 +3,9 @@
  * @description Handles Discord slash command interactions
  */
 
-const logger = require("../../logger.js");
-
 const { Events, MessageFlags } = require("discord.js");
+
+const logger = require("../../logger.js");
 
 module.exports = {
   name: Events.InteractionCreate,
