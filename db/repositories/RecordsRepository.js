@@ -29,15 +29,16 @@ class RecordsRepository extends BaseRepository {
   /**
    * Initialize records for a guild
    * @param {string} guildId - Discord guild ID
-   * @returns {Promise<any>}
+   * @returns {Promise<{document: any, isNew: boolean}>} Returns document and whether it was newly created
    */
   async initializeForGuild(guildId) {
     try {
       const existing = await this.findByGuildId(guildId);
       if (existing) {
-        return existing;
+        return { document: existing, isNew: false };
       }
-      return await this.create({ guild_id: guildId, records: [] });
+      const newDoc = await this.create({ guild_id: guildId, records: [] });
+      return { document: newDoc, isNew: true };
     } catch (error) {
       logger.error(`Error initializing records: ${error.message}`);
       throw error;
