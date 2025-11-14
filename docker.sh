@@ -37,7 +37,7 @@ start_bot() {
 
 stop_bot() {
     echo -e "${YELLOW}🛑 Остановка бота и MongoDB...${NC}"
-    docker compose down
+    docker compose stop
     echo -e "${GREEN}✅ Бот и MongoDB остановлены!${NC}"
 }
 

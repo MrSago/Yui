@@ -139,21 +139,21 @@ async function entryProcess(entry, guild_id) {
   );
 
   const exists = await db.initRecords(guild_id);
-  // if (!exists) {
-  //   logger.info(
-  //     `First initialization for guild ${guild_id}, skipping notifications`
-  //   );
-  // }
+  if (!exists) {
+    logger.info(
+      `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`
+    );
+  }
 
   const sended_records = [];
   const promises = [];
 
   for (const record of records) {
-    // if (!exists) {
-    //   sended_records.push(record.id);
-    // } else {
-    promises.push(getExtraInfoWrapper(entry, guild_id, record));
-    // }
+    if (!exists) {
+      sended_records.push(record.id);
+    } else {
+      promises.push(getExtraInfoWrapper(entry, guild_id, record));
+    }
   }
 
   if (promises.length > 0) {

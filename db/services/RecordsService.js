@@ -9,11 +9,12 @@ class RecordsService {
   /**
    * Initialize records for a guild
    * @param {string} guildId - Discord guild ID
-   * @returns {Promise<any>}
+   * @returns {Promise<boolean>} Returns true if records already existed, false if newly created
    */
   async initRecords(guildId) {
     try {
-      return await recordsRepository.initializeForGuild(guildId);
+      const result = await recordsRepository.initializeForGuild(guildId);
+      return !result.isNew;
     } catch (error) {
       logger.error(`Error initializing records: ${error.message}`);
       throw error;

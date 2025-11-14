@@ -34,7 +34,7 @@ function Start-Bot {
 
 function Stop-Bot {
     Write-Host "🛑 Остановка бота и MongoDB..." -ForegroundColor Yellow
-    docker compose down
+    docker compose stop
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Бот и MongoDB остановлены!" -ForegroundColor Green
     }
