@@ -7,7 +7,19 @@
  * intToShortFormat(1500)  // 1.5
  */
 function intToShortFormat(value) {
-  return +(value.toFixed(1) / 1000).toFixed(1);
+  return +(value / 1000).toFixed(1);
+}
+
+/**
+ * Converts an integer to millions format
+ * @param {number} value - Number to format
+ * @returns {number} Formatted number (e.g., 1234567 -> 1.2)
+ * @example
+ * intToMillionsFormat(1234567) // 1.2
+ * intToMillionsFormat(5500000) // 5.5
+ */
+function intToMillionsFormat(value) {
+  return +(value / 1000000).toFixed(1);
 }
 
 /**
@@ -22,19 +34,25 @@ function formatNumber(value) {
 }
 
 /**
- * Formats DPS/HPS value for display
- * @param {number} value - DPS/HPS value
- * @returns {string} Formatted string with 'k' suffix
+ * Formats value to short for display
+ * @param {number} value - Number to format
+ * @returns {string} Formatted string with 'k' or 'm' suffix
  * @example
- * formatDpsValue(12345) // "12.3k"
+ * formatShortValue(12345) // "12.3k"
+ * formatShortValue(1234567) // "1.2m"
  */
-function formatDpsValue(value) {
+function formatShortValue(value) {
   const parsed = parseInt(value);
-  return parsed ? `${intToShortFormat(parsed)}k` : "0k";
+  if (!parsed) return "0k";
+
+  if (parsed >= 1000000) {
+    return `${intToMillionsFormat(parsed)}m`;
+  }
+
+  return `${intToShortFormat(parsed)}k`;
 }
 
 module.exports = {
-  intToShortFormat,
   formatNumber,
-  formatDpsValue,
+  formatShortValue,
 };

@@ -9,7 +9,7 @@ const {
   addSupportLink,
 } = require("./baseEmbedBuilder.js");
 const { loot: config } = require("../../config/index.js");
-const { intToShortFormat } = require("../../utils/formatters.js");
+const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
 /**
@@ -139,7 +139,7 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
     },
     {
       name: "Общий DPS",
-      value: `${intToShortFormat(summaryDps)}k`,
+      value: formatShortValue(summaryDps),
       inline: true,
     }
   );
@@ -150,7 +150,7 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
       inline: true,
     },
     {
-      name: "DPS",
+      name: "Имя",
       value: players,
       inline: true,
     },
@@ -187,7 +187,7 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
     },
     {
       name: "Общий HPS",
-      value: `${intToShortFormat(summaryHps)}k`,
+      value: formatShortValue(summaryHps),
       inline: true,
     }
   );

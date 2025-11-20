@@ -1,4 +1,4 @@
-const { formatDpsValue } = require("./formatters.js");
+const { formatShortValue } = require("./formatters.js");
 const logger = require("../logger.js");
 
 /**
@@ -56,7 +56,7 @@ function parseDpsPlayers(data, classEmoji, client, easterEggConfig) {
 
     const dps_int = parseInt(player.dps);
     if (dps_int) {
-      dps += `${formatDpsValue(dps_int)}\n`;
+      dps += `${formatShortValue(dps_int)}\n`;
       summary_dps += dps_int;
     } else {
       dps += "0k\n";
@@ -99,7 +99,7 @@ function parseHealPlayers(data, classEmoji, client) {
 
     const hpsInt = parseInt(player.hps);
     if (hpsInt) {
-      hps += `${formatDpsValue(hpsInt)}\n`;
+      hps += `${formatShortValue(hpsInt)}\n`;
       summary_hps += hpsInt;
     } else {
       hps += "0k\n";
