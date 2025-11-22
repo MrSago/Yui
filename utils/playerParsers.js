@@ -1,22 +1,16 @@
 const { formatShortValue } = require("./formatters.js");
+const classEmoji = require("../config/classEmoji.js");
 const logger = require("../logger.js");
 
 /**
  * Gets emoji for a player
  * @param {Object} player - Player data
- * @param {Object} classEmoji - Class to emoji mapping
  * @param {Object} client - Discord client
- * @param {Object} easterEggConfig - Easter egg configuration
  * @returns {string|null} Emoji or null
  */
-function getPlayerEmoji(player, classEmoji, client, easterEggConfig) {
+function getPlayerEmoji(player, client) {
   try {
     const spec = classEmoji[player.class_id].spec[player.spec];
-
-    // Easter egg check
-    if (easterEggConfig && easterEggConfig.players.includes(player.name)) {
-      return client.emojis.cache.get(easterEggConfig.emojiId);
-    }
 
     return client.emojis.cache.get(spec.emoji_id);
   } catch (error) {
@@ -29,12 +23,10 @@ function getPlayerEmoji(player, classEmoji, client, easterEggConfig) {
 /**
  * Parses DPS player data
  * @param {Array} data - Array of player data
- * @param {Object} classEmoji - Class to emoji mapping
  * @param {Object} client - Discord client
- * @param {Object} easterEggConfig - Easter egg configuration
  * @returns {Array} [places, players, dps, summary_dps]
  */
-function parseDpsPlayers(data, classEmoji, client, easterEggConfig) {
+function parseDpsPlayers(data, client) {
   data.sort((a, b) => b.dps - a.dps);
 
   let i = 1;
@@ -49,7 +41,7 @@ function parseDpsPlayers(data, classEmoji, client, easterEggConfig) {
     // Skip healers
     if (spec?.heal) continue;
 
-    const emoji = getPlayerEmoji(player, classEmoji, client, easterEggConfig);
+    const emoji = getPlayerEmoji(player, client);
 
     places += `**${i++}**\n`;
     players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
@@ -73,11 +65,10 @@ function parseDpsPlayers(data, classEmoji, client, easterEggConfig) {
 /**
  * Parses HPS player data (healers)
  * @param {Array} data - Array of player data
- * @param {Object} classEmoji - Class to emoji mapping
  * @param {Object} client - Discord client
  * @returns {Array} [places, players, hps, summary_hps]
  */
-function parseHealPlayers(data, classEmoji, client) {
+function parseHealPlayers(data, client) {
   data.sort((a, b) => b.hps - a.hps);
 
   let i = 1;
@@ -92,7 +83,7 @@ function parseHealPlayers(data, classEmoji, client) {
     // Only healers
     if (!spec?.heal) continue;
 
-    const emoji = getPlayerEmoji(player, classEmoji, client);
+    const emoji = getPlayerEmoji(player, client);
 
     places += `**${i++}**\n`;
     players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
@@ -114,7 +105,7 @@ function parseHealPlayers(data, classEmoji, client) {
 }
 
 module.exports = {
+  getPlayerEmoji,
   parseDpsPlayers,
   parseHealPlayers,
-  getPlayerEmoji,
 };

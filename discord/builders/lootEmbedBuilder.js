@@ -9,6 +9,7 @@ const {
   addSupportLink,
 } = require("./baseEmbedBuilder.js");
 const { loot: config } = require("../../config/index.js");
+const bossThumbnails = require("../../config/bossThumbnails.js");
 const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
@@ -20,8 +21,6 @@ const sirusApi = require("../../api/sirusApi.js");
  * @param {string} params.recordId - Record ID
  * @param {string} params.guildId - Discord guild ID
  * @param {import('discord.js').Client} params.client - Discord client
- * @param {Object} params.bossThumbnails - Boss thumbnails mapping
- * @param {Object} params.classEmoji - Class emoji mapping
  * @param {Array<Object>} params.lootItems - Array of loot item objects
  * @param {Object} params.dpsData - DPS data [places, players, dps, summaryDps]
  * @param {Object} params.hpsData - HPS data [places, players, hps, summaryHps]
@@ -33,7 +32,6 @@ function createCompleteBossKillEmbed({
   recordId,
   guildId,
   client,
-  bossThumbnails,
   dpsData,
   hpsData,
   lootItems,
@@ -46,7 +44,7 @@ function createCompleteBossKillEmbed({
     client,
   });
 
-  setBossThumbnail(embed, bossKillInfo.boss_name, bossThumbnails);
+  setBossThumbnail(embed, bossKillInfo.boss_name);
 
   const [placesDps, playersDps, dps, summaryDps] = dpsData;
   addDpsSection(embed, placesDps, playersDps, dps, summaryDps);
@@ -239,10 +237,9 @@ function addLootSectionToEmbed(embed, lootItems, realmId) {
  * Sets boss thumbnail if available
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
  * @param {string} bossName - Boss name
- * @param {Object} bossThumbnails - Boss thumbnails mapping
  * @returns {import('discord.js').EmbedBuilder}
  */
-function setBossThumbnail(embed, bossName, bossThumbnails) {
+function setBossThumbnail(embed, bossName) {
   if (bossThumbnails[bossName]) {
     embed.setThumbnail(bossThumbnails[bossName]);
   }

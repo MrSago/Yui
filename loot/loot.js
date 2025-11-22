@@ -21,15 +21,11 @@ const {
 } = require("../utils/index.js");
 
 const LOOT_PATH = config.dataPath;
-const BOSS_THUMBNAILS_FILE = `${LOOT_PATH}/${config.files.bossThumbnails}`;
-const CLASS_EMOJI_FILE = `${LOOT_PATH}/${config.files.classEmoji}`;
 const BLACKLIST_FILE = `${LOOT_PATH}/${config.files.blacklist}`;
 
 const INTERVAL_UPDATE_MS = config.updateIntervalMs;
 
 var client;
-var bossThumbnails = {};
-var classEmoji = {};
 var blacklist = [];
 
 /**
@@ -40,16 +36,6 @@ function init(discord) {
   client = discord;
 
   logger.info("Initializing loot tracking module");
-
-  bossThumbnails = loadJsonFileWithDefault(
-    BOSS_THUMBNAILS_FILE,
-    {},
-    "boss thumbnails"
-  );
-  logger.debug(`Loaded ${Object.keys(bossThumbnails).length} boss thumbnails`);
-
-  classEmoji = loadJsonFileWithDefault(CLASS_EMOJI_FILE, {}, "class emoji");
-  logger.debug(`Loaded ${Object.keys(classEmoji).length} class emojis`);
 
   blacklist = loadJsonFileWithDefault(BLACKLIST_FILE, [], "loot blacklist");
   logger.debug(`Loaded ${blacklist.length} blacklist entries`);
@@ -229,18 +215,9 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     return null;
   }
 
-  const dpsData = parseDpsPlayers(
-    data_boss_kill_info.players,
-    classEmoji,
-    client,
-    config.easterEgg
-  );
+  const dpsData = parseDpsPlayers(data_boss_kill_info.players, client);
 
-  const hpsData = parseHealPlayers(
-    data_boss_kill_info.players,
-    classEmoji,
-    client
-  );
+  const hpsData = parseHealPlayers(data_boss_kill_info.players, client);
 
   const lootItems = [];
   try {
@@ -263,7 +240,6 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     recordId: record_id,
     guildId: guild_id,
     client: client,
-    bossThumbnails: bossThumbnails,
     dpsData: dpsData,
     hpsData: hpsData,
     lootItems: lootItems,

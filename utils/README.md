@@ -21,9 +21,9 @@
 
 **Функции:**
 
-- `getPlayerEmoji(player, classEmoji, client, easterEggConfig)` - Получает emoji для игрока
-- `parseDpsPlayers(data, classEmoji, client, easterEggConfig)` - Парсит DPS игроков
-- `parseHealPlayers(data, classEmoji, client)` - Парсит HPS хилеров
+- `getPlayerEmoji(player, client)` - Получает emoji для игрока
+- `parseDpsPlayers(data, client)` - Парсит DPS игроков
+- `parseHealPlayers(data, client)` - Парсит HPS хилеров
 
 ---
 

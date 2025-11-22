@@ -1,4 +1,9 @@
-{
+/**
+ * @file Boss thumbnails configuration
+ * @description Maps boss names to their thumbnail URLs
+ */
+
+module.exports = {
   "Ануб'Рекан": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-anubrekhan.png",
   "Великая вдова Фарлина": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-grand-widow-faerlina.png",
   "Мексна": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-maexxna.png",
@@ -115,4 +120,4 @@
   "Импорус": "https://sirus.su/images/zones/bronzesanctum.jpg",
   "Исказитель времени Элонус": "https://sirus.su/images/zones/bronzesanctum.jpg",
   "Мурозонд": "https://sirus.su/images/zones/bronzesanctum.jpg"
-}
+};

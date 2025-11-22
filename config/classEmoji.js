@@ -1,0 +1,207 @@
+/**
+ * @file Class emoji configuration
+ * @description Maps class IDs and specializations to their emoji IDs
+ */
+
+module.exports = {
+  1: {
+    class: "Воин",
+    spec: {
+      0: {
+        name: "Оружие",
+        heal: false,
+        emoji_id: "1089256608997068892",
+      },
+      1: {
+        name: "Неистовство",
+        heal: false,
+        emoji_id: "1089256592161120316",
+      },
+      2: {
+        name: "Защита",
+        heal: false,
+        emoji_id: "1089256620174889002",
+      },
+    },
+  },
+  2: {
+    class: "Паладин",
+    spec: {
+      0: {
+        name: "Свет",
+        heal: true,
+        emoji_id: "1089256613610799285",
+      },
+      1: {
+        name: "Защита",
+        heal: false,
+        emoji_id: "1089256625082216593",
+      },
+      2: {
+        name: "Воздаяние",
+        heal: false,
+        emoji_id: "1089256649849581649",
+      },
+    },
+  },
+  3: {
+    class: "Охотник",
+    spec: {
+      0: {
+        name: "Повелитель зверей",
+        heal: false,
+        emoji_id: "1089256634586517626",
+      },
+      1: {
+        name: "Стрельба",
+        heal: false,
+        emoji_id: "1089259326545330216",
+      },
+      2: {
+        name: "Выживание",
+        heal: false,
+        emoji_id: "1089256615477248030",
+      },
+    },
+  },
+  4: {
+    class: "Разбойник",
+    spec: {
+      0: {
+        name: "Ликвидация",
+        heal: false,
+        emoji_id: "1089256604240724078",
+      },
+      1: {
+        name: "Бой",
+        heal: false,
+        emoji_id: "1089259049738051674",
+      },
+      2: {
+        name: "Скрытность",
+        heal: false,
+        emoji_id: "1089256630165708960",
+      },
+    },
+  },
+  5: {
+    class: "Жрец",
+    spec: {
+      0: {
+        name: "Послушание",
+        heal: true,
+        emoji_id: "1089262433471836330",
+      },
+      1: {
+        name: "Свет",
+        heal: true,
+        emoji_id: "1089256606170099763",
+      },
+      2: {
+        name: "Тьма",
+        heal: false,
+        emoji_id: "1089256651703451736",
+      },
+    },
+  },
+  6: {
+    class: "Рыцарь смерти",
+    spec: {
+      0: {
+        name: "Кровь",
+        heal: false,
+        emoji_id: "1089256632837484574",
+      },
+      1: {
+        name: "Лед",
+        heal: false,
+        emoji_id: "1089256656602398921",
+      },
+      2: {
+        name: "Нечестивость",
+        heal: false,
+        emoji_id: "1089256610838364251",
+      },
+    },
+  },
+  7: {
+    class: "Шаман",
+    spec: {
+      0: {
+        name: "Стихии",
+        heal: false,
+        emoji_id: "1089256594023399594",
+      },
+      1: {
+        name: "Совершенствование",
+        heal: false,
+        emoji_id: "1089259328520851576",
+      },
+      2: {
+        name: "Исцеление",
+        heal: true,
+        emoji_id: "1089256623375138816",
+      },
+    },
+  },
+  8: {
+    class: "Маг",
+    spec: {
+      0: {
+        name: "Тайная магия",
+        heal: false,
+        emoji_id: "1089256664366063707",
+      },
+      1: {
+        name: "Огонь",
+        heal: false,
+        emoji_id: "1089256637904207932",
+      },
+      2: {
+        name: "Лед",
+        heal: false,
+        emoji_id: "1089256618195177572",
+      },
+    },
+  },
+  9: {
+    class: "Чернокнижник",
+    spec: {
+      0: {
+        name: "Колдовство",
+        heal: false,
+        emoji_id: "1089256645877583993",
+      },
+      1: {
+        name: "Демонология",
+        heal: false,
+        emoji_id: "1089256642366930974",
+      },
+      2: {
+        name: "Разрушение",
+        heal: false,
+        emoji_id: "1089256659815247983",
+      },
+    },
+  },
+  11: {
+    class: "Друид",
+    spec: {
+      0: {
+        name: "Баланс",
+        heal: false,
+        emoji_id: "1089259331523981322",
+      },
+      1: {
+        name: "Сила зверя",
+        heal: false,
+        emoji_id: "1089237642119487708",
+      },
+      2: {
+        name: "Исцеление",
+        heal: true,
+        emoji_id: "1089230733652008960",
+      },
+    },
+  },
+};

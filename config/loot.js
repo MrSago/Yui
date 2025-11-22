@@ -9,8 +9,6 @@ module.exports = {
   updateIntervalMs: 1000 * 60 * 5,
 
   files: {
-    bossThumbnails: "bossThumbnails.json",
-    classEmoji: "classEmoji.json",
     blacklist: "blacklist.json",
   },
 
@@ -31,10 +29,5 @@ module.exports = {
       type: "Custom",
       status: "online",
     },
-  },
-
-  easterEgg: {
-    players: ["Захотаю"],
-    emojiId: "1067786576639295488",
   },
 };
