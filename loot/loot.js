@@ -69,17 +69,30 @@ async function startRefreshingLoot() {
 
   logger.debug(`Processing ${settings.length} loot settings entries`);
 
-  const entry_promises = [];
-  for (const entry of settings) {
-    const guild_id = await db.getGuildIdByLootId(entry._id);
-    if (!guild_id) {
-      logger.warn(`Guild ID not found for loot entry ${entry._id}`);
-      continue;
-    }
-    entry_promises.push(entryProcess(entry, guild_id));
-  }
+  const guild_id_promises = settings.map((entry) =>
+    db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id }))
+  );
 
-  const results = await Promise.all(entry_promises);
+  const guild_entries = await Promise.all(guild_id_promises);
+
+  const entry_promises = guild_entries
+    .filter(({ guild_id, entry }) => {
+      if (!guild_id) {
+        logger.warn(`Guild ID not found for loot entry ${entry._id}`);
+        return false;
+      }
+      return true;
+    })
+    .map(({ entry, guild_id }) => entryProcess(entry, guild_id));
+
+  const results = await Promise.allSettled(entry_promises);
+  const successful = results.filter((r) => r.status === "fulfilled");
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length > 0) {
+    logger.warn(
+      `${failed.length} loot entries failed to process, ${successful.length} succeeded`
+    );
+  }
   logger.debug(`Processed ${results.length} loot entries`);
 
   client.user.setPresence({
@@ -98,8 +111,10 @@ async function startRefreshingLoot() {
 
 /**
  * Processes a single loot entry for a guild
- * @param {Object} entry - Loot settings entry
+ * Checks for new boss kill records and sends notifications to Discord
+ * @param {Object} entry - Loot settings entry from database
  * @param {string} guild_id - Discord guild ID
+ * @returns {Promise<void>}
  */
 async function entryProcess(entry, guild_id) {
   logger.debug(
@@ -129,26 +144,37 @@ async function entryProcess(entry, guild_id) {
     logger.info(
       `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`
     );
+    const sended_records = records.map((record) => record.id);
+    await db.pushRecords(guild_id, sended_records);
+    return;
   }
 
-  const sended_records = [];
-  const promises = [];
+  const record_checks = await Promise.all(
+    records.map((record) =>
+      db.checkRecord(guild_id, record.id).then((exists) => ({
+        record,
+        exists,
+      }))
+    )
+  );
 
-  for (const record of records) {
-    if (!exists) {
-      sended_records.push(record.id);
-    } else {
-      promises.push(getExtraInfoWrapper(entry, guild_id, record));
-    }
+  const new_records = record_checks.filter(({ exists }) => !exists);
+
+  if (new_records.length === 0) {
+    return;
   }
 
-  if (promises.length > 0) {
-    const record_ids = await Promise.all(promises);
-    sended_records.push(...record_ids.filter(Boolean));
-    logger.debug(
-      `Sent ${sended_records.length} new boss kill notifications for guild ${guild_id}`
-    );
-  }
+  const promises = new_records.map(({ record }) =>
+    getExtraInfoAndSend(entry, guild_id, record)
+  );
+  const record_ids = await Promise.allSettled(promises);
+  const sended_records = record_ids
+    .filter((r) => r.status === "fulfilled" && r.value)
+    .map((r) => r.value);
+
+  logger.debug(
+    `Sent ${sended_records.length} new boss kill notifications for guild ${guild_id}`
+  );
 
   if (sended_records.length > 0) {
     await db.pushRecords(guild_id, sended_records);
@@ -156,54 +182,52 @@ async function entryProcess(entry, guild_id) {
 }
 
 /**
- * Wrapper for getting boss kill extra info and sending to Discord
+ * Gets boss kill extra info and sends to Discord
  * @param {Object} entry - Loot settings entry
  * @param {string} guild_id - Discord guild ID
  * @param {Object} record - Boss kill record
  * @returns {Promise<number|null>} Record ID if sent successfully, null otherwise
  */
-async function getExtraInfoWrapper(entry, guild_id, record) {
+async function getExtraInfoAndSend(entry, guild_id, record) {
   if (!client.guilds.cache.get(guild_id)) {
     logger.warn(`Guild ${guild_id} not found in cache`);
     return null;
   }
 
-  if (!(await db.checkRecord(guild_id, record.id))) {
-    try {
-      logger.debug(
-        `Processing new boss kill record ${record.id} for guild ${guild_id}`
-      );
+  try {
+    logger.debug(
+      `Processing new boss kill record ${record.id} for guild ${guild_id}`
+    );
 
-      const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
-      if (!message) {
-        throw new Error("Empty message getted!");
-      }
-
-      await sendToChannel(client, entry.channel_id, message.embeds);
-      logger.info(
-        `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`
-      );
-      return record.id;
-    } catch (error) {
-      logger.error(
-        `Error processing boss kill record ${record.id} for guild ${guild_id}: ${error.message}`
-      );
-      logger.error(error);
-      logger.warn(
-        "Error while getting loot info:" +
-          `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`
-      );
+    const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
+    if (!message) {
+      throw new Error("Empty message received!");
     }
+
+    await sendToChannel(client, entry.channel_id, message.embeds);
+    logger.info(
+      `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`
+    );
+    return record.id;
+  } catch (error) {
+    logger.error(
+      `Error processing boss kill record ${record.id} for guild ${guild_id}: ${error.message}`
+    );
+    logger.error(error);
+    logger.warn(
+      "Error while getting loot info:" +
+        `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`
+    );
+    return null;
   }
-  return null;
 }
 
 /**
  * Gets detailed boss kill information and formats embed message
  * @param {string} guild_id - Discord guild ID
  * @param {number} record_id - Boss kill record ID
- * @param {number} realm_id - Realm ID
- * @returns {Promise<Object|null>} Formatted message object or null
+ * @param {number} realm_id - Sirus realm ID
+ * @returns {Promise<{embeds: Array}|null>} Formatted message object with embeds array, or null if data unavailable
  */
 async function getExtraInfo(guild_id, record_id, realm_id) {
   const data_boss_kill_info = await sirusApi.getBossKillDetails(
@@ -219,20 +243,11 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
 
   const hpsData = parseHealPlayers(data_boss_kill_info.players, client);
 
-  const lootItems = [];
-  try {
-    await Promise.all(
-      data_boss_kill_info.loots.map((loot) => {
-        if (loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)) {
-          lootItems.push(loot.item);
-        }
-      })
-    );
-  } catch (error) {
-    logger.error(error);
-    logger.warning("Shit happens...");
-    return;
-  }
+  const lootItems = data_boss_kill_info.loots
+    .filter(
+      (loot) => loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)
+    )
+    .map((loot) => loot.item);
 
   const embeds = createCompleteBossKillEmbed({
     bossKillInfo: data_boss_kill_info,
