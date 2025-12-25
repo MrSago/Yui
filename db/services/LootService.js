@@ -124,6 +124,86 @@ class LootService {
       return null;
     }
   }
+
+  /**
+   * Sets dungeon filter for a guild
+   * @param {string} guildId - Discord guild ID
+   * @param {Array<number>} dungeonIds - Array of dungeon IDs
+   * @returns {Promise<void>}
+   */
+  async setDungeonFilter(guildId, dungeonIds) {
+    try {
+      logger.info(
+        `Setting dungeon filter for guild ${guildId}: ${JSON.stringify(
+          dungeonIds
+        )}`
+      );
+
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new Error("Loot settings not found for this guild");
+      }
+
+      await lootRepository.setDungeonFilter(settings.loot_id, dungeonIds);
+      logger.info(`Successfully set dungeon filter for guild ${guildId}`);
+    } catch (error) {
+      logger.error(
+        `Error setting dungeon filter for guild ${guildId}: ${error.message}`
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Sets boss filter for a guild
+   * @param {string} guildId - Discord guild ID
+   * @param {Array<number>} bossIds - Array of boss IDs
+   * @returns {Promise<void>}
+   */
+  async setBossFilter(guildId, bossIds) {
+    try {
+      logger.info(
+        `Setting boss filter for guild ${guildId}: ${JSON.stringify(bossIds)}`
+      );
+
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new Error("Loot settings not found for this guild");
+      }
+
+      await lootRepository.setBossFilter(settings.loot_id, bossIds);
+      logger.info(`Successfully set boss filter for guild ${guildId}`);
+    } catch (error) {
+      logger.error(
+        `Error setting boss filter for guild ${guildId}: ${error.message}`
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Clears all filters for a guild
+   * @param {string} guildId - Discord guild ID
+   * @returns {Promise<void>}
+   */
+  async clearFilters(guildId) {
+    try {
+      logger.info(`Clearing filters for guild ${guildId}`);
+
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new Error("Loot settings not found for this guild");
+      }
+
+      await lootRepository.clearFilters(settings.loot_id);
+      logger.info(`Successfully cleared filters for guild ${guildId}`);
+    } catch (error) {
+      logger.error(
+        `Error clearing filters for guild ${guildId}: ${error.message}`
+      );
+      throw error;
+    }
+  }
 }
 
 module.exports = LootService;

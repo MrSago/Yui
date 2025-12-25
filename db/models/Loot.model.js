@@ -21,6 +21,16 @@ const lootSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    dungeon_filter: {
+      type: [Number],
+      default: [],
+      index: true,
+    },
+    boss_filter: {
+      type: [Number],
+      default: [],
+      index: true,
+    },
   },
   {
     timestamps: true,

@@ -139,18 +139,48 @@ async function entryProcess(entry, guild_id) {
     `Retrieved ${records.length} boss kill records for guild ${guild_id}`
   );
 
-  const exists = await db.initRecords(guild_id);
-  if (!exists) {
-    logger.info(
-      `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`
+  // Apply filters to records (OR logic)
+  let filteredRecords = records;
+
+  const hasDungeonFilter =
+    entry.dungeon_filter && entry.dungeon_filter.length > 0;
+  const hasBossFilter = entry.boss_filter && entry.boss_filter.length > 0;
+
+  if (hasDungeonFilter || hasBossFilter) {
+    filteredRecords = records.filter((record) => {
+      const matchesDungeon =
+        hasDungeonFilter && entry.dungeon_filter.includes(record.map_id);
+      const matchesBoss =
+        hasBossFilter && entry.boss_filter.includes(record.boss_id);
+
+      // If both filters are set, record should match at least one (OR logic)
+      // If only one filter is set, record should match that filter
+      if (hasDungeonFilter && hasBossFilter) {
+        return matchesDungeon || matchesBoss;
+      } else if (hasDungeonFilter) {
+        return matchesDungeon;
+      } else {
+        return matchesBoss;
+      }
+    });
+
+    logger.debug(
+      `Applied filters for guild ${guild_id}: ${filteredRecords.length} records match (dungeon: ${hasDungeonFilter}, boss: ${hasBossFilter})`
     );
-    const sended_records = records.map((record) => record.id);
-    await db.pushRecords(guild_id, sended_records);
-    return;
   }
 
+  const exists = await db.initRecords(guild_id);
+  // if (!exists) {
+  //   logger.info(
+  //     `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`
+  //   );
+  //   const sended_records = filteredRecords.map((record) => record.id);
+  //   await db.pushRecords(guild_id, sended_records);
+  //   return;
+  // }
+
   const record_checks = await Promise.all(
-    records.map((record) =>
+    filteredRecords.map((record) =>
       db.checkRecord(guild_id, record.id).then((exists) => ({
         record,
         exists,
