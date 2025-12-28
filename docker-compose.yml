@@ -13,7 +13,8 @@ services:
     volumes:
       - ./logs:/app/logs
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - yui-network
 
