@@ -121,7 +121,7 @@ function setLevel(newLevel) {
     console.log(`[LOGGER] Log level set to: ${newLevel.toUpperCase()}`);
   } else {
     console.warn(
-      `[LOGGER] Invalid log level: ${newLevel}. Using default: ${currentLevel.toUpperCase()}`
+      `[LOGGER] Invalid log level: ${newLevel}. Using default: ${currentLevel.toUpperCase()}`,
     );
   }
 }

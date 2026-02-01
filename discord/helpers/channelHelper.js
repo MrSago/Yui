@@ -38,14 +38,14 @@ async function sendToChannels(client, settings, embeds) {
     } catch (error) {
       failCount++;
       logger.error(
-        `Failed to send message to channel ${entry.channel_id}: ${error.message}`
+        `Failed to send message to channel ${entry.channel_id}: ${error.message}`,
       );
       logger.warn(`Can't send message to channel ${entry.channel_id}`);
     }
   }
 
   logger.debug(
-    `Message delivery complete: ${successCount} success, ${failCount} failed`
+    `Message delivery complete: ${successCount} success, ${failCount} failed`,
   );
 }
 
@@ -72,7 +72,7 @@ async function sendToChannel(client, channelId, embeds) {
     logger.debug(`Successfully sent message to channel ${channelId}`);
   } catch (error) {
     logger.error(
-      `Failed to send message to channel ${channelId}: ${error.message}`
+      `Failed to send message to channel ${channelId}: ${error.message}`,
     );
     logger.warn(`Can't send message to channel ${channelId}`);
   }

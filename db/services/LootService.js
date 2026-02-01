@@ -20,7 +20,7 @@ class LootService {
   async setLootChannel(guildId, channelId, realmId, guildSirusId) {
     try {
       logger.info(
-        `Setting loot channel for guild ${guildId}: channel=${channelId}, realm=${realmId}, sirus_id=${guildSirusId}`
+        `Setting loot channel for guild ${guildId}: channel=${channelId}, realm=${realmId}, sirus_id=${guildSirusId}`,
       );
 
       const settings = await settingsRepository.findByGuildId(guildId);
@@ -29,7 +29,7 @@ class LootService {
         const loot = await lootRepository.createLoot(
           channelId,
           realmId,
-          guildSirusId
+          guildSirusId,
         );
         await settingsRepository.create({
           guild_id: guildId,
@@ -43,13 +43,13 @@ class LootService {
         const loot = await lootRepository.createLoot(
           channelId,
           realmId,
-          guildSirusId
+          guildSirusId,
         );
         await settingsRepository.upsertByGuildId(guildId, {
           loot_id: loot._id,
         });
         logger.info(
-          `Updated loot settings for guild ${guildId} (no previous loot_id)`
+          `Updated loot settings for guild ${guildId} (no previous loot_id)`,
         );
         return;
       }
@@ -58,12 +58,12 @@ class LootService {
         settings.loot_id,
         channelId,
         realmId,
-        guildSirusId
+        guildSirusId,
       );
       logger.info(`Updated existing loot settings for guild ${guildId}`);
     } catch (error) {
       logger.error(
-        `Error setting loot channel for guild ${guildId}: ${error.message}`
+        `Error setting loot channel for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }
@@ -91,7 +91,7 @@ class LootService {
       logger.info(`Successfully deleted loot settings for guild ${guildId}`);
     } catch (error) {
       logger.error(
-        `Error deleting loot channel for guild ${guildId}: ${error.message}`
+        `Error deleting loot channel for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }

@@ -70,14 +70,14 @@ async function getChangelog() {
 async function getLatestBossKills(realmId, guildSirusId) {
   const url = `${API_BASE_URL}/${realmId}/${LATEST_FIGHTS_API}?guild=${guildSirusId}&lang=ru`;
   logger.info(
-    `Fetching latest boss kills for guild ${guildSirusId} on realm ${realmId}`
+    `Fetching latest boss kills for guild ${guildSirusId} on realm ${realmId}`,
   );
 
   const data = await makeGetRequest(url);
 
   if (!data || !data.data) {
     logger.warn(
-      `Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`
+      `Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`,
     );
     return null;
   }
@@ -94,14 +94,14 @@ async function getLatestBossKills(realmId, guildSirusId) {
 async function getBossKillDetails(realmId, recordId) {
   const url = `${API_BASE_URL}/${realmId}/${BOSS_KILL_API}/${recordId}?lang=ru`;
   logger.info(
-    `Fetching boss kill details for record ${recordId} on realm ${realmId}`
+    `Fetching boss kill details for record ${recordId} on realm ${realmId}`,
   );
 
   const data = await makeGetRequest(url);
 
   if (!data || !data.data) {
     logger.warn(
-      `Failed to get boss kill details for record ${recordId} on realm ${realmId}`
+      `Failed to get boss kill details for record ${recordId} on realm ${realmId}`,
     );
     return null;
   }
@@ -207,7 +207,7 @@ async function makeGetRequest(url, options = {}) {
         (!isNetworkError && !isTimeout && !isRetryableStatus)
       ) {
         logger.error(
-          `Sirus API request failed: ${url} after ${attempt} attempts`
+          `Sirus API request failed: ${url} after ${attempt} attempts`,
         );
         logger.error(`Error details: ${error.message}`);
         if (error.response) {
@@ -218,14 +218,14 @@ async function makeGetRequest(url, options = {}) {
 
       const backoff = Math.min(
         config.backoff.maxMs,
-        config.backoff.baseMs * Math.pow(2, attempt - 1)
+        config.backoff.baseMs * Math.pow(2, attempt - 1),
       );
       const jitter = Math.floor(Math.random() * backoff);
       const waitMs = backoff + jitter;
 
       logger.warn(`Transient error on request to ${url} (status: ${status}).`);
       logger.warn(
-        `Retrying in ${waitMs} ms (attempt ${attempt} of ${config.axios.maxRetries})`
+        `Retrying in ${waitMs} ms (attempt ${attempt} of ${config.axios.maxRetries})`,
       );
 
       await sleep(waitMs);

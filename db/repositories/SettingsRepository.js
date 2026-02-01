@@ -85,7 +85,7 @@ class SettingsRepository extends BaseRepository {
         .populate("loot_id");
     } catch (error) {
       logger.error(
-        `Error finding populated settings by guild id: ${error.message}`
+        `Error finding populated settings by guild id: ${error.message}`,
       );
       throw error;
     }

@@ -26,7 +26,7 @@ const settingsSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "settings",
-  }
+  },
 );
 
 const Settings = mongoose.model("Settings", settingsSchema);

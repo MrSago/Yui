@@ -42,18 +42,18 @@ module.exports = {
     logger.discord(
       `🔧 Command: /${command_name}${optionsStr} | ` +
         `User: ${user_tag} (${user_id}) | ` +
-        `Server: ${guild_name} (${guild_id})`
+        `Server: ${guild_name} (${guild_id})`,
     );
 
     try {
       await command.execute(interaction);
       logger.info(
         `[${guild_name} (${guild_id})] [${user_tag}] ` +
-          `Command /${command_name} executed successfully`
+          `Command /${command_name} executed successfully`,
       );
     } catch (error) {
       logger.error(
-        `Error executing command /${command_name} by ${user_tag} in ${guild_name}: ${error.message}`
+        `Error executing command /${command_name} by ${user_tag} in ${guild_name}: ${error.message}`,
       );
       logger.error(error);
       try {

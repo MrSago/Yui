@@ -109,7 +109,7 @@ function createBossKillEmbed({
       name: "Время боя",
       value: bossKillInfo.fight_length,
       inline: true,
-    }
+    },
   );
 }
 
@@ -139,7 +139,7 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
       name: "Общий DPS",
       value: formatShortValue(summaryDps),
       inline: true,
-    }
+    },
   );
   embed.addFields(
     {
@@ -156,7 +156,7 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
       name: "Урон",
       value: dps,
       inline: true,
-    }
+    },
   );
   return embed;
 }
@@ -187,7 +187,7 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
       name: "Общий HPS",
       value: formatShortValue(summaryHps),
       inline: true,
-    }
+    },
   );
   embed.addFields(
     {
@@ -204,7 +204,7 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
       name: "Лечение",
       value: hps,
       inline: true,
-    }
+    },
   );
   return embed;
 }

@@ -25,7 +25,7 @@ const lootSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "loot",
-  }
+  },
 );
 
 const Loot = mongoose.model("Loot", lootSchema);
