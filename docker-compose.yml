@@ -1,11 +1,8 @@
 services:
-  yui-bot:
+  discord-bot:
     build: .
     container_name: yui-discord-bot
     restart: always
-    deploy:
-      restart_policy:
-        delay: 10s
     env_file:
       - .env
     environment:
@@ -13,8 +10,7 @@ services:
     volumes:
       - ./logs:/app/logs
     depends_on:
-      mongodb:
-        condition: service_healthy
+      - mongodb
     networks:
       - yui-network
 
@@ -22,18 +18,10 @@ services:
     image: mongo:7-jammy
     container_name: yui-mongodb
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: admin
-    ports:
-      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
