@@ -39,10 +39,12 @@ module.exports = {
     const removed_guilds = await clearInactiveGuildsFromDb(client);
     const db_guilds = await getGuildsCount();
 
-    logger.discord(`✅ Bot Ready! Logged in as ${client.user}`);
-    logger.discord(`📊 Discord guilds: ${client.guilds.cache.size}`);
-    logger.discord(`💾 Database records: ${db_guilds}`);
-    logger.discord(`🗑️ Removed inactive guilds: ${removed_guilds}`);
+    logger.discord(
+      `✅ Bot Ready! Logged in as ${client.user}\n` +
+        `📊 Discord guilds: ${client.guilds.cache.size}\n` +
+        `💾 Database records: ${db_guilds}\n` +
+        `🗑️ Removed inactive guilds: ${removed_guilds}`,
+    );
 
     logger.info("Bot initialization completed successfully");
   },

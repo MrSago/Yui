@@ -65,7 +65,7 @@ module.exports = {
       encounter_ids_string
         ?.split(",")
         .map((id) => parseInt(id.trim()))
-        .filter((id) => !isNaN(id)) ?? [];
+        .filter((id) => !isNaN(id) && id > 0) ?? [];
 
     if (encounter_ids_string && encounters_id.length === 0) {
       await interaction.reply({

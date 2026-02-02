@@ -14,12 +14,12 @@ const logger = require("../../logger.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("clearfilters")
+    .setName("clearlootfilters")
     .setDescription("Очистить все фильтры для вывода лута")
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
-   * Executes the clearfilters command
+   * Executes the clearlootfilters command
    * @param {import('discord.js').CommandInteraction} interaction - Command interaction
    */
   async execute(interaction) {
