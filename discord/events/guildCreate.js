@@ -20,7 +20,7 @@ module.exports = {
     logger.info(`Bot joined new Discord server: ${guild.name} (${guild.id})`);
     logger.info(`Server members: ${guild.memberCount}`);
 
-    logger.discord(
+    await logger.discord(
       `➕ Joined server: **${guild.name}** (${guild.id}) | Members: ${guild.memberCount}`,
     );
 

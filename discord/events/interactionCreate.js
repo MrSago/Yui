@@ -39,7 +39,7 @@ module.exports = {
 
     const optionsStr = options ? ` [${options}]` : "";
 
-    logger.discord(
+    await logger.discord(
       `🔧 Command: /${command_name}${optionsStr} | ` +
         `User: ${user_tag} (${user_id}) | ` +
         `Server: ${guild_name} (${guild_id})`,

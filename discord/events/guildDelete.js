@@ -19,7 +19,7 @@ module.exports = {
   async execute(guild) {
     logger.info(`Bot removed from Discord server: ${guild.name} (${guild.id})`);
 
-    logger.discord(`➖ Left server: **${guild.name}** (${guild.id})`);
+    await logger.discord(`➖ Left server: **${guild.name}** (${guild.id})`);
 
     try {
       await clearGuildSettings(guild.id);

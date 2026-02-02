@@ -106,9 +106,10 @@ function debug(message) {
 /**
  * Logs message to Discord and console
  * @param {string} message - Message to log
+ * @return {Promise<void>}
  */
-function discord(message) {
-  sendToDiscord(message);
+async function discord(message) {
+  await sendToDiscord(message);
 }
 
 /**
@@ -131,7 +132,7 @@ function setLevel(newLevel) {
  * @param {string} message - Message to send to Discord
  */
 async function sendToDiscord(message) {
-  client.guilds.cache
+  await client.guilds.cache
     .get(disEnv.log_guild_id)
     .channels.cache.get(disEnv.log_channel_id)
     .send(message)
