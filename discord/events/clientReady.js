@@ -26,9 +26,6 @@ module.exports = {
     logger.info("Discord client ready event triggered");
     logger.info(`Logged in as ${client.user.tag}`);
 
-    logger.info("Initializing database connection...");
-    await require("../../db/database.js").init();
-
     logger.info("Fetching Discord data...");
     await require("../fetch.js").fetchAll(client);
 

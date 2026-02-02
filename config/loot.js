@@ -29,5 +29,10 @@ module.exports = {
       type: "Custom",
       status: "online",
     },
+    devStatus: {
+      name: "В режиме разработки",
+      type: "Custom",
+      status: "idle",
+    },
   },
 };

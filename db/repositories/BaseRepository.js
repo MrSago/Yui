@@ -22,7 +22,7 @@ class BaseRepository {
       return await this.model.findById(id);
     } catch (error) {
       logger.error(
-        `Error finding ${this.model.modelName} by id: ${error.message}`
+        `Error finding ${this.model.modelName} by id: ${error.message}`,
       );
       throw error;
     }
@@ -38,7 +38,7 @@ class BaseRepository {
       return await this.model.findOne(query);
     } catch (error) {
       logger.error(
-        `Error finding one ${this.model.modelName}: ${error.message}`
+        `Error finding one ${this.model.modelName}: ${error.message}`,
       );
       throw error;
     }
@@ -54,7 +54,7 @@ class BaseRepository {
       return await this.model.find(query);
     } catch (error) {
       logger.error(
-        `Error finding all ${this.model.modelName}: ${error.message}`
+        `Error finding all ${this.model.modelName}: ${error.message}`,
       );
       throw error;
     }
@@ -88,7 +88,7 @@ class BaseRepository {
       });
     } catch (error) {
       logger.error(
-        `Error updating ${this.model.modelName} by id: ${error.message}`
+        `Error updating ${this.model.modelName} by id: ${error.message}`,
       );
       throw error;
     }
@@ -108,7 +108,7 @@ class BaseRepository {
       });
     } catch (error) {
       logger.error(
-        `Error updating one ${this.model.modelName}: ${error.message}`
+        `Error updating one ${this.model.modelName}: ${error.message}`,
       );
       throw error;
     }
@@ -124,7 +124,7 @@ class BaseRepository {
       return await this.model.findByIdAndDelete(id);
     } catch (error) {
       logger.error(
-        `Error deleting ${this.model.modelName} by id: ${error.message}`
+        `Error deleting ${this.model.modelName} by id: ${error.message}`,
       );
       throw error;
     }
@@ -140,7 +140,7 @@ class BaseRepository {
       return await this.model.findOneAndDelete(query);
     } catch (error) {
       logger.error(
-        `Error deleting one ${this.model.modelName}: ${error.message}`
+        `Error deleting one ${this.model.modelName}: ${error.message}`,
       );
       throw error;
     }
@@ -171,7 +171,7 @@ class BaseRepository {
       return doc !== null;
     } catch (error) {
       logger.error(
-        `Error checking if ${this.model.modelName} exists: ${error.message}`
+        `Error checking if ${this.model.modelName} exists: ${error.message}`,
       );
       throw error;
     }

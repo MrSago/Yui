@@ -52,7 +52,7 @@ async function initializeClient(config) {
 
     if (!("data" in command) || !("execute" in command)) {
       logger.warn(
-        `The command at "${file}" is missing a required "data" or "execute" property`
+        `The command at "${file}" is missing a required "data" or "execute" property`,
       );
       continue;
     }
@@ -75,7 +75,7 @@ async function initializeClient(config) {
 
     if (!("name" in event) || !("once" in event)) {
       logger.warn(
-        `The event at "${file}" is missing a "name" or "once" property`
+        `The event at "${file}" is missing a "name" or "once" property`,
       );
       continue;
     }
@@ -90,7 +90,7 @@ async function initializeClient(config) {
 
   try {
     logger.info(
-      `Started refreshing ${commands.length} application (/) commands`
+      `Started refreshing ${commands.length} application (/) commands`,
     );
 
     const data = await rest.put(Routes.applicationCommands(config.client_id), {
@@ -98,7 +98,7 @@ async function initializeClient(config) {
     });
 
     logger.info(
-      `Successfully reloaded ${data.length} application (/) commands`
+      `Successfully reloaded ${data.length} application (/) commands`,
     );
   } catch (error) {
     logger.error(error);

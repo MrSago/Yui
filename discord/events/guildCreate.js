@@ -21,7 +21,7 @@ module.exports = {
     logger.info(`Server members: ${guild.memberCount}`);
 
     logger.discord(
-      `➕ Joined server: **${guild.name}** (${guild.id}) | Members: ${guild.memberCount}`
+      `➕ Joined server: **${guild.name}** (${guild.id}) | Members: ${guild.memberCount}`,
     );
 
     try {

@@ -21,7 +21,7 @@ module.exports = {
       option
         .setName("channel")
         .setDescription("Выберите канал")
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   /**
@@ -40,7 +40,7 @@ module.exports = {
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
         `Using command: /${command_name} ` +
-        `[${channel.id}]`
+        `[${channel.id}]`,
     );
 
     if (!interaction.guild) {

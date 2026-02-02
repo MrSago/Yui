@@ -21,7 +21,7 @@ module.exports = {
       option
         .setName("channel")
         .setDescription("Выберите канал")
-        .setRequired(true)
+        .setRequired(true),
     )
     .addIntegerOption((option) =>
       option
@@ -33,14 +33,14 @@ module.exports = {
           { name: "Neverest x3", value: 22 },
           { name: "Algalon x4", value: 33 },
           { name: "Soulseeker x1", value: 42 },
-          { name: "Sirus x5", value: 57 }
-        )
+          { name: "Sirus x5", value: 57 },
+        ),
     )
     .addIntegerOption((option) =>
       option
         .setName("guild_sirus_id")
         .setDescription("ID гильдии")
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   /**
@@ -61,7 +61,7 @@ module.exports = {
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
         `Using command: /${command_name} ` +
-        `[${channel.id}] [${realm_id}] [${guild_sirus_id}]`
+        `[${channel.id}] [${realm_id}] [${guild_sirus_id}]`,
     );
 
     if (!interaction.guild) {
@@ -76,7 +76,7 @@ module.exports = {
     setLootChannel(guild.id, channel.id, realm_id, guild_sirus_id);
 
     await interaction.reply(
-      `Канал ${channel} для вывода информации лута установлен`
+      `Канал ${channel} для вывода информации лута установлен`,
     );
   },
 };

@@ -24,7 +24,7 @@ module.exports = {
 
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name}`
+        `Using command: /${command_name}`,
     );
 
     await interaction.reply({

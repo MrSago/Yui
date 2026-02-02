@@ -10,50 +10,51 @@ const URI =
   `?authMechanism=${env.auth_mechanism}` +
   `&authSource=${env.auth_source}`;
 
+const RETRY_DELAY = 5000;
+
 /**
  * Initializes database connection with retry logic
  */
 async function init() {
-  const connected = await connectDB();
-  if (!connected) {
-    logger.warn("Failed to connect to MongoDB. Retrying in 10 seconds...");
-    setTimeout(init, 10000);
-    return;
-  }
+  mongoose.connection.on("error", (error) => {
+    logger.error(`MongoDB connection error: ${error.message}`);
+  });
 
-  logger.info("Database initialized successfully");
+  mongoose.connection.on("disconnected", () => {
+    logger.warn("MongoDB disconnected");
+  });
+
+  mongoose.connection.on("reconnected", () => {
+    logger.info("MongoDB reconnected");
+  });
+
+  while (true) {
+    try {
+      logger.info("Trying to connect to MongoDB...");
+
+      await mongoose.connect(URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 10000,
+      });
+
+      logger.info("Successfully connected to MongoDB");
+      break;
+    } catch (error) {
+      logger.warn(
+        `MongoDB not ready (${error.message}). Retry in ${RETRY_DELAY / 1000}s`,
+      );
+      await sleep(RETRY_DELAY);
+    }
+  }
 }
 
 /**
- * Connects to MongoDB database using Mongoose
- * @returns {Promise<boolean>} Connection success status
+ * Sleeps for specified milliseconds
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise<void>}
  */
-async function connectDB() {
-  try {
-    await mongoose.connect(URI, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
-    });
-
-    logger.info("Successfully connected to MongoDB via Mongoose");
-
-    mongoose.connection.on("error", (error) => {
-      logger.error(`MongoDB connection error: ${error.message}`);
-    });
-
-    mongoose.connection.on("disconnected", () => {
-      logger.warn("MongoDB disconnected");
-    });
-
-    mongoose.connection.on("reconnected", () => {
-      logger.info("MongoDB reconnected");
-    });
-
-    return true;
-  } catch (error) {
-    logger.error(`MongoDB connection error: ${error.message}`);
-    return false;
-  }
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 module.exports = {

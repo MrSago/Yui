@@ -24,9 +24,9 @@ async function fetchAll(client) {
         await guild.channels.fetch();
         channelCount += guild.channels.cache.size;
         logger.debug(
-          `Fetched ${guild.channels.cache.size} channels for guild ${guild.name}`
+          `Fetched ${guild.channels.cache.size} channels for guild ${guild.name}`,
         );
-      })
+      }),
     );
 
     logger.info(`Fetched ${channelCount} channels total`);
@@ -47,7 +47,7 @@ async function fetchGuild(guild) {
     await guild.fetch();
     await guild.channels.fetch();
     logger.debug(
-      `Fetched ${guild.channels.cache.size} channels for guild ${guild.name}`
+      `Fetched ${guild.channels.cache.size} channels for guild ${guild.name}`,
     );
   } catch (error) {
     logger.error(`Error fetching guild ${guild.name}: ${error.message}`);

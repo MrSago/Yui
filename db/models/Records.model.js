@@ -21,7 +21,7 @@ const recordsSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "records",
-  }
+  },
 );
 
 const Records = mongoose.model("Records", recordsSchema);

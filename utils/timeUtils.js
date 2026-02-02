@@ -22,7 +22,7 @@ function dayInterval(hours, minutes, seconds, milliseconds) {
       hours,
       minutes,
       seconds,
-      milliseconds
+      milliseconds,
     ) - STARTUPTIME;
   return ms < 0 ? ms + 86400000 : ms;
 }

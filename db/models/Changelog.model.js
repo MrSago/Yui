@@ -15,7 +15,7 @@ const changelogSchema = new mongoose.Schema(
   {
     timestamps: true,
     collection: "changelog",
-  }
+  },
 );
 
 const Changelog = mongoose.model("Changelog", changelogSchema);

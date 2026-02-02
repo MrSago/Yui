@@ -72,7 +72,7 @@ async function sendData(data) {
 
   await db.appendChangelogData(newMessages);
   logger.debug(
-    `Saved ${newMessages.length} new changelog messages to database`
+    `Saved ${newMessages.length} new changelog messages to database`,
   );
 
   const newChangelog = data.slice(0, cnt);

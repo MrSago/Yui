@@ -17,14 +17,14 @@ module.exports = {
         .setName("start")
         .setDescription("Start number")
         .setRequired(false)
-        .setMinValue(1)
+        .setMinValue(1),
     )
     .addIntegerOption((option) =>
       option
         .setName("end")
         .setDescription("End number")
         .setRequired(false)
-        .setMinValue(1)
+        .setMinValue(1),
     ),
 
   /**
@@ -39,7 +39,7 @@ module.exports = {
 
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name}`
+        `Using command: /${command_name}`,
     );
 
     const start = interaction.options.getInteger("start");

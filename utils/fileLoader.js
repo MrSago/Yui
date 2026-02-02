@@ -32,7 +32,7 @@ function loadJsonFile(filePath, description = "data") {
 function loadJsonFileWithDefault(
   filePath,
   defaultValue = {},
-  description = "data"
+  description = "data",
 ) {
   const data = loadJsonFile(filePath, description);
   return data !== null ? data : defaultValue;

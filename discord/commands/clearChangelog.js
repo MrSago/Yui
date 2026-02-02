@@ -31,7 +31,7 @@ module.exports = {
 
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name} `
+        `Using command: /${command_name} `,
     );
 
     if (!interaction.guild) {
@@ -46,7 +46,7 @@ module.exports = {
     await deleteChangelogChannel(guild.id);
 
     await interaction.reply(
-      "Настройки оповещений об изменениях Sirus.su успешно сброшены!"
+      "Настройки оповещений об изменениях Sirus.su успешно сброшены!",
     );
   },
 };

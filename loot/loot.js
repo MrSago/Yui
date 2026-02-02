@@ -7,6 +7,7 @@
 const { ActivityType } = require("discord.js");
 
 const { loot: config } = require("../config/index.js");
+const { app } = require("../environment.js");
 const db = require("../db/database.js");
 const {
   createCompleteBossKillEmbed,
@@ -95,14 +96,19 @@ async function startRefreshingLoot() {
   }
   logger.debug(`Processed ${results.length} loot entries`);
 
+  const activity =
+    app.nodeEnv === "development"
+      ? config.activity.devStatus
+      : config.activity.idleStatus;
+
   client.user.setPresence({
     activities: [
       {
-        name: config.activity.idleStatus.name,
-        type: ActivityType[config.activity.idleStatus.type],
+        name: activity.name,
+        type: ActivityType[activity.type],
       },
     ],
-    status: config.activity.idleStatus.status,
+    status: activity.status,
   });
   logger.info("Refreshing loot ended");
 
@@ -163,14 +169,14 @@ async function entryProcess(entry, guild_id) {
   }
 
   const exists = await db.initRecords(guild_id);
-  // if (!exists) {
-  //   logger.info(
-  //     `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`
-  //   );
-  //   const sended_records = filteredRecords.map((record) => record.id);
-  //   await db.pushRecords(guild_id, sended_records);
-  //   return;
-  // }
+  if (!exists) {
+    logger.info(
+      `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`,
+    );
+    const sended_records = records.map((record) => record.id);
+    await db.pushRecords(guild_id, sended_records);
+    return;
+  }
 
   const record_checks = await Promise.all(
     records.map((record) =>

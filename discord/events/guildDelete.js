@@ -26,7 +26,7 @@ module.exports = {
       logger.info(`Successfully cleared settings for guild ${guild.id}`);
     } catch (error) {
       logger.error(
-        `Error clearing settings for guild ${guild.id}: ${error.message}`
+        `Error clearing settings for guild ${guild.id}: ${error.message}`,
       );
       logger.error(error);
     }

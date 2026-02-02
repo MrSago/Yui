@@ -31,7 +31,7 @@ class SettingsService {
       const storedGuildIds = allSettings.map((s) => s.guild_id);
 
       const removedGuildIds = storedGuildIds.filter(
-        (guildId) => !currentGuildIds.includes(guildId)
+        (guildId) => !currentGuildIds.includes(guildId),
       );
 
       for (const guildId of removedGuildIds) {

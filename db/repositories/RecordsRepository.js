@@ -56,7 +56,7 @@ class RecordsRepository extends BaseRepository {
       return await Records.findOneAndUpdate(
         { guild_id: guildId },
         { $addToSet: { records: record } },
-        { new: true, upsert: true, runValidators: true }
+        { new: true, upsert: true, runValidators: true },
       );
     } catch (error) {
       logger.error(`Error adding record: ${error.message}`);
