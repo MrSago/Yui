@@ -9,7 +9,7 @@ const {
   MessageFlags,
 } = require("discord.js");
 
-const { clearFilters } = require("../../db/database.js");
+const { clearLootFilters } = require("../../db/database.js");
 const logger = require("../../logger.js");
 
 module.exports = {
@@ -31,7 +31,7 @@ module.exports = {
 
     logger.info(
       `[${guild_name} (${guild_id})] [${user_tag}] ` +
-        `Using command: /${command_name}`
+        `Using command: /${command_name}`,
     );
 
     if (!interaction.guild) {
@@ -44,10 +44,19 @@ module.exports = {
     }
 
     try {
-      await clearFilters(guild.id);
+      await clearLootFilters(guild.id);
       await interaction.reply("Все фильтры очищены успешно!");
     } catch (error) {
       logger.error(`Error clearing filters: ${error.message}`);
+
+      if (error.name === "LootSettingsNotFoundError") {
+        await interaction.reply({
+          content: `Настройки лута не найдены для этого сервера.`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       await interaction.reply({
         content: `Ошибка при очистке фильтров: ${error.message}`,
         flags: MessageFlags.Ephemeral,

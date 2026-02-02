@@ -3,6 +3,9 @@ const {
   settingsRepository,
   lootRepository,
 } = require("../repositories/index.js");
+const {
+  LootSettingsNotFoundError,
+} = require("../../error/LootSettingsNotFoundError.js");
 
 /**
  * Loot Service
@@ -20,7 +23,7 @@ class LootService {
   async setLootChannel(guildId, channelId, realmId, guildSirusId) {
     try {
       logger.info(
-        `Setting loot channel for guild ${guildId}: channel=${channelId}, realm=${realmId}, sirus_id=${guildSirusId}`
+        `Setting loot channel for guild ${guildId}: channel=${channelId}, realm=${realmId}, sirus_id=${guildSirusId}`,
       );
 
       const settings = await settingsRepository.findByGuildId(guildId);
@@ -29,7 +32,7 @@ class LootService {
         const loot = await lootRepository.createLoot(
           channelId,
           realmId,
-          guildSirusId
+          guildSirusId,
         );
         await settingsRepository.create({
           guild_id: guildId,
@@ -43,13 +46,13 @@ class LootService {
         const loot = await lootRepository.createLoot(
           channelId,
           realmId,
-          guildSirusId
+          guildSirusId,
         );
         await settingsRepository.upsertByGuildId(guildId, {
           loot_id: loot._id,
         });
         logger.info(
-          `Updated loot settings for guild ${guildId} (no previous loot_id)`
+          `Updated loot settings for guild ${guildId} (no previous loot_id)`,
         );
         return;
       }
@@ -58,12 +61,12 @@ class LootService {
         settings.loot_id,
         channelId,
         realmId,
-        guildSirusId
+        guildSirusId,
       );
       logger.info(`Updated existing loot settings for guild ${guildId}`);
     } catch (error) {
       logger.error(
-        `Error setting loot channel for guild ${guildId}: ${error.message}`
+        `Error setting loot channel for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }
@@ -91,7 +94,7 @@ class LootService {
       logger.info(`Successfully deleted loot settings for guild ${guildId}`);
     } catch (error) {
       logger.error(
-        `Error deleting loot channel for guild ${guildId}: ${error.message}`
+        `Error deleting loot channel for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }
@@ -128,54 +131,31 @@ class LootService {
   /**
    * Sets dungeon filter for a guild
    * @param {string} guildId - Discord guild ID
-   * @param {Array<number>} dungeonIds - Array of dungeon IDs
-   * @returns {Promise<void>}
+   * @param {Map<string, Array<number>>} filters - Map of mapId to array of encounter_id
+   * @returns {Promise<any>}
    */
-  async setDungeonFilter(guildId, dungeonIds) {
+  async addLootFilter(guildId, filters) {
     try {
       logger.info(
         `Setting dungeon filter for guild ${guildId}: ${JSON.stringify(
-          dungeonIds
-        )}`
+          filters,
+        )}`,
       );
 
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.loot_id) {
-        throw new Error("Loot settings not found for this guild");
+        throw new LootSettingsNotFoundError(guildId);
       }
 
-      await lootRepository.setDungeonFilter(settings.loot_id, dungeonIds);
+      const updatedLootSettings = await lootRepository.addLootFilter(
+        settings.loot_id,
+        filters,
+      );
       logger.info(`Successfully set dungeon filter for guild ${guildId}`);
+      return updatedLootSettings;
     } catch (error) {
       logger.error(
-        `Error setting dungeon filter for guild ${guildId}: ${error.message}`
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Sets boss filter for a guild
-   * @param {string} guildId - Discord guild ID
-   * @param {Array<number>} bossIds - Array of boss IDs
-   * @returns {Promise<void>}
-   */
-  async setBossFilter(guildId, bossIds) {
-    try {
-      logger.info(
-        `Setting boss filter for guild ${guildId}: ${JSON.stringify(bossIds)}`
-      );
-
-      const settings = await settingsRepository.findByGuildId(guildId);
-      if (!settings || !settings.loot_id) {
-        throw new Error("Loot settings not found for this guild");
-      }
-
-      await lootRepository.setBossFilter(settings.loot_id, bossIds);
-      logger.info(`Successfully set boss filter for guild ${guildId}`);
-    } catch (error) {
-      logger.error(
-        `Error setting boss filter for guild ${guildId}: ${error.message}`
+        `Error setting dungeon filter for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }
@@ -186,20 +166,20 @@ class LootService {
    * @param {string} guildId - Discord guild ID
    * @returns {Promise<void>}
    */
-  async clearFilters(guildId) {
+  async clearLootFilters(guildId) {
     try {
       logger.info(`Clearing filters for guild ${guildId}`);
 
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.loot_id) {
-        throw new Error("Loot settings not found for this guild");
+        throw new LootSettingsNotFoundError(guildId);
       }
 
       await lootRepository.clearFilters(settings.loot_id);
       logger.info(`Successfully cleared filters for guild ${guildId}`);
     } catch (error) {
       logger.error(
-        `Error clearing filters for guild ${guildId}: ${error.message}`
+        `Error clearing filters for guild ${guildId}: ${error.message}`,
       );
       throw error;
     }

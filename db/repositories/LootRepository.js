@@ -70,33 +70,31 @@ class LootRepository extends BaseRepository {
   /**
    * Set dungeon filter for loot configuration
    * @param {string} id - Loot document ID
-   * @param {Array<number>} dungeonIds - Array of dungeon IDs
+   * @param {Map<string, Array<number>>} newFilters - Map of mapId to array of encounter_id
    * @returns {Promise<any>}
    */
-  async setDungeonFilter(id, dungeonIds) {
+  async addLootFilter(id, newFilters) {
     try {
-      return await this.updateById(id, {
-        dungeon_filter: dungeonIds,
-      });
+      const loot = await this.findById(id);
+      if (!loot) {
+        throw new Error(`Loot with id ${id} not found`);
+      }
+
+      if (!loot.filter) {
+        loot.filter = new Map();
+      }
+
+      for (const [mapId, encounterIds] of Object.entries(newFilters)) {
+        const existingEncounters = loot.filter.get(mapId) || [];
+        const updatedEncounters = Array.from(
+          new Set([...existingEncounters, ...encounterIds])
+        );
+        loot.filter.set(mapId, updatedEncounters);
+      }
+      await loot.save();
+      return loot;
     } catch (error) {
       logger.error(`Error setting dungeon filter: ${error.message}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Set boss filter for loot configuration
-   * @param {string} id - Loot document ID
-   * @param {Array<number>} bossIds - Array of boss IDs
-   * @returns {Promise<any>}
-   */
-  async setBossFilter(id, bossIds) {
-    try {
-      return await this.updateById(id, {
-        boss_filter: bossIds,
-      });
-    } catch (error) {
-      logger.error(`Error setting boss filter: ${error.message}`);
       throw error;
     }
   }
@@ -109,8 +107,7 @@ class LootRepository extends BaseRepository {
   async clearFilters(id) {
     try {
       return await this.updateById(id, {
-        dungeon_filter: [],
-        boss_filter: [],
+        filter: {},
       });
     } catch (error) {
       logger.error(`Error clearing filters: ${error.message}`);

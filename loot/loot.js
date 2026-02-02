@@ -70,7 +70,7 @@ async function startRefreshingLoot() {
   logger.debug(`Processing ${settings.length} loot settings entries`);
 
   const guild_id_promises = settings.map((entry) =>
-    db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id }))
+    db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id })),
   );
 
   const guild_entries = await Promise.all(guild_id_promises);
@@ -90,7 +90,7 @@ async function startRefreshingLoot() {
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length > 0) {
     logger.warn(
-      `${failed.length} loot entries failed to process, ${successful.length} succeeded`
+      `${failed.length} loot entries failed to process, ${successful.length} succeeded`,
     );
   }
   logger.debug(`Processed ${results.length} loot entries`);
@@ -118,55 +118,48 @@ async function startRefreshingLoot() {
  */
 async function entryProcess(entry, guild_id) {
   logger.debug(
-    `Processing loot for guild ${guild_id}, realm ${entry.realm_id}, sirus_id ${entry.guild_sirus_id}`
+    `Processing loot for guild ${guild_id}, realm ${entry.realm_id}, sirus_id ${entry.guild_sirus_id}`,
   );
 
-  const records = await sirusApi.getLatestBossKills(
+  let records = await sirusApi.getLatestBossKills(
     entry.realm_id,
-    entry.guild_sirus_id
+    entry.guild_sirus_id,
   );
 
   if (!records) {
     logger.warn(
       `Can't get loot from realm ${sirusApi.getRealmNameById(
-        entry.realm_id
-      )} with guild sirus id ${entry.guild_sirus_id}`
+        entry.realm_id,
+      )} with guild sirus id ${entry.guild_sirus_id}`,
     );
     return;
   }
 
   logger.debug(
-    `Retrieved ${records.length} boss kill records for guild ${guild_id}`
+    `Retrieved ${records.length} boss kill records for guild ${guild_id}`,
   );
 
-  // Apply filters to records (OR logic)
-  let filteredRecords = records;
+  logger.debug(`Entry filters: ${JSON.stringify(entry.filter)}`);
 
-  const hasDungeonFilter =
-    entry.dungeon_filter && entry.dungeon_filter.length > 0;
-  const hasBossFilter = entry.boss_filter && entry.boss_filter.length > 0;
-
-  if (hasDungeonFilter || hasBossFilter) {
-    filteredRecords = records.filter((record) => {
-      const matchesDungeon =
-        hasDungeonFilter && entry.dungeon_filter.includes(record.map_id);
-      const matchesBoss =
-        hasBossFilter && entry.boss_filter.includes(record.boss_id);
-
-      // If both filters are set, record should match at least one (OR logic)
-      // If only one filter is set, record should match that filter
-      if (hasDungeonFilter && hasBossFilter) {
-        return matchesDungeon || matchesBoss;
-      } else if (hasDungeonFilter) {
-        return matchesDungeon;
-      } else {
-        return matchesBoss;
+  if (entry.filter && entry.filter.size > 0) {
+    logger.debug(`Applying filters for guild ${guild_id}`);
+    records = records.filter((record) => {
+      logger.debug(
+        `Evaluating record ${record.id} with mapId ${record.mapId} and encounter_id ${record.encounter_id}`,
+      );
+      const mapIdStr = String(record.mapId);
+      if (entry.filter.has(mapIdStr)) {
+        logger.debug(
+          `Record ${record.id} matches dungeon filter for mapId ${mapIdStr}`,
+        );
+        const encounterIds = entry.filter.get(mapIdStr);
+        if (!encounterIds || encounterIds.length === 0) {
+          return true;
+        }
+        return encounterIds.includes(record.encounter_id);
       }
+      return false;
     });
-
-    logger.debug(
-      `Applied filters for guild ${guild_id}: ${filteredRecords.length} records match (dungeon: ${hasDungeonFilter}, boss: ${hasBossFilter})`
-    );
   }
 
   const exists = await db.initRecords(guild_id);
@@ -180,12 +173,12 @@ async function entryProcess(entry, guild_id) {
   // }
 
   const record_checks = await Promise.all(
-    filteredRecords.map((record) =>
+    records.map((record) =>
       db.checkRecord(guild_id, record.id).then((exists) => ({
         record,
         exists,
-      }))
-    )
+      })),
+    ),
   );
 
   const new_records = record_checks.filter(({ exists }) => !exists);
@@ -195,7 +188,7 @@ async function entryProcess(entry, guild_id) {
   }
 
   const promises = new_records.map(({ record }) =>
-    getExtraInfoAndSend(entry, guild_id, record)
+    getExtraInfoAndSend(entry, guild_id, record),
   );
   const record_ids = await Promise.allSettled(promises);
   const sended_records = record_ids
@@ -203,7 +196,7 @@ async function entryProcess(entry, guild_id) {
     .map((r) => r.value);
 
   logger.debug(
-    `Sent ${sended_records.length} new boss kill notifications for guild ${guild_id}`
+    `Sent ${sended_records.length} new boss kill notifications for guild ${guild_id}`,
   );
 
   if (sended_records.length > 0) {
@@ -226,7 +219,7 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
 
   try {
     logger.debug(
-      `Processing new boss kill record ${record.id} for guild ${guild_id}`
+      `Processing new boss kill record ${record.id} for guild ${guild_id}`,
     );
 
     const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
@@ -236,17 +229,17 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
 
     await sendToChannel(client, entry.channel_id, message.embeds);
     logger.info(
-      `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`
+      `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`,
     );
     return record.id;
   } catch (error) {
     logger.error(
-      `Error processing boss kill record ${record.id} for guild ${guild_id}: ${error.message}`
+      `Error processing boss kill record ${record.id} for guild ${guild_id}: ${error.message}`,
     );
     logger.error(error);
     logger.warn(
       "Error while getting loot info:" +
-        `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`
+        `{ guild_id: ${guild_id}, channel_id: ${entry.channel_id} }`,
     );
     return null;
   }
@@ -262,7 +255,7 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
 async function getExtraInfo(guild_id, record_id, realm_id) {
   const data_boss_kill_info = await sirusApi.getBossKillDetails(
     realm_id,
-    record_id
+    record_id,
   );
 
   if (!data_boss_kill_info) {
@@ -275,7 +268,7 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
 
   const lootItems = data_boss_kill_info.loots
     .filter(
-      (loot) => loot.item.quality >= 4 && !blacklist.includes(loot.item.entry)
+      (loot) => loot.item.quality >= 4 && !blacklist.includes(loot.item.entry),
     )
     .map((loot) => loot.item);
 

@@ -43,7 +43,7 @@ module.exports = {
       return;
     }
 
-    deleteChangelogChannel(guild.id);
+    await deleteChangelogChannel(guild.id);
 
     await interaction.reply(
       "Настройки оповещений об изменениях Sirus.su успешно сброшены!"
