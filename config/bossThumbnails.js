@@ -4,6 +4,7 @@
  */
 
 module.exports = {
+  // Наксрамас
   "Ануб'Рекан": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-anubrekhan.png",
   "Великая вдова Фарлина": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-grand-widow-faerlina.png",
   "Мексна": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-maexxna.png",
@@ -20,17 +21,22 @@ module.exports = {
   "Сапфирон": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-sapphiron.png",
   "Кел'Тузад": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-kelthuzad.png",
 
+  // Обсидиановое святилище
   "Сартарион": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-sartharion.png",
 
+  // Око Вечности
   "Малигос": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-malygos.png",
 
+  // Логово Ониксии
   "Ониксия": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/122/8570.png",
 
+  // Склеп Аркавона
   "Аркавон Страж Камня": "https://wow.zamimg.com/uploads/screenshots/small/99961-archavon-the-stone-watcher.jpg",
   "Эмалон Страж Бури": "https://wow.zamimg.com/uploads/screenshots/small/127120-emalon-the-storm-watcher.jpg",
   "Коралон Страж Огня": "https://wow.zamimg.com/uploads/screenshots/small/143234-koralon-the-flame-watcher.jpg",
   "Торавон Страж Льда": "https://wow.zamimg.com/uploads/screenshots/normal/157153-toravon-the-ice-watcher.jpg",
 
+  // Ульдуар
   "Огненный Левиафан": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-flame-leviathan.png",
   "Повелитель Горнов Игнис": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-ignis-the-furnace-master.png",
   "Острокрылая": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-razorscale.png",
@@ -46,12 +52,14 @@ module.exports = {
   "Йогг-Сарон": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-yogg-saron.png",
   "Алгалон Наблюдатель": "https://wow.zamimg.com/uploads/screenshots/small/132856.jpg",
 
+  // Испытание крестоносца
   "Чудовища Нордскола": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/97/21601.png",
   "Лорд Джараксус": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/175/29615.png",
   "Чемпионы фракций": "https://wow.zamimg.com/uploads/screenshots/small/149730-champions-cache.jpg",
   "Валь'киры-близнецы": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/83/29267.png",
   "Ануб'арак": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/84/29268.png",
 
+  // Цитадель Ледяной Короны
   "Лорд Ребрад": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-lord-marrowgar.png",
   "Леди Смертный Шепот": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-lady-deathwhisper.png",
   "Боевой корабль Ледяной Короны": "https://wow.zamimg.com/uploads/screenshots/normal/1124528.png",
@@ -66,13 +74,17 @@ module.exports = {
   "Король-лич": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-the-lich-king.png",
   "Леди Джайна Праудмур": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/147/30867.webp",
 
+  // Рубиновое святилище
   "Халион": "https://wow.zamimg.com/uploads/screenshots/small/171307-halion.jpg",
 
+  // Логово Груула
   "Король Молгар": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-high-king-maulgar.png",
   "Груул Драконобой": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-gruul-the-dragonkiller.png",
 
+  // Логово Магтеридона
   "Магтеридон": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-magtheridon.png",
 
+  // Каражан
   "Ловчий Аттумен": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-attumen-the-huntsman.png",
   "Мороуз": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-moroes.png",
   "Благочестивая дева": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-maiden-of-virtue.png",
@@ -85,6 +97,7 @@ module.exports = {
   "Принц Малчезар": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-prince-malchezaar.png",
   "Ночная Погибель": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-nightbane.png",
 
+  // Зул'Аман
   "Акил'зон": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-akilzon.png",
   "Налоракк": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-nalorakk.png",
   "Джан'алай": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-janalai.png",
@@ -92,6 +105,7 @@ module.exports = {
   "Повелитель проклятий Малакрасс": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-hex-lord-malacrass.png",
   "Зул'джин": "https://wow.zamimg.com/uploads/screenshots/normal/1054749.png",
 
+  // Змеиное святилище
   "Гидросс Нестабильный": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-hydross-the-unstable.png",
   "Скрытень из глубин": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-the-lurker-below.png",
   "Горе'лац": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/184/5560.webp",
@@ -100,24 +114,37 @@ module.exports = {
   "Морогрим Волноступ": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-morogrim-tidewalker.png",
   "Леди Вайш": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-lady-vashj.png",
 
+  // Крепость Бурь
   "Ал'ар": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-alar.png",
   "Страж Бездны": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-void-reaver.png",
   "Верховный звездочет Солариан": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-high-astromancer-solarian.png",
   "Кель'тас Солнечный Скиталец": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-kaelthas-sunstrider.png",
 
+  // Битва за гору Хиджал
   "Лютый Хлад": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-rage-winterchill.png",
   "Анетерон": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-anetheron.png",
   "Каз'рогал": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-kazrogal.png",
   "Азгалор": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-azgalor.png",
   "Архимонд": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-archimonde.png",
 
-  "Гогонаш": "https://sirus.su/images/zones/baradinhold.jpg",
-  "Поглотитель разума Ктракс": "https://sirus.su/images/zones/baradinhold.jpg",
-  "Пожиратель магии": "https://sirus.su/images/zones/baradinhold.jpg",
+  // Черный храм
+  "Верховный полководец Надж'ентус": "https://sirus.su/images/encounterjournal/ui-ej-boss-high-warlord-najentus.webp",
+  "Супремус": "https://sirus.su/images/encounterjournal/ui-ej-boss-supremus.webp",
+  "Тень Акамы": "https://sirus.su/images/encounterjournal/ui-ej-boss-shade-of-akama.webp",
+  "Терон Кровожад": "https://sirus.su/images/encounterjournal/ui-ej-boss-teron-gorefiend.webp",
+  "Гуртогг Кипящая Кровь": "https://sirus.su/images/encounterjournal/ui-ej-boss-gurtogg-bloodboil.webp",
+  "Реликварий душ": "https://sirus.su/images/encounterjournal/ui-ej-boss-reliquary-of-souls.webp",
 
+  // Тюрьма Тол'гарода
+  "Гогонаш": "https://sirus.su/images/encounterjournal/ui-ej-boss-argaloth.webp",
+  "Поглотитель разума Ктракс": "https://sirus.su/images/encounterjournal/ui-ej-boss-herald-volazj.webp",
+  "Пожиратель магии": "https://sirus.su/images/encounterjournal/ui-ej-boss-shadhar.webp",
+
+  // Зорт
   "Зорт": "https://sirus.su/images/zones/naxxramas.jpg",
 
-  "Импорус": "https://sirus.su/images/zones/bronzesanctum.jpg",
-  "Исказитель времени Элонус": "https://sirus.su/images/zones/bronzesanctum.jpg",
-  "Мурозонд": "https://sirus.su/images/zones/bronzesanctum.jpg"
+  // Бронзовое святилище
+  "Импорус": "https://sirus.su/images/encounterjournal/ui-ej-boss-emporus.webp",
+  "Исказитель времени Элонус": "https://sirus.su/images/encounterjournal/ui-ej-boss-elonus.webp",
+  "Мурозонд": "https://sirus.su/images/images/encounterjournal/ui-ej-boss-murozond.webp"
 };
