@@ -43,7 +43,7 @@ module.exports = {
       return;
     }
 
-    deleteLootChannel(guild.id);
+    await deleteLootChannel(guild.id);
 
     await interaction.reply(
       "Настройки оповещений об убийствах боссов успешно сброшены!",

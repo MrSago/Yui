@@ -127,7 +127,7 @@ async function entryProcess(entry, guild_id) {
     `Processing loot for guild ${guild_id}, realm ${entry.realm_id}, sirus_id ${entry.guild_sirus_id}`,
   );
 
-  const records = await sirusApi.getLatestBossKills(
+  let records = await sirusApi.getLatestBossKills(
     entry.realm_id,
     entry.guild_sirus_id,
   );
@@ -144,6 +144,29 @@ async function entryProcess(entry, guild_id) {
   logger.debug(
     `Retrieved ${records.length} boss kill records for guild ${guild_id}`,
   );
+
+  logger.debug(`Entry filters: ${JSON.stringify(entry.filter)}`);
+
+  if (entry.filter && entry.filter.size > 0) {
+    logger.debug(`Applying filters for guild ${guild_id}`);
+    records = records.filter((record) => {
+      logger.debug(
+        `Evaluating record ${record.id} with mapId ${record.mapId} and encounter_id ${record.encounter_id}`,
+      );
+      const mapIdStr = String(record.mapId);
+      if (entry.filter.has(mapIdStr)) {
+        logger.debug(
+          `Record ${record.id} matches dungeon filter for mapId ${mapIdStr}`,
+        );
+        const encounterIds = entry.filter.get(mapIdStr);
+        if (!encounterIds || encounterIds.length === 0) {
+          return true;
+        }
+        return encounterIds.includes(record.encounter_id);
+      }
+      return false;
+    });
+  }
 
   const exists = await db.initRecords(guild_id);
   if (!exists) {

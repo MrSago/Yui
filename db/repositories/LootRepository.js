@@ -66,6 +66,54 @@ class LootRepository extends BaseRepository {
       throw error;
     }
   }
+
+  /**
+   * Set dungeon filter for loot configuration
+   * @param {string} id - Loot document ID
+   * @param {Map<string, Array<number>>} newFilters - Map of mapId to array of encounter_id
+   * @returns {Promise<any>}
+   */
+  async addLootFilter(id, newFilters) {
+    try {
+      const loot = await this.findById(id);
+      if (!loot) {
+        throw new Error(`Loot with id ${id} not found`);
+      }
+
+      if (!loot.filter) {
+        loot.filter = new Map();
+      }
+
+      for (const [mapId, encounterIds] of Object.entries(newFilters)) {
+        const existingEncounters = loot.filter.get(mapId) || [];
+        const updatedEncounters = Array.from(
+          new Set([...existingEncounters, ...encounterIds])
+        );
+        loot.filter.set(mapId, updatedEncounters);
+      }
+      await loot.save();
+      return loot;
+    } catch (error) {
+      logger.error(`Error setting dungeon filter: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear filters for loot configuration
+   * @param {string} id - Loot document ID
+   * @returns {Promise<any>}
+   */
+  async clearFilters(id) {
+    try {
+      return await this.updateById(id, {
+        filter: {},
+      });
+    } catch (error) {
+      logger.error(`Error clearing filters: ${error.message}`);
+      throw error;
+    }
+  }
 }
 
 module.exports = LootRepository;

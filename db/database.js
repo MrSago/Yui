@@ -37,6 +37,8 @@ module.exports = {
   deleteLootChannel: lootService.deleteLootChannel.bind(lootService),
   getLootSettings: lootService.getLootSettings.bind(lootService),
   getGuildIdByLootId: lootService.getGuildIdByLootId.bind(lootService),
+  addLootFilter: lootService.addLootFilter.bind(lootService),
+  clearLootFilters: lootService.clearLootFilters.bind(lootService),
 
   // Records operations
   initRecords: recordsService.initRecords.bind(recordsService),

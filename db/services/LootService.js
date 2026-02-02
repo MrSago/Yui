@@ -3,6 +3,9 @@ const {
   settingsRepository,
   lootRepository,
 } = require("../repositories/index.js");
+const {
+  LootSettingsNotFoundError,
+} = require("../../error/LootSettingsNotFoundError.js");
 
 /**
  * Loot Service
@@ -122,6 +125,63 @@ class LootService {
     } catch (error) {
       logger.error(`Error getting guild ID by loot ID: ${error.message}`);
       return null;
+    }
+  }
+
+  /**
+   * Sets dungeon filter for a guild
+   * @param {string} guildId - Discord guild ID
+   * @param {Map<string, Array<number>>} filters - Map of mapId to array of encounter_id
+   * @returns {Promise<any>}
+   */
+  async addLootFilter(guildId, filters) {
+    try {
+      logger.info(
+        `Setting dungeon filter for guild ${guildId}: ${JSON.stringify(
+          filters,
+        )}`,
+      );
+
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new LootSettingsNotFoundError(guildId);
+      }
+
+      const updatedLootSettings = await lootRepository.addLootFilter(
+        settings.loot_id,
+        filters,
+      );
+      logger.info(`Successfully set dungeon filter for guild ${guildId}`);
+      return updatedLootSettings;
+    } catch (error) {
+      logger.error(
+        `Error setting dungeon filter for guild ${guildId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Clears all filters for a guild
+   * @param {string} guildId - Discord guild ID
+   * @returns {Promise<void>}
+   */
+  async clearLootFilters(guildId) {
+    try {
+      logger.info(`Clearing filters for guild ${guildId}`);
+
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new LootSettingsNotFoundError(guildId);
+      }
+
+      await lootRepository.clearFilters(settings.loot_id);
+      logger.info(`Successfully cleared filters for guild ${guildId}`);
+    } catch (error) {
+      logger.error(
+        `Error clearing filters for guild ${guildId}: ${error.message}`,
+      );
+      throw error;
     }
   }
 }

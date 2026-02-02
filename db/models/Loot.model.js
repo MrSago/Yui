@@ -21,6 +21,12 @@ const lootSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // Map of mapId to array of encounter_id
+    filter: {
+      type: Map,
+      of: [Number],
+      default: {},
+    },
   },
   {
     timestamps: true,
