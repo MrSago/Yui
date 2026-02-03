@@ -63,6 +63,7 @@ class LootService {
         realmId,
         guildSirusId,
       );
+      await lootRepository.clearFilters(settings.loot_id);
       logger.info(`Updated existing loot settings for guild ${guildId}`);
     } catch (error) {
       logger.error(
@@ -153,6 +154,81 @@ class LootService {
       );
       logger.info(`Successfully set dungeon filter for guild ${guildId}`);
       return updatedLootSettings;
+    } catch (error) {
+      logger.error(
+        `Error setting dungeon filter for guild ${guildId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Gets loot settings for a guild
+   * @param {string} guildId - Discord guild ID
+   * @returns {Promise<any>}
+   */
+  async getLootSettingsForGuild(guildId) {
+    try {
+      const settings =
+        await settingsRepository.findByGuildIdPopulated(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new LootSettingsNotFoundError(guildId);
+      }
+      return settings.loot_id;
+    } catch (error) {
+      logger.error(
+        `Error getting loot settings for guild ${guildId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Toggles encounter filter for a dungeon
+   * @param {string} guildId - Discord guild ID
+   * @param {string} mapId - Dungeon map ID
+   * @param {number} encounterId - Encounter ID to toggle
+   * @returns {Promise<any>}
+   */
+  async toggleLootFilter(guildId, mapId, encounterId) {
+    try {
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new LootSettingsNotFoundError(guildId);
+      }
+
+      return await lootRepository.toggleLootFilter(
+        settings.loot_id,
+        mapId,
+        encounterId,
+      );
+    } catch (error) {
+      logger.error(
+        `Error toggling dungeon filter for guild ${guildId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Sets encounter filter list for a dungeon
+   * @param {string} guildId - Discord guild ID
+   * @param {string} mapId - Dungeon map ID
+   * @param {Array<number>|null} encounterIds - Encounter IDs or null to remove
+   * @returns {Promise<any>}
+   */
+  async setLootFilterForMap(guildId, mapId, encounterIds) {
+    try {
+      const settings = await settingsRepository.findByGuildId(guildId);
+      if (!settings || !settings.loot_id) {
+        throw new LootSettingsNotFoundError(guildId);
+      }
+
+      return await lootRepository.setLootFilterForMap(
+        settings.loot_id,
+        mapId,
+        encounterIds,
+      );
     } catch (error) {
       logger.error(
         `Error setting dungeon filter for guild ${guildId}: ${error.message}`,

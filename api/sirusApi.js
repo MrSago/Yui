@@ -39,6 +39,30 @@ const DEFAULT_HEADERS = {
   "Sec-Fetch-Site": "cross-site",
 };
 
+const CACHE_TTL_MS = 1000 * 60;
+const responseCache = new Map();
+
+function getCachedResponse(cacheKey) {
+  const cached = responseCache.get(cacheKey);
+  if (!cached) {
+    return null;
+  }
+
+  if (cached.expiresAt <= Date.now()) {
+    responseCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.value;
+}
+
+function setCachedResponse(cacheKey, value) {
+  responseCache.set(cacheKey, {
+    value,
+    expiresAt: Date.now() + CACHE_TTL_MS,
+  });
+}
+
 // Initialize Bottleneck rate limiter
 const apiLimiter = new bottleneck({
   minTime: config.apiLimiter.minTime,
@@ -53,12 +77,12 @@ async function getChangelog() {
   logger.info(`Fetching changelog from ${CHANGELOG_API_URL}`);
   const data = await makeGetRequest(CHANGELOG_API_URL);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn("Failed to get changelog from Sirus.su");
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
@@ -75,14 +99,14 @@ async function getLatestBossKills(realmId, guildSirusId) {
 
   const data = await makeGetRequest(url);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn(
       `Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`,
     );
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
@@ -99,14 +123,14 @@ async function getBossKillDetails(realmId, recordId) {
 
   const data = await makeGetRequest(url);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn(
       `Failed to get boss kill details for record ${recordId} on realm ${realmId}`,
     );
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
@@ -186,12 +210,20 @@ async function makeGetRequest(url, options = {}) {
     ...options,
   };
 
+  const cacheKey = url;
+  const cachedResponse = getCachedResponse(cacheKey);
+  if (cachedResponse) {
+    logger.debug(`Using cached API response: ${url}`);
+    return cachedResponse;
+  }
+
   let attempt = 0;
   while (attempt <= config.axios.maxRetries) {
     try {
       logger.debug(`Making API request to: ${url} (attempt ${attempt + 1})`);
       const response = await limitedGet(url, axiosOptions);
       logger.debug(`API request successful: ${url}`);
+      setCachedResponse(cacheKey, response.data);
       return response.data;
     } catch (error) {
       attempt += 1;

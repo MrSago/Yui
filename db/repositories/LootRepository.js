@@ -12,6 +12,10 @@ class LootRepository extends BaseRepository {
     super(Loot);
   }
 
+  normalizeEncounterList(encounters) {
+    return Array.from(new Set(encounters)).sort((a, b) => a - b);
+  }
+
   /**
    * Find loot by channel ID
    * @param {string} channelId - Discord channel ID
@@ -86,15 +90,94 @@ class LootRepository extends BaseRepository {
 
       for (const [mapId, encounterIds] of Object.entries(newFilters)) {
         const existingEncounters = loot.filter.get(mapId) || [];
-        const updatedEncounters = Array.from(
-          new Set([...existingEncounters, ...encounterIds])
-        );
+        const updatedEncounters = this.normalizeEncounterList([
+          ...existingEncounters,
+          ...encounterIds,
+        ]);
         loot.filter.set(mapId, updatedEncounters);
       }
       await loot.save();
       return loot;
     } catch (error) {
       logger.error(`Error setting dungeon filter: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Toggle encounter filter for a dungeon
+   * @param {string} id - Loot document ID
+   * @param {string} mapId - Dungeon map ID
+   * @param {number} encounterId - Encounter ID to toggle
+   * @returns {Promise<any>}
+   */
+  async toggleLootFilter(id, mapId, encounterId) {
+    try {
+      const loot = await this.findById(id);
+      if (!loot) {
+        throw new Error(`Loot with id ${id} not found`);
+      }
+
+      if (!loot.filter) {
+        loot.filter = new Map();
+      }
+
+      const existingEncounters = loot.filter.get(mapId) || [];
+      const encounterSet = new Set(existingEncounters);
+
+      if (existingEncounters.length === 0) {
+        encounterSet.add(encounterId);
+      } else if (encounterSet.has(encounterId)) {
+        encounterSet.delete(encounterId);
+      } else {
+        encounterSet.add(encounterId);
+      }
+
+      if (encounterSet.size === 0) {
+        loot.filter.delete(mapId);
+      } else {
+        loot.filter.set(
+          mapId,
+          this.normalizeEncounterList(Array.from(encounterSet)),
+        );
+      }
+
+      await loot.save();
+      return loot;
+    } catch (error) {
+      logger.error(`Error toggling dungeon filter: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Set encounter filter list for a dungeon
+   * @param {string} id - Loot document ID
+   * @param {string} mapId - Dungeon map ID
+   * @param {Array<number>|null} encounterIds - Encounter IDs or null to remove
+   * @returns {Promise<any>}
+   */
+  async setLootFilterForMap(id, mapId, encounterIds) {
+    try {
+      const loot = await this.findById(id);
+      if (!loot) {
+        throw new Error(`Loot with id ${id} not found`);
+      }
+
+      if (!loot.filter) {
+        loot.filter = new Map();
+      }
+
+      if (encounterIds === null) {
+        loot.filter.delete(mapId);
+      } else {
+        loot.filter.set(mapId, this.normalizeEncounterList(encounterIds));
+      }
+
+      await loot.save();
+      return loot;
+    } catch (error) {
+      logger.error(`Error setting dungeon filter map: ${error.message}`);
       throw error;
     }
   }

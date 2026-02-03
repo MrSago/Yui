@@ -36,8 +36,12 @@ module.exports = {
   setLootChannel: lootService.setLootChannel.bind(lootService),
   deleteLootChannel: lootService.deleteLootChannel.bind(lootService),
   getLootSettings: lootService.getLootSettings.bind(lootService),
+  getLootSettingsForGuild:
+    lootService.getLootSettingsForGuild.bind(lootService),
   getGuildIdByLootId: lootService.getGuildIdByLootId.bind(lootService),
   addLootFilter: lootService.addLootFilter.bind(lootService),
+  toggleLootFilter: lootService.toggleLootFilter.bind(lootService),
+  setLootFilterForMap: lootService.setLootFilterForMap.bind(lootService),
   clearLootFilters: lootService.clearLootFilters.bind(lootService),
 
   // Records operations
