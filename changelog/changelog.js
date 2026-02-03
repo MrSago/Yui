@@ -35,9 +35,12 @@ async function startUpdatingChangelog() {
 
   try {
     const data = await sirusApi.getChangelog();
-    if (data) {
-      logger.debug(`Retrieved ${data.length} changelog entries from API`);
-      await sendData(data);
+    const changelogEntries = data?.data ?? data;
+    if (changelogEntries) {
+      logger.debug(
+        `Retrieved ${changelogEntries.length} changelog entries from API`,
+      );
+      await sendData(changelogEntries);
     } else {
       logger.warn("Failed to retrieve changelog data from API");
     }

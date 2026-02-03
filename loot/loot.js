@@ -127,12 +127,12 @@ async function entryProcess(entry, guild_id) {
     `Processing loot for guild ${guild_id}, realm ${entry.realm_id}, sirus_id ${entry.guild_sirus_id}`,
   );
 
-  let records = await sirusApi.getLatestBossKills(
+  const bossKillData = await sirusApi.getLatestBossKills(
     entry.realm_id,
     entry.guild_sirus_id,
   );
 
-  if (!records) {
+  if (!bossKillData) {
     logger.warn(
       `Can't get loot from realm ${sirusApi.getRealmNameById(
         entry.realm_id,
@@ -140,6 +140,8 @@ async function entryProcess(entry, guild_id) {
     );
     return;
   }
+
+  let records = bossKillData.data ?? bossKillData.records ?? [];
 
   logger.debug(
     `Retrieved ${records.length} boss kill records for guild ${guild_id}`,
@@ -264,22 +266,24 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     record_id,
   );
 
-  if (!data_boss_kill_info) {
+  const bossKillInfo = data_boss_kill_info?.data ?? data_boss_kill_info;
+
+  if (!bossKillInfo) {
     return null;
   }
 
-  const dpsData = parseDpsPlayers(data_boss_kill_info.players, client);
+  const dpsData = parseDpsPlayers(bossKillInfo.players, client);
 
-  const hpsData = parseHealPlayers(data_boss_kill_info.players, client);
+  const hpsData = parseHealPlayers(bossKillInfo.players, client);
 
-  const lootItems = data_boss_kill_info.loots
+  const lootItems = bossKillInfo.loots
     .filter(
       (loot) => loot.item.quality >= 4 && !blacklist.includes(loot.item.entry),
     )
     .map((loot) => loot.item);
 
   const embeds = createCompleteBossKillEmbed({
-    bossKillInfo: data_boss_kill_info,
+    bossKillInfo: bossKillInfo,
     realmId: realm_id,
     recordId: record_id,
     guildId: guild_id,

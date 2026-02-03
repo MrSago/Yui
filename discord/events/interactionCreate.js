@@ -6,6 +6,10 @@
 const { Events, MessageFlags } = require("discord.js");
 
 const logger = require("../../logger.js");
+const {
+  handleLootFilterInteraction,
+  isLootFilterInteraction,
+} = require("../interactions/lootFilter.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -16,6 +20,17 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction - Discord interaction object
    */
   async execute(interaction) {
+    if (isLootFilterInteraction(interaction)) {
+      try {
+        await handleLootFilterInteraction(interaction);
+      } catch (error) {
+        logger.error(
+          `Error handling loot filter interaction: ${error.message}`,
+        );
+      }
+      return;
+    }
+
     if (!interaction.isChatInputCommand()) {
       return;
     }

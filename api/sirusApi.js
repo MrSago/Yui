@@ -53,12 +53,12 @@ async function getChangelog() {
   logger.info(`Fetching changelog from ${CHANGELOG_API_URL}`);
   const data = await makeGetRequest(CHANGELOG_API_URL);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn("Failed to get changelog from Sirus.su");
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
@@ -75,14 +75,14 @@ async function getLatestBossKills(realmId, guildSirusId) {
 
   const data = await makeGetRequest(url);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn(
       `Failed to get latest boss kills for guild ${guildSirusId} on realm ${realmId}`,
     );
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
@@ -99,14 +99,14 @@ async function getBossKillDetails(realmId, recordId) {
 
   const data = await makeGetRequest(url);
 
-  if (!data || !data.data) {
+  if (!data) {
     logger.warn(
       `Failed to get boss kill details for record ${recordId} on realm ${realmId}`,
     );
     return null;
   }
 
-  return data.data;
+  return data;
 }
 
 /**
