@@ -28,7 +28,7 @@ async function initializeClient(config) {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildEmojisAndStickers,
+      GatewayIntentBits.GuildExpressions,
       GatewayIntentBits.GuildMessageReactions,
     ],
     partials: [Partials.Channel, Partials.Reaction],
