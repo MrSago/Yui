@@ -5,6 +5,7 @@
 
 const {
   SlashCommandBuilder,
+  InteractionContextType,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
@@ -16,6 +17,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("setchangelog")
     .setDescription("Установить канал для списка изменений Sirus.su")
+    .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addChannelOption((option) =>
       option
@@ -30,8 +32,8 @@ module.exports = {
    */
   async execute(interaction) {
     const guild = interaction.guild;
-    const guild_name = interaction.guild?.name ?? "USER";
-    const guild_id = interaction.guild?.id ?? interaction.user.id;
+    const guild_name = guild?.name ?? "USER";
+    const guild_id = guild?.id ?? interaction.user.id;
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
@@ -43,17 +45,34 @@ module.exports = {
         `[${channel.id}]`,
     );
 
-    if (!interaction.guild) {
-      await interaction.reply({
+    if (!guild) {
+      return interaction.reply({
         content:
           "Используйте эту комманду в текстовом канале Вашего дискорд сервера!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
     }
 
-    setChangelogChannel(guild.id, channel.id);
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
-    await interaction.reply(`Канал ${channel} для списка изменений установлен`);
+    try {
+      await setChangelogChannel(guild.id, channel.id);
+
+      return interaction.reply(
+        `Канал ${channel} для списка изменений Sirus.su установлен.`,
+      );
+    } catch (error) {
+      logger.error(`Error setting changelog channel: ${error.message}`);
+
+      return interaction.reply({
+        content: `Произошла внутренняя ошибка при установке настроек об изменениях Sirus.su.`,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   },
 };

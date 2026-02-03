@@ -5,6 +5,7 @@
 
 const {
   SlashCommandBuilder,
+  InteractionContextType,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
@@ -16,12 +17,13 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("addlootfilter")
     .setDescription("Добавить фильтр подземелий для вывода лута")
+    .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addIntegerOption((option) =>
       option
         .setName("map_id")
         .setDescription("ID подземелья")
-        .setMinValue(1)
+        .setMinValue(0)
         .setRequired(true),
     )
     .addStringOption((option) =>
@@ -34,13 +36,13 @@ module.exports = {
     ),
 
   /**
-   * Executes the setdungeonfilter command
+   * Executes the addLootfilter command
    * @param {import('discord.js').CommandInteraction} interaction - Command interaction
    */
   async execute(interaction) {
     const guild = interaction.guild;
-    const guild_name = interaction.guild?.name ?? "USER";
-    const guild_id = interaction.guild?.id ?? interaction.user.id;
+    const guild_name = guild?.name ?? "USER";
+    const guild_id = guild?.id ?? interaction.user.id;
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
@@ -52,13 +54,19 @@ module.exports = {
         `Using command: /${command_name} [${map_id}, ${encounter_ids_string}]`,
     );
 
-    if (!interaction.guild) {
-      await interaction.reply({
+    if (!guild) {
+      return interaction.reply({
         content:
           "Используйте эту команду в текстовом канале Вашего дискорд сервера!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
+    }
+
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     const encounters_id =
@@ -68,11 +76,10 @@ module.exports = {
         .filter((id) => !isNaN(id) && id > 0) ?? [];
 
     if (encounter_ids_string && encounters_id.length === 0) {
-      await interaction.reply({
+      return interaction.reply({
         content: "Ошибка: не удалось распознать ID энкаунтеров!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
     }
 
     try {
@@ -82,22 +89,23 @@ module.exports = {
       logger.debug(`Updated filters: ${JSON.stringify(settings.filter)}`);
 
       const filterValues = settings.filter.get(String(map_id)) || [];
-      await interaction.reply(
+
+      return interaction.reply(
         `Фильтр для подземелья ${map_id} успешно добавлен!\n` +
-          `Текущие энкаунтеры: ${filterValues.length > 0 ? filterValues.join(", ") : "Все энкаунтеры"}`,
+          `Текущие энкаунтеры для этого подземелья: ${filterValues.length > 0 ? filterValues.join(", ") : "Все энкаунтеры"}`,
       );
     } catch (error) {
+      logger.error(`Error setting loot filter: ${error.message}`);
+
       if (error.name === "LootSettingsNotFoundError") {
-        await interaction.reply({
+        return interaction.reply({
           content:
             "Настройки лута не найдены для этого сервера. Пожалуйста, настройте вывод лута с помощью команды /setloot.",
           flags: MessageFlags.Ephemeral,
         });
-        return;
       }
 
-      logger.error(`Error setting loot filter: ${error.message}`);
-      await interaction.reply({
+      return interaction.reply({
         content: "Произошла внутренняя ошибка при установке фильтра.",
         flags: MessageFlags.Ephemeral,
       });

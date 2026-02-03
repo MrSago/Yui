@@ -11,18 +11,18 @@ const { randInt } = require("../../utils/index.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("roll")
-    .setDescription("Roll the dice")
+    .setDescription("Бросить кости")
     .addIntegerOption((option) =>
       option
         .setName("start")
-        .setDescription("Start number")
+        .setDescription("Начальное число (по умолчанию 1)")
         .setRequired(false)
         .setMinValue(1),
     )
     .addIntegerOption((option) =>
       option
         .setName("end")
-        .setDescription("End number")
+        .setDescription("Конечное число (по умолчанию 100)")
         .setRequired(false)
         .setMinValue(1),
     ),
@@ -45,18 +45,15 @@ module.exports = {
     const start = interaction.options.getInteger("start");
     const end = interaction.options.getInteger("end");
 
-    let result;
+    const min = Math.min(start ?? 1, end ?? 100);
+    const max = Math.max(start ?? 1, end ?? 100);
 
-    if (start && !end) {
-      result = 1 + randInt(start);
-    } else if (!start && end) {
-      result = 1 + randInt(end);
-    } else if (start && end) {
-      result = Math.min(start, end) + randInt(Math.abs(start - end) + 1);
-    } else {
-      result = 1 + randInt(99);
-    }
+    const result = min + randInt(max - min + 1);
 
-    await interaction.reply({ content: `Rolls: ${result}` });
+    const emoji = result === Math.max(start ?? 1, end ?? 100) ? "🔥" : "🎲";
+
+    return interaction.reply({
+      content: `${emoji} Результат броска: **${result}**`,
+    });
   },
 };

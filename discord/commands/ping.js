@@ -27,7 +27,7 @@ module.exports = {
         `Using command: /${command_name}`,
     );
 
-    await interaction.reply({
+    return interaction.reply({
       content: "Pong!",
       flags: MessageFlags.Ephemeral,
     });

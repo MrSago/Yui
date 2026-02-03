@@ -5,6 +5,7 @@
 
 const {
   SlashCommandBuilder,
+  InteractionContextType,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
@@ -16,6 +17,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("clearloot")
     .setDescription("Удалить настройки оповещений об убийствах боссов")
+    .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
@@ -24,8 +26,8 @@ module.exports = {
    */
   async execute(interaction) {
     const guild = interaction.guild;
-    const guild_name = interaction.guild?.name ?? "USER";
-    const guild_id = interaction.guild?.id ?? interaction.user.id;
+    const guild_name = guild?.name ?? "USER";
+    const guild_id = guild?.id ?? interaction.user.id;
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
@@ -34,19 +36,33 @@ module.exports = {
         `Using command: /${command_name} `,
     );
 
-    if (!interaction.guild) {
-      await interaction.reply({
+    if (!guild) {
+      return interaction.reply({
         content:
           "Используйте эту комманду в текстовом канале Вашего дискорд сервера!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
     }
 
-    await deleteLootChannel(guild.id);
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
-    await interaction.reply(
-      "Настройки оповещений об убийствах боссов успешно сброшены!",
-    );
+    try {
+      await deleteLootChannel(guild.id);
+
+      return interaction.reply("Настройки вывода лута успешно сброшены!");
+    } catch (error) {
+      logger.error(`Error clearing loot settings: ${error.message}`);
+
+      return interaction.reply({
+        content:
+          "Произошла внутренняя ошибка при очистке настроек вывода лута.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   },
 };

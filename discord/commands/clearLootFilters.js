@@ -5,6 +5,7 @@
 
 const {
   SlashCommandBuilder,
+  InteractionContextType,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
@@ -16,6 +17,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("clearlootfilters")
     .setDescription("Очистить все фильтры для вывода лута")
+    .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
@@ -24,8 +26,8 @@ module.exports = {
    */
   async execute(interaction) {
     const guild = interaction.guild;
-    const guild_name = interaction.guild?.name ?? "USER";
-    const guild_id = interaction.guild?.id ?? interaction.user.id;
+    const guild_name = guild?.name ?? "USER";
+    const guild_id = guild?.id ?? interaction.user.id;
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
@@ -34,31 +36,37 @@ module.exports = {
         `Using command: /${command_name}`,
     );
 
-    if (!interaction.guild) {
-      await interaction.reply({
+    if (!guild) {
+      return interaction.reply({
         content:
           "Используйте эту команду в текстовом канале Вашего дискорд сервера!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
+    }
+
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     try {
       await clearLootFilters(guild.id);
-      await interaction.reply("Все фильтры очищены успешно!");
+
+      return interaction.reply("Все фильтры очищены успешно!");
     } catch (error) {
       logger.error(`Error clearing filters: ${error.message}`);
 
       if (error.name === "LootSettingsNotFoundError") {
-        await interaction.reply({
+        return interaction.reply({
           content: `Настройки лута не найдены для этого сервера.`,
           flags: MessageFlags.Ephemeral,
         });
-        return;
       }
 
-      await interaction.reply({
-        content: `Ошибка при очистке фильтров: ${error.message}`,
+      return interaction.reply({
+        content: `Произошла внутренняя ошибка при очистке фильтров лута.`,
         flags: MessageFlags.Ephemeral,
       });
     }

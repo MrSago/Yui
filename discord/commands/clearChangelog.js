@@ -5,6 +5,7 @@
 
 const {
   SlashCommandBuilder,
+  InteractionContextType,
   PermissionFlagsBits,
   MessageFlags,
 } = require("discord.js");
@@ -16,6 +17,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("clearchangelog")
     .setDescription("Удалить настройки оповещений об изменениях Sirus.su")
+    .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
   /**
@@ -24,8 +26,8 @@ module.exports = {
    */
   async execute(interaction) {
     const guild = interaction.guild;
-    const guild_name = interaction.guild?.name ?? "USER";
-    const guild_id = interaction.guild?.id ?? interaction.user.id;
+    const guild_name = guild?.name ?? "USER";
+    const guild_id = guild?.id ?? interaction.user.id;
     const user_tag = interaction.user.tag;
     const command_name = interaction.commandName;
 
@@ -34,19 +36,35 @@ module.exports = {
         `Using command: /${command_name} `,
     );
 
-    if (!interaction.guild) {
-      await interaction.reply({
+    if (!guild) {
+      return interaction.reply({
         content:
           "Используйте эту комманду в текстовом канале Вашего дискорд сервера!",
         flags: MessageFlags.Ephemeral,
       });
-      return;
     }
 
-    await deleteChangelogChannel(guild.id);
+    if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
+      return interaction.reply({
+        content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
-    await interaction.reply(
-      "Настройки оповещений об изменениях Sirus.su успешно сброшены!",
-    );
+    try {
+      await deleteChangelogChannel(guild.id);
+
+      return interaction.reply(
+        "Настройки оповещений об изменениях Sirus.su успешно сброшены!",
+      );
+    } catch (error) {
+      logger.error(`Error clearing changelog settings: ${error.message}`);
+
+      return interaction.reply({
+        content:
+          "Произошла внутренняя ошибка при очистке настроек об изменениях Sirus.su.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
   },
 };
