@@ -47,6 +47,7 @@ function parseDpsPlayers(data, client) {
         place: i++,
         name: (emoji ? `${emoji} ` : "") + player.name,
         value: formatShortValue(dps_int),
+        intValue: dps_int,
       });
       summary_dps += dps_int;
     } else {
@@ -54,12 +55,18 @@ function parseDpsPlayers(data, client) {
         place: i++,
         name: (emoji ? `${emoji} ` : "") + player.name,
         value: "0k",
+        intValue: 0,
       });
     }
   }
 
   if (rows.length === 0) {
     return [[], 0];
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const percent = (rows[i].intValue / summary_dps) * 100;
+    rows[i].percent = Math.round(percent * 100) / 100;
   }
 
   return [rows, summary_dps];
@@ -92,6 +99,7 @@ function parseHealPlayers(data, client) {
         place: i++,
         name: (emoji ? `${emoji} ` : "") + player.name,
         value: formatShortValue(hpsInt),
+        intValue: hpsInt,
       });
       summary_hps += hpsInt;
     } else {
@@ -99,12 +107,18 @@ function parseHealPlayers(data, client) {
         place: i++,
         name: (emoji ? `${emoji} ` : "") + player.name,
         value: "0k",
+        intValue: 0,
       });
     }
   }
 
   if (rows.length === 0) {
     return [[], 0];
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    const percent = (rows[i].intValue / summary_hps) * 100;
+    rows[i].percent = Math.round(percent * 100) / 100;
   }
 
   return [rows, summary_hps];

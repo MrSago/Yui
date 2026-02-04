@@ -141,7 +141,7 @@ function addDpsSection(embed, rows, summaryDps) {
       inline: true,
     },
   );
-  addPlayerTableFields(embed, rows, "Дамагеры", "Урон");
+  addPlayerTableFields(embed, rows, "Дамагеры");
   return embed;
 }
 
@@ -171,7 +171,7 @@ function addHpsSection(embed, rows, summaryHps) {
       inline: true,
     },
   );
-  addPlayerTableFields(embed, rows, "Хиллеры", "Лечение");
+  addPlayerTableFields(embed, rows, "Хиллеры");
   return embed;
 }
 
@@ -180,9 +180,8 @@ function addHpsSection(embed, rows, summaryHps) {
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
  * @param {Array<Object>} rows - Player rows
  * @param {string} title - Field title
- * @param {string} valueLabel - Value label
  */
-function addPlayerTableFields(embed, rows, title, valueLabel) {
+function addPlayerTableFields(embed, rows, title) {
   const chunkSize = 10;
   if (!rows || rows.length === 0) {
     embed.addFields({
@@ -214,7 +213,7 @@ function formatPlayersTable(rows) {
   const lines = rows.map((row) => {
     const placePadding = row.place >= 10 ? 1 : 2;
     const place = `**${row.place}**${INVISIBLE_SPACE.repeat(placePadding)}`;
-    return `${place}${row.name} \`${row.value}\``;
+    return `${place}${row.name} \`${row.value}\` \`(${row.percent}%)\``;
   });
 
   return lines.join("\n");
