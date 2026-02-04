@@ -72,7 +72,7 @@ module.exports = {
   "Валитрия Сноходица": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-valithria-dreamwalker.png",
   "Синдрагоса": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-sindragosa.png",
   "Король-лич": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-the-lich-king.png",
-  "Леди Джайна Праудмур": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/147/30867.webp",
+  "Леди Джайна Праудмур": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/147/30867.png",
 
   // Рубиновое святилище
   "Халион": "https://wow.zamimg.com/uploads/screenshots/small/171307-halion.jpg",
@@ -108,7 +108,7 @@ module.exports = {
   // Змеиное святилище
   "Гидросс Нестабильный": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-hydross-the-unstable.png",
   "Скрытень из глубин": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-the-lurker-below.png",
-  "Горе'лац": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/184/5560.webp",
+  "Горе'лац": "https://wow.zamimg.com/modelviewer/wrath/webthumbs/npc/184/5560.png",
   "Леотерас Слепец": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-leotheras-the-blind.png",
   "Повелитель глубин Каратресс": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-fathom-lord-karathress.png",
   "Морогрим Волноступ": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-morogrim-tidewalker.png",
@@ -128,23 +128,23 @@ module.exports = {
   "Архимонд": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-archimonde.png",
 
   // Черный храм
-  "Верховный полководец Надж'ентус": "https://sirus.su/images/encounterjournal/ui-ej-boss-high-warlord-najentus.webp",
-  "Супремус": "https://sirus.su/images/encounterjournal/ui-ej-boss-supremus.webp",
-  "Тень Акамы": "https://sirus.su/images/encounterjournal/ui-ej-boss-shade-of-akama.webp",
-  "Терон Кровожад": "https://sirus.su/images/encounterjournal/ui-ej-boss-teron-gorefiend.webp",
-  "Гуртогг Кипящая Кровь": "https://sirus.su/images/encounterjournal/ui-ej-boss-gurtogg-bloodboil.webp",
-  "Реликварий душ": "https://sirus.su/images/encounterjournal/ui-ej-boss-reliquary-of-souls.webp",
+  "Верховный полководец Надж'ентус": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-high-warlord-najentus.png",
+  "Супремус": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-supremus.png",
+  "Тень Акамы": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-shade-of-akama.png",
+  "Терон Кровожад": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-teron-gorefiend.png",
+  "Гуртогг Кипящая Кровь": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-gurtogg-bloodboil.png",
+  "Реликварий Душ": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-reliquary-of-souls.png",
 
   // Тюрьма Тол'гарода
-  "Гогонаш": "https://sirus.su/images/encounterjournal/ui-ej-boss-argaloth.webp",
-  "Поглотитель разума Ктракс": "https://sirus.su/images/encounterjournal/ui-ej-boss-herald-volazj.webp",
-  "Пожиратель магии": "https://sirus.su/images/encounterjournal/ui-ej-boss-shadhar.webp",
+  "Гогонаш": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-argaloth.png",
+  "Поглотитель разума Ктракс": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-herald-volazj.png",
+  "Пожиратель магии": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-shadhar.png",
 
   // Зорт
-  "Зорт": "https://sirus.su/images/zones/naxxramas.jpg",
+  "Зорт": "https://sirus.su/images/zones/naxxramas.webp",
 
   // Бронзовое святилище
-  "Импорус": "https://sirus.su/images/encounterjournal/ui-ej-boss-emporus.webp",
-  "Исказитель времени Элонус": "https://sirus.su/images/encounterjournal/ui-ej-boss-elonus.webp",
-  "Мурозонд": "https://sirus.su/images/images/encounterjournal/ui-ej-boss-murozond.webp"
+  "Импорус": "https://sirus.su//images/encounterjournal/ui-ej-boss-emporus.webp",
+  "Исказитель времени Элонус": "https://sirus.su//images/encounterjournal/ui-ej-boss-elonus.webp",
+  "Мурозонд": "https://sirus.su//images/encounterjournal/ui-ej-boss-murozond.webp"
 };

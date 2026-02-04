@@ -13,6 +13,8 @@ const bossThumbnails = require("../../config/bossThumbnails.js");
 const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
+const INVISIBLE_SPACE = "\u2800";
+
 /**
  * Creates a complete boss kill message with all sections
  * @param {Object} params - Message parameters
@@ -22,8 +24,8 @@ const sirusApi = require("../../api/sirusApi.js");
  * @param {string} params.guildId - Discord guild ID
  * @param {import('discord.js').Client} params.client - Discord client
  * @param {Array<Object>} params.lootItems - Array of loot item objects
- * @param {Object} params.dpsData - DPS data [places, players, dps, summaryDps]
- * @param {Object} params.hpsData - HPS data [places, players, hps, summaryHps]
+ * @param {Object} params.dpsData - DPS data [rows, summaryDps]
+ * @param {Object} params.hpsData - HPS data [rows, summaryHps]
  * @returns {import('discord.js').EmbedBuilder}
  */
 function createCompleteBossKillEmbed({
@@ -46,11 +48,11 @@ function createCompleteBossKillEmbed({
 
   setBossThumbnail(embed, bossKillInfo.boss_name);
 
-  const [placesDps, playersDps, dps, summaryDps] = dpsData;
-  addDpsSection(embed, placesDps, playersDps, dps, summaryDps);
+  const [dpsRows, summaryDps] = dpsData;
+  addDpsSection(embed, dpsRows, summaryDps);
 
-  const [placesHps, playersHps, hps, summaryHps] = hpsData;
-  addHpsSection(embed, placesHps, playersHps, hps, summaryHps);
+  const [hpsRows, summaryHps] = hpsData;
+  addHpsSection(embed, hpsRows, summaryHps);
 
   if (lootItems && lootItems.length > 0) {
     addLootSectionToEmbed(embed, lootItems, realmId);
@@ -92,7 +94,7 @@ function createBossKillEmbed({
       iconURL: guildIcon,
       url: sirusApi.getGuildUrl(realmId, bossKillInfo.guild.id),
     },
-    title: `Убийство босса ${bossKillInfo.boss_name}`,
+    title: `${bossKillInfo.map_name} — ${bossKillInfo.boss_name}`,
     url: sirusApi.getPveProgressUrl(realmId, recordId),
   }).addFields(
     {
@@ -116,97 +118,105 @@ function createBossKillEmbed({
 /**
  * Adds DPS section to embed
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} places - String with places
- * @param {string} players - String with player names
- * @param {string} dps - String with DPS values
+ * @param {Array<Object>} rows - Player rows
  * @param {number} summaryDps - Total DPS
  * @returns {import('discord.js').EmbedBuilder}
  */
-function addDpsSection(embed, places, players, dps, summaryDps) {
+function addDpsSection(embed, rows, summaryDps) {
   addEmptyField(embed);
   embed.addFields(
     {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
       name: "Общий DPS",
-      value: formatShortValue(summaryDps),
+      value: "```ansi\n" + `[2;31m${formatShortValue(summaryDps)}[0m\n` + "```",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
       inline: true,
     },
   );
-  embed.addFields(
-    {
-      name: "Место",
-      value: places,
-      inline: true,
-    },
-    {
-      name: "Имя",
-      value: players,
-      inline: true,
-    },
-    {
-      name: "Урон",
-      value: dps,
-      inline: true,
-    },
-  );
+  addPlayerTableFields(embed, rows, "Дамагеры");
   return embed;
 }
 
 /**
  * Adds HPS section to embed
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} places - String with places
- * @param {string} players - String with player names
- * @param {string} hps - String with HPS values
+ * @param {Array<Object>} rows - Player rows
  * @param {number} summaryHps - Total HPS
  * @returns {import('discord.js').EmbedBuilder}
  */
-function addHpsSection(embed, places, players, hps, summaryHps) {
+function addHpsSection(embed, rows, summaryHps) {
   addEmptyField(embed);
   embed.addFields(
     {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
       name: "Общий HPS",
-      value: formatShortValue(summaryHps),
+      value: "```ansi\n" + `[2;36m${formatShortValue(summaryHps)}[0m` + "```",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
       inline: true,
     },
   );
-  embed.addFields(
-    {
-      name: "Место",
-      value: places,
-      inline: true,
-    },
-    {
-      name: "Имя",
-      value: players,
-      inline: true,
-    },
-    {
-      name: "Лечение",
-      value: hps,
-      inline: true,
-    },
-  );
+  addPlayerTableFields(embed, rows, "Хиллеры");
   return embed;
+}
+
+/**
+ * Adds player table fields in chunks of 10
+ * @param {import('discord.js').EmbedBuilder} embed - Embed message
+ * @param {Array<Object>} rows - Player rows
+ * @param {string} title - Field title
+ */
+function addPlayerTableFields(embed, rows, title) {
+  const chunkSize = 10;
+  if (!rows || rows.length === 0) {
+    embed.addFields({
+      name: title,
+      value: "\u200b",
+    });
+    return;
+  }
+
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    const chunk = rows.slice(index, index + chunkSize);
+    embed.addFields({
+      name: index === 0 ? title : "\u200b",
+      value: formatPlayersTable(chunk),
+    });
+  }
+}
+
+/**
+ * Builds aligned table for player rows
+ * @param {Array<Object>} rows - Player rows
+ * @returns {string}
+ */
+function formatPlayersTable(rows) {
+  if (!rows || rows.length === 0) {
+    return "\u200b";
+  }
+
+  const lines = rows.map((row) => {
+    const placePadding = row.place >= 10 ? 1 : 2;
+    const place = `**${row.place}**${INVISIBLE_SPACE.repeat(placePadding)}`;
+    return `${place}${row.name} \`${row.value}\` \`(${row.percent}%)\``;
+  });
+
+  return lines.join("\n");
 }
 
 /**
