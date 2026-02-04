@@ -14,6 +14,7 @@ const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
 const INVISIBLE_SPACE = "\u2800";
+const FIGURE_SPACE = "\u2007";
 
 /**
  * Creates a complete boss kill message with all sections
@@ -210,11 +211,19 @@ function formatPlayersTable(rows, valueLabel) {
     const padding = Math.max(0, width - getVisibleLength(text) + 1);
     return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
   };
+  const padValue = (text, width) => {
+    const padding = Math.max(0, width - getVisibleLength(text));
+    return `${FIGURE_SPACE.repeat(padding)}${text}`;
+  };
+
+  const valueWidth = Math.max(
+    ...rows.map((row) => getVisibleLength(row.value)),
+  );
 
   const lines = rows.map((row) => {
     const place = padColumn(String(row.place), placeWidth);
     const name = padColumn(row.name, nameWidth);
-    return `${place}${name}${row.value}`;
+    return `${place}${name}${padValue(row.value, valueWidth)}`;
   });
 
   const trimmedLines = [];
