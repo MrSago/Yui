@@ -14,7 +14,7 @@ const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
 const INVISIBLE_SPACE = "\u2800";
-const PAD_SPACE = ` ${INVISIBLE_SPACE}`;
+const PAD_SPACE = " ";
 
 /**
  * Creates a complete boss kill message with all sections
@@ -229,18 +229,20 @@ function formatPlayersTable(rows, valueLabel) {
   const trimmedLines = [];
   for (const line of lines) {
     const next = trimmedLines.length === 0 ? line : `${trimmedLines.join("\n")}\n${line}`;
-    if (next.length > 1024) {
+    const nextWithFence = `\`\`\`\n${next}\n\`\`\``;
+    if (nextWithFence.length > 1024) {
       const overflowLine = "…";
       const overflowCandidate = `${trimmedLines.join("\n")}\n${overflowLine}`;
-      if (overflowCandidate.length <= 1024) {
-        return overflowCandidate;
+      const overflowWithFence = `\`\`\`\n${overflowCandidate}\n\`\`\``;
+      if (overflowWithFence.length <= 1024) {
+        return overflowWithFence;
       }
-      return trimmedLines.join("\n");
+      return `\`\`\`\n${trimmedLines.join("\n")}\n\`\`\``;
     }
     trimmedLines.push(line);
   }
 
-  return trimmedLines.join("\n");
+  return `\`\`\`\n${trimmedLines.join("\n")}\n\`\`\``;
 }
 
 /**
