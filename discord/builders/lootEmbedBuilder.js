@@ -94,7 +94,7 @@ function createBossKillEmbed({
       iconURL: guildIcon,
       url: sirusApi.getGuildUrl(realmId, bossKillInfo.guild.id),
     },
-    title: `Убийство босса ${bossKillInfo.boss_name}`,
+    title: `${bossKillInfo.map_name} — ${bossKillInfo.boss_name}`,
     url: sirusApi.getPveProgressUrl(realmId, recordId),
   }).addFields(
     {
@@ -126,18 +126,18 @@ function addDpsSection(embed, rows, summaryDps) {
   addEmptyField(embed);
   embed.addFields(
     {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
       name: "Общий DPS",
-      value: formatShortValue(summaryDps),
+      value: "```ansi\n" + `[2;31m${formatShortValue(summaryDps)}[0m\n` + "```",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
       inline: true,
     },
   );
@@ -156,18 +156,18 @@ function addHpsSection(embed, rows, summaryHps) {
   addEmptyField(embed);
   embed.addFields(
     {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
-      name: "\u200b",
-      value: "\u200b",
-      inline: true,
-    },
-    {
       name: "Общий HPS",
-      value: formatShortValue(summaryHps),
+      value: "```ansi\n" + `[2;36m${formatShortValue(summaryHps)}[0m` + "```",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
       inline: true,
     },
   );
@@ -196,7 +196,7 @@ function addPlayerTableFields(embed, rows, title, valueLabel) {
     const chunk = rows.slice(index, index + chunkSize);
     embed.addFields({
       name: index === 0 ? title : "\u200b",
-      value: formatPlayersTable(chunk, valueLabel),
+      value: formatPlayersTable(chunk),
     });
   }
 }
@@ -204,10 +204,9 @@ function addPlayerTableFields(embed, rows, title, valueLabel) {
 /**
  * Builds aligned table for player rows
  * @param {Array<Object>} rows - Player rows
- * @param {string} valueLabel - Value column label
  * @returns {string}
  */
-function formatPlayersTable(rows, valueLabel) {
+function formatPlayersTable(rows) {
   if (!rows || rows.length === 0) {
     return "\u200b";
   }
