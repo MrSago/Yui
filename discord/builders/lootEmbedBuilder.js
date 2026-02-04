@@ -141,12 +141,7 @@ function addDpsSection(embed, rows, summaryDps) {
       inline: true,
     },
   );
-  embed.addFields(
-    {
-      name: "Дамагеры",
-      value: formatPlayersTable(rows, "Урон"),
-    },
-  );
+  addPlayerTableFields(embed, rows, "Дамагеры", "Урон");
   return embed;
 }
 
@@ -176,13 +171,34 @@ function addHpsSection(embed, rows, summaryHps) {
       inline: true,
     },
   );
-  embed.addFields(
-    {
-      name: "Хиллеры",
-      value: formatPlayersTable(rows, "Лечение"),
-    },
-  );
+  addPlayerTableFields(embed, rows, "Хиллеры", "Лечение");
   return embed;
+}
+
+/**
+ * Adds player table fields in chunks of 10
+ * @param {import('discord.js').EmbedBuilder} embed - Embed message
+ * @param {Array<Object>} rows - Player rows
+ * @param {string} title - Field title
+ * @param {string} valueLabel - Value label
+ */
+function addPlayerTableFields(embed, rows, title, valueLabel) {
+  const chunkSize = 10;
+  if (!rows || rows.length === 0) {
+    embed.addFields({
+      name: title,
+      value: "\u200b",
+    });
+    return;
+  }
+
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    const chunk = rows.slice(index, index + chunkSize);
+    embed.addFields({
+      name: index === 0 ? title : "\u200b",
+      value: formatPlayersTable(chunk, valueLabel),
+    });
+  }
 }
 
 /**
@@ -212,21 +228,7 @@ function formatPlayersTable(rows, valueLabel) {
     return `${place}${row.name} \`${row.value}\``;
   });
 
-  const trimmedLines = [];
-  for (const line of lines) {
-    const next = trimmedLines.length === 0 ? line : `${trimmedLines.join("\n")}\n${line}`;
-    if (next.length > 1024) {
-      const overflowLine = "…";
-      const overflowCandidate = `${trimmedLines.join("\n")}\n${overflowLine}`;
-      if (overflowCandidate.length <= 1024) {
-        return overflowCandidate;
-      }
-      return trimmedLines.join("\n");
-    }
-    trimmedLines.push(line);
-  }
-
-  return trimmedLines.join("\n");
+  return lines.join("\n");
 }
 
 /**
