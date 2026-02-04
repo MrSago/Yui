@@ -202,9 +202,6 @@ function formatPlayersTable(rows, valueLabel) {
   const placeWidth = Math.max(
     ...rows.map((row) => getVisibleLength(String(row.place))),
   );
-  const nameWidth = Math.max(
-    ...rows.map((row) => getVisibleLength(row.name)),
-  );
 
   const padColumn = (text, width) => {
     const padding = Math.max(0, width - getVisibleLength(text) + 1);
@@ -212,8 +209,7 @@ function formatPlayersTable(rows, valueLabel) {
   };
   const lines = rows.map((row) => {
     const place = padColumn(`**${row.place}**`, placeWidth);
-    const name = padColumn(row.name, nameWidth);
-    return `${place}${name} \`${row.value}\``;
+    return `${place}${row.name} \`${row.value}\``;
   });
 
   const trimmedLines = [];
