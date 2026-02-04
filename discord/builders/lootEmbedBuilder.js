@@ -196,15 +196,18 @@ function formatPlayersTable(rows, valueLabel) {
     return "\u200b";
   }
 
+  const getVisibleLength = (text) =>
+    text.replace(/<a?:\w+:\d+>/g, "x").length;
+
   const placeWidth = Math.max(
-    ...rows.map((row) => String(row.place).length),
+    ...rows.map((row) => getVisibleLength(String(row.place))),
   );
   const nameWidth = Math.max(
-    ...rows.map((row) => row.name.length),
+    ...rows.map((row) => getVisibleLength(row.name)),
   );
 
   const padColumn = (text, width) => {
-    const padding = Math.max(0, width - text.length + 1);
+    const padding = Math.max(0, width - getVisibleLength(text) + 1);
     return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
   };
 
