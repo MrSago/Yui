@@ -212,19 +212,9 @@ function formatPlayersTable(rows, valueLabel) {
     return "\u200b";
   }
 
-  const getVisibleLength = (text) =>
-    text.replace(/<a?:\w+:\d+>/g, "x").replace(/\*\*/g, "").length;
-
-  const placeWidth = Math.max(
-    ...rows.map((row) => getVisibleLength(String(row.place))),
-  );
-
-  const padColumn = (text, width) => {
-    const padding = Math.max(0, width - getVisibleLength(text) + 1);
-    return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
-  };
   const lines = rows.map((row) => {
-    const place = padColumn(`**${row.place}**`, placeWidth);
+    const placePadding = row.place >= 10 ? 1 : 2;
+    const place = `**${row.place}**${INVISIBLE_SPACE.repeat(placePadding)}`;
     return `${place}${row.name} \`${row.value}\``;
   });
 
