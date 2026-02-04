@@ -13,6 +13,8 @@ const bossThumbnails = require("../../config/bossThumbnails.js");
 const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
+const INVISIBLE_SPACE = "\u2800";
+
 /**
  * Creates a complete boss kill message with all sections
  * @param {Object} params - Message parameters
@@ -22,8 +24,8 @@ const sirusApi = require("../../api/sirusApi.js");
  * @param {string} params.guildId - Discord guild ID
  * @param {import('discord.js').Client} params.client - Discord client
  * @param {Array<Object>} params.lootItems - Array of loot item objects
- * @param {Object} params.dpsData - DPS data [places, players, dps, summaryDps]
- * @param {Object} params.hpsData - HPS data [places, players, hps, summaryHps]
+ * @param {Object} params.dpsData - DPS data [rows, summaryDps]
+ * @param {Object} params.hpsData - HPS data [rows, summaryHps]
  * @returns {import('discord.js').EmbedBuilder}
  */
 function createCompleteBossKillEmbed({
@@ -46,11 +48,11 @@ function createCompleteBossKillEmbed({
 
   setBossThumbnail(embed, bossKillInfo.boss_name);
 
-  const [placesDps, playersDps, dps, summaryDps] = dpsData;
-  addDpsSection(embed, placesDps, playersDps, dps, summaryDps);
+  const [dpsRows, summaryDps] = dpsData;
+  addDpsSection(embed, dpsRows, summaryDps);
 
-  const [placesHps, playersHps, hps, summaryHps] = hpsData;
-  addHpsSection(embed, placesHps, playersHps, hps, summaryHps);
+  const [hpsRows, summaryHps] = hpsData;
+  addHpsSection(embed, hpsRows, summaryHps);
 
   if (lootItems && lootItems.length > 0) {
     addLootSectionToEmbed(embed, lootItems, realmId);
@@ -116,13 +118,11 @@ function createBossKillEmbed({
 /**
  * Adds DPS section to embed
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} places - String with places
- * @param {string} players - String with player names
- * @param {string} dps - String with DPS values
+ * @param {Array<Object>} rows - Player rows
  * @param {number} summaryDps - Total DPS
  * @returns {import('discord.js').EmbedBuilder}
  */
-function addDpsSection(embed, places, players, dps, summaryDps) {
+function addDpsSection(embed, rows, summaryDps) {
   addEmptyField(embed);
   embed.addFields(
     {
@@ -143,19 +143,8 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
   );
   embed.addFields(
     {
-      name: "Место",
-      value: places,
-      inline: true,
-    },
-    {
-      name: "Имя",
-      value: players,
-      inline: true,
-    },
-    {
-      name: "Урон",
-      value: dps,
-      inline: true,
+      name: "Дамагеры",
+      value: formatPlayersTable(rows, "Урон"),
     },
   );
   return embed;
@@ -164,13 +153,11 @@ function addDpsSection(embed, places, players, dps, summaryDps) {
 /**
  * Adds HPS section to embed
  * @param {import('discord.js').EmbedBuilder} embed - Embed message
- * @param {string} places - String with places
- * @param {string} players - String with player names
- * @param {string} hps - String with HPS values
+ * @param {Array<Object>} rows - Player rows
  * @param {number} summaryHps - Total HPS
  * @returns {import('discord.js').EmbedBuilder}
  */
-function addHpsSection(embed, places, players, hps, summaryHps) {
+function addHpsSection(embed, rows, summaryHps) {
   addEmptyField(embed);
   embed.addFields(
     {
@@ -191,22 +178,57 @@ function addHpsSection(embed, places, players, hps, summaryHps) {
   );
   embed.addFields(
     {
-      name: "Место",
-      value: places,
-      inline: true,
-    },
-    {
-      name: "Имя",
-      value: players,
-      inline: true,
-    },
-    {
-      name: "Лечение",
-      value: hps,
-      inline: true,
+      name: "Хиллеры",
+      value: formatPlayersTable(rows, "Лечение"),
     },
   );
   return embed;
+}
+
+/**
+ * Builds aligned table for player rows
+ * @param {Array<Object>} rows - Player rows
+ * @param {string} valueLabel - Value column label
+ * @returns {string}
+ */
+function formatPlayersTable(rows, valueLabel) {
+  if (!rows || rows.length === 0) {
+    return "\u200b";
+  }
+
+  const header = {
+    place: "Место",
+    name: "Имя",
+    value: valueLabel,
+  };
+
+  const placeWidth = Math.max(
+    header.place.length,
+    ...rows.map((row) => String(row.place).length),
+  );
+  const nameWidth = Math.max(
+    header.name.length,
+    ...rows.map((row) => row.name.length),
+  );
+
+  const padColumn = (text, width) => {
+    const padding = Math.max(0, width - text.length + 2);
+    return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
+  };
+
+  const lines = [
+    `${padColumn(header.place, placeWidth)}${padColumn(
+      header.name,
+      nameWidth,
+    )}${header.value}`,
+    ...rows.map((row) => {
+      const place = padColumn(String(row.place), placeWidth);
+      const name = padColumn(row.name, nameWidth);
+      return `${place}${name}${row.value}`;
+    }),
+  ];
+
+  return lines.join("\n");
 }
 
 /**

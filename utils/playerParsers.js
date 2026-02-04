@@ -24,15 +24,13 @@ function getPlayerEmoji(player, client) {
  * Parses DPS player data
  * @param {Array} data - Array of player data
  * @param {Object} client - Discord client
- * @returns {Array} [places, players, dps, summary_dps]
+ * @returns {Array} [rows, summary_dps]
  */
 function parseDpsPlayers(data, client) {
   data.sort((a, b) => b.dps - a.dps);
 
   let i = 1;
-  let places = "";
-  let players = "";
-  let dps = "";
+  const rows = [];
   let summary_dps = 0;
 
   for (const player of data) {
@@ -43,38 +41,41 @@ function parseDpsPlayers(data, client) {
 
     const emoji = getPlayerEmoji(player, client);
 
-    places += `**${i++}**\n`;
-    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
-
     const dps_int = parseInt(player.dps);
     if (dps_int) {
-      dps += `${formatShortValue(dps_int)}\n`;
+      rows.push({
+        place: i++,
+        name: (emoji ? `${emoji} ` : "") + player.name,
+        value: formatShortValue(dps_int),
+      });
       summary_dps += dps_int;
     } else {
-      dps += "0k\n";
+      rows.push({
+        place: i++,
+        name: (emoji ? `${emoji} ` : "") + player.name,
+        value: "0k",
+      });
     }
   }
 
-  if (places === "" || players === "" || dps === "") {
-    return ["\u200b", "\u200b", "\u200b", 0];
+  if (rows.length === 0) {
+    return [[], 0];
   }
 
-  return [places, players, dps, summary_dps];
+  return [rows, summary_dps];
 }
 
 /**
  * Parses HPS player data (healers)
  * @param {Array} data - Array of player data
  * @param {Object} client - Discord client
- * @returns {Array} [places, players, hps, summary_hps]
+ * @returns {Array} [rows, summary_hps]
  */
 function parseHealPlayers(data, client) {
   data.sort((a, b) => b.hps - a.hps);
 
   let i = 1;
-  let places = "";
-  let players = "";
-  let hps = "";
+  const rows = [];
   let summary_hps = 0;
 
   for (const player of data) {
@@ -85,23 +86,28 @@ function parseHealPlayers(data, client) {
 
     const emoji = getPlayerEmoji(player, client);
 
-    places += `**${i++}**\n`;
-    players += (emoji ? `${emoji}` : "") + `${player.name}\n`;
-
     const hpsInt = parseInt(player.hps);
     if (hpsInt) {
-      hps += `${formatShortValue(hpsInt)}\n`;
+      rows.push({
+        place: i++,
+        name: (emoji ? `${emoji} ` : "") + player.name,
+        value: formatShortValue(hpsInt),
+      });
       summary_hps += hpsInt;
     } else {
-      hps += "0k\n";
+      rows.push({
+        place: i++,
+        name: (emoji ? `${emoji} ` : "") + player.name,
+        value: "0k",
+      });
     }
   }
 
-  if (places === "" || players === "" || hps === "") {
-    return ["\u200b", "\u200b", "\u200b", 0];
+  if (rows.length === 0) {
+    return [[], 0];
   }
 
-  return [places, players, hps, summary_hps];
+  return [rows, summary_hps];
 }
 
 module.exports = {
