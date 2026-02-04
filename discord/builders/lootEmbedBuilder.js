@@ -216,19 +216,37 @@ function formatPlayersTable(rows, valueLabel) {
     return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
   };
 
-  const lines = [
-    `${padColumn(header.place, placeWidth)}${padColumn(
-      header.name,
-      nameWidth,
-    )}${header.value}`,
-    ...rows.map((row) => {
-      const place = padColumn(String(row.place), placeWidth);
-      const name = padColumn(row.name, nameWidth);
-      return `${place}${name}${row.value}`;
-    }),
-  ];
+  const headerLine = `${padColumn(header.place, placeWidth)}${padColumn(
+    header.name,
+    nameWidth,
+  )}${header.value}`;
 
-  return lines.join("\n");
+  const lines = [headerLine];
+  for (const row of rows) {
+    const place = padColumn(String(row.place), placeWidth);
+    const name = padColumn(row.name, nameWidth);
+    lines.push(`${place}${name}${row.value}`);
+  }
+
+  const trimmedLines = [];
+  for (const line of lines) {
+    const next = trimmedLines.length === 0 ? line : `${trimmedLines.join("\n")}\n${line}`;
+    if (next.length > 1024) {
+      if (trimmedLines.length === 0) {
+        return headerLine.slice(0, 1024);
+      }
+
+      const overflowLine = "…";
+      const overflowCandidate = `${trimmedLines.join("\n")}\n${overflowLine}`;
+      if (overflowCandidate.length <= 1024) {
+        return overflowCandidate;
+      }
+      return trimmedLines.join("\n");
+    }
+    trimmedLines.push(line);
+  }
+
+  return trimmedLines.join("\n");
 }
 
 /**
