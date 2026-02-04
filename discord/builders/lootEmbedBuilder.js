@@ -14,7 +14,7 @@ const { formatShortValue } = require("../../utils/formatters.js");
 const sirusApi = require("../../api/sirusApi.js");
 
 const INVISIBLE_SPACE = "\u2800";
-const FIGURE_SPACE = "\u2007";
+const PAD_SPACE = ` ${INVISIBLE_SPACE}`;
 
 /**
  * Creates a complete boss kill message with all sections
@@ -213,7 +213,7 @@ function formatPlayersTable(rows, valueLabel) {
   };
   const padValue = (text, width) => {
     const padding = Math.max(0, width - getVisibleLength(text));
-    return `${FIGURE_SPACE.repeat(padding)}${text}`;
+    return `${PAD_SPACE.repeat(padding)}${text}`;
   };
 
   const valueWidth = Math.max(
