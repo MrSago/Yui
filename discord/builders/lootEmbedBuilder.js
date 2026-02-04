@@ -196,46 +196,28 @@ function formatPlayersTable(rows, valueLabel) {
     return "\u200b";
   }
 
-  const header = {
-    place: "Место",
-    name: "Имя",
-    value: valueLabel,
-  };
-
   const placeWidth = Math.max(
-    header.place.length,
     ...rows.map((row) => String(row.place).length),
   );
   const nameWidth = Math.max(
-    header.name.length,
     ...rows.map((row) => row.name.length),
   );
 
   const padColumn = (text, width) => {
-    const padding = Math.max(0, width - text.length + 2);
+    const padding = Math.max(0, width - text.length + 1);
     return `${text}${INVISIBLE_SPACE.repeat(padding)}`;
   };
 
-  const headerLine = `${padColumn(header.place, placeWidth)}${padColumn(
-    header.name,
-    nameWidth,
-  )}${header.value}`;
-
-  const lines = [headerLine];
-  for (const row of rows) {
+  const lines = rows.map((row) => {
     const place = padColumn(String(row.place), placeWidth);
     const name = padColumn(row.name, nameWidth);
-    lines.push(`${place}${name}${row.value}`);
-  }
+    return `${place}${name}${row.value}`;
+  });
 
   const trimmedLines = [];
   for (const line of lines) {
     const next = trimmedLines.length === 0 ? line : `${trimmedLines.join("\n")}\n${line}`;
     if (next.length > 1024) {
-      if (trimmedLines.length === 0) {
-        return headerLine.slice(0, 1024);
-      }
-
       const overflowLine = "…";
       const overflowCandidate = `${trimmedLines.join("\n")}\n${overflowLine}`;
       if (overflowCandidate.length <= 1024) {
