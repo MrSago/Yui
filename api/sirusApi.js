@@ -8,7 +8,6 @@ const logger = require("../logger.js");
 const REALM_NAMES = {
   9: "Scourge x2",
   22: "Neverest x3",
-  33: "Algalon x4",
   42: "Soulseeker x1",
   57: "Sirus x5",
 };
