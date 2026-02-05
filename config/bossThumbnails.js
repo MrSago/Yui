@@ -128,7 +128,7 @@ module.exports = {
   "Архимонд": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-archimonde.png",
 
   // Черный храм
-  "Верховный полководец Надж'ентус": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-high-warlord-najentus.png",
+  "Верховный Полководец Надж'ентус": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-high-warlord-najentus.png",
   "Супремус": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-supremus.png",
   "Тень Акамы": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-shade-of-akama.png",
   "Терон Кровожад": "https://wow.zamimg.com/images/wow/journal/ui-ej-boss-teron-gorefiend.png",
