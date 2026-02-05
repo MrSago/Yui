@@ -90,7 +90,7 @@ function createBossKillEmbed({
   return createEmbed({
     color: config.embed.color,
     author: {
-      name: `${bossKillInfo.guild.name}${realmName ? ` - ${realmName}` : ""}`,
+      name: `${bossKillInfo.guild.name}${realmName ? ` — ${realmName}` : ""}`,
       iconURL: guildIcon,
       url: sirusApi.getGuildUrl(realmId, bossKillInfo.guild.id),
     },
