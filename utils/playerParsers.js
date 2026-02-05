@@ -45,7 +45,7 @@ function parseDpsPlayers(data, client) {
     if (dps_int) {
       rows.push({
         place: i++,
-        name: (emoji ? `${emoji} ` : "") + player.name,
+        name: (emoji ? `${emoji}` : "") + player.name,
         value: formatShortValue(dps_int),
         intValue: dps_int,
       });
@@ -53,7 +53,7 @@ function parseDpsPlayers(data, client) {
     } else {
       rows.push({
         place: i++,
-        name: (emoji ? `${emoji} ` : "") + player.name,
+        name: (emoji ? `${emoji}` : "") + player.name,
         value: "0k",
         intValue: 0,
       });
@@ -97,7 +97,7 @@ function parseHealPlayers(data, client) {
     if (hpsInt) {
       rows.push({
         place: i++,
-        name: (emoji ? `${emoji} ` : "") + player.name,
+        name: (emoji ? `${emoji}` : "") + player.name,
         value: formatShortValue(hpsInt),
         intValue: hpsInt,
       });
@@ -105,7 +105,7 @@ function parseHealPlayers(data, client) {
     } else {
       rows.push({
         place: i++,
-        name: (emoji ? `${emoji} ` : "") + player.name,
+        name: (emoji ? `${emoji}` : "") + player.name,
         value: "0k",
         intValue: 0,
       });
