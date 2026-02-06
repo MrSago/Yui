@@ -48,7 +48,7 @@ async function getTooltipData(page, itemEntry, realmId) {
     };
   }
 
-  const itemUrl = sirusApi.getItemTooltipUrl(itemEntry, realmId);
+  const itemUrl = sirusApi.getItemUrl(itemEntry, realmId);
 
   for (let attempt = 1; attempt <= TOOLTIP_RETRY_ATTEMPTS; attempt += 1) {
     try {

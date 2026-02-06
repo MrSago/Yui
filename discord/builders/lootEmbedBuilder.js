@@ -236,8 +236,7 @@ function addLootSectionToEmbed(embed, lootItems, realmId) {
   const lootString = lootItems
     .map((item) => {
       const itemUrl = sirusApi.getItemUrl(item.entry, realmId);
-      const tooltipUrl = sirusApi.getItemTooltipUrl(item.entry, realmId);
-      return `[${item.name}](${itemUrl}) ([tooltip](${tooltipUrl}))`;
+      return `[${item.name}](${itemUrl})`;
     })
     .join("\n");
 
