@@ -4,7 +4,7 @@
  * @note Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
  */
 
-const { ActivityType } = require("discord.js");
+const { ActivityType, AttachmentBuilder } = require("discord.js");
 
 const { loot: config } = require("../config/index.js");
 const { app } = require("../environment.js");
@@ -15,6 +15,10 @@ const {
 } = require("../discord/index.js");
 const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
+const {
+  createLootScreenshotBuffer,
+  closeLootScreenshotBrowser,
+} = require("./lootScreenshot.js");
 const {
   parseDpsPlayers,
   parseHealPlayers,
@@ -61,58 +65,61 @@ async function startRefreshingLoot() {
     status: config.activity.processingStatus.status,
   });
 
-  const settings = await db.getLootSettings();
-  if (!settings) {
-    logger.warn("Can't load loot settings from DB");
-    setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
-    return;
-  }
+  try {
+    const settings = await db.getLootSettings();
+    if (!settings) {
+      logger.warn("Can't load loot settings from DB");
+      return;
+    }
 
-  logger.debug(`Processing ${settings.length} loot settings entries`);
+    logger.debug(`Processing ${settings.length} loot settings entries`);
 
-  const guild_id_promises = settings.map((entry) =>
-    db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id })),
-  );
-
-  const guild_entries = await Promise.all(guild_id_promises);
-
-  const entry_promises = guild_entries
-    .filter(({ guild_id, entry }) => {
-      if (!guild_id) {
-        logger.warn(`Guild ID not found for loot entry ${entry._id}`);
-        return false;
-      }
-      return true;
-    })
-    .map(({ entry, guild_id }) => entryProcess(entry, guild_id));
-
-  const results = await Promise.allSettled(entry_promises);
-  const successful = results.filter((r) => r.status === "fulfilled");
-  const failed = results.filter((r) => r.status === "rejected");
-  if (failed.length > 0) {
-    logger.warn(
-      `${failed.length} loot entries failed to process, ${successful.length} succeeded`,
+    const guild_id_promises = settings.map((entry) =>
+      db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id })),
     );
+
+    const guild_entries = await Promise.all(guild_id_promises);
+
+    const entry_promises = guild_entries
+      .filter(({ guild_id, entry }) => {
+        if (!guild_id) {
+          logger.warn(`Guild ID not found for loot entry ${entry._id}`);
+          return false;
+        }
+        return true;
+      })
+      .map(({ entry, guild_id }) => entryProcess(entry, guild_id));
+
+    const results = await Promise.allSettled(entry_promises);
+    const successful = results.filter((r) => r.status === "fulfilled");
+    const failed = results.filter((r) => r.status === "rejected");
+    if (failed.length > 0) {
+      logger.warn(
+        `${failed.length} loot entries failed to process, ${successful.length} succeeded`,
+      );
+    }
+    logger.debug(`Processed ${results.length} loot entries`);
+  } finally {
+    await closeLootScreenshotBrowser();
+
+    const activity =
+      app.nodeEnv === "development"
+        ? config.activity.devStatus
+        : config.activity.idleStatus;
+
+    client.user.setPresence({
+      activities: [
+        {
+          name: activity.name,
+          type: ActivityType[activity.type],
+        },
+      ],
+      status: activity.status,
+    });
+    logger.info("Refreshing loot ended");
+
+    setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
   }
-  logger.debug(`Processed ${results.length} loot entries`);
-
-  const activity =
-    app.nodeEnv === "development"
-      ? config.activity.devStatus
-      : config.activity.idleStatus;
-
-  client.user.setPresence({
-    activities: [
-      {
-        name: activity.name,
-        type: ActivityType[activity.type],
-      },
-    ],
-    status: activity.status,
-  });
-  logger.info("Refreshing loot ended");
-
-  setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
 }
 
 /**
@@ -235,7 +242,12 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
       throw new Error("Empty message received!");
     }
 
-    await sendToChannel(client, entry.channel_id, message.embeds);
+    await sendToChannel(
+      client,
+      entry.channel_id,
+      message.embeds,
+      message.files || [],
+    );
     logger.info(
       `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`,
     );
@@ -293,7 +305,15 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     lootItems: lootItems,
   });
 
-  return { embeds: [embeds] };
+  const screenshotBuffer = await createLootScreenshotBuffer(lootItems, realm_id);
+  const files = [];
+
+  if (screenshotBuffer) {
+    embeds.setImage("attachment://loot.png");
+    files.push(new AttachmentBuilder(screenshotBuffer, { name: "loot.png" }));
+  }
+
+  return { embeds: [embeds], files };
 }
 
 module.exports = {

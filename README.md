@@ -83,6 +83,9 @@ docker compose down     # Остановка
 
 MongoDB будет доступна на порту `27017` с дефолтными учетными данными (см. [`docker-compose.yml`](docker-compose.yml)).
 
+> Для скриншотов лута контейнер устанавливает Chromium и использует переменную
+> `PUPPETEER_EXECUTABLE_PATH` (по умолчанию `/usr/bin/chromium-browser`).
+
 ### Структура конфигурации
 
 Проект использует два типа конфигурации:

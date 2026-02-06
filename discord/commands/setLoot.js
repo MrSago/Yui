@@ -33,7 +33,6 @@ module.exports = {
         .setChoices(
           { name: "Scourge x2", value: 9 },
           { name: "Neverest x3", value: 22 },
-          { name: "Algalon x4", value: 33 },
           { name: "Soulseeker x1", value: 42 },
           { name: "Sirus x5", value: 57 },
         ),

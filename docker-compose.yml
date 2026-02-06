@@ -7,6 +7,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     volumes:
       - ./logs:/app/logs
     depends_on:

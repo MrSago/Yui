@@ -3,12 +3,14 @@ const LootService = require("./LootService.js");
 const RecordsService = require("./RecordsService.js");
 const SettingsService = require("./SettingsService.js");
 const ChangelogDataService = require("./ChangelogDataService.js");
+const LootTooltipCacheService = require("./LootTooltipCacheService.js");
 
 const changelogService = new ChangelogService();
 const lootService = new LootService();
 const recordsService = new RecordsService();
 const settingsService = new SettingsService();
 const changelogDataService = new ChangelogDataService();
+const lootTooltipCacheService = new LootTooltipCacheService();
 
 module.exports = {
   changelogService,
@@ -16,4 +18,5 @@ module.exports = {
   recordsService,
   settingsService,
   changelogDataService,
+  lootTooltipCacheService,
 };

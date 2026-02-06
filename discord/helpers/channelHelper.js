@@ -10,9 +10,10 @@ const logger = require("../../logger.js");
  * @param {import('discord.js').Client} client - Discord client
  * @param {Array<{channel_id: string}>} settings - Channel settings
  * @param {import('discord.js').EmbedBuilder|Array<import('discord.js').EmbedBuilder>} embeds - Embed(s) to send
+ * @param {Array<import('discord.js').AttachmentBuilder>} [files] - Optional files to attach
  * @returns {Promise<void>}
  */
-async function sendToChannels(client, settings, embeds) {
+async function sendToChannels(client, settings, embeds, files = []) {
   if (!settings || settings.length === 0) {
     logger.warn("No channel settings provided");
     return;
@@ -32,7 +33,7 @@ async function sendToChannels(client, settings, embeds) {
         throw new Error(`Can't get channel with id: ${entry.channel_id}`);
       }
 
-      await channel.send({ embeds: embedArray });
+      await channel.send({ embeds: embedArray, files });
       successCount++;
       logger.debug(`Successfully sent message to channel ${entry.channel_id}`);
     } catch (error) {
@@ -54,9 +55,10 @@ async function sendToChannels(client, settings, embeds) {
  * @param {import('discord.js').Client} client - Discord client
  * @param {string} channelId - Channel ID
  * @param {import('discord.js').EmbedBuilder|Array<import('discord.js').EmbedBuilder>} embeds - Embed(s) to send
+ * @param {Array<import('discord.js').AttachmentBuilder>} [files] - Optional files to attach
  * @returns {Promise<void>}
  */
-async function sendToChannel(client, channelId, embeds) {
+async function sendToChannel(client, channelId, embeds, files = []) {
   try {
     logger.debug(`Sending message to channel ${channelId}`);
 
@@ -67,7 +69,7 @@ async function sendToChannel(client, channelId, embeds) {
     }
 
     const embedArray = Array.isArray(embeds) ? embeds : [embeds];
-    await channel.send({ embeds: embedArray });
+    await channel.send({ embeds: embedArray, files });
 
     logger.debug(`Successfully sent message to channel ${channelId}`);
   } catch (error) {
