@@ -4,6 +4,10 @@ const db = require("../db/database.js");
 const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
 
+let puppeteerModule = null;
+let browserPromise = null;
+let screenshotQueue = Promise.resolve();
+
 function resolveChromiumExecutablePath() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -91,26 +95,91 @@ ${tooltips.join("\n")}
 }
 
 async function createLootScreenshotBuffer(lootItems, realmId) {
-  if (!lootItems || lootItems.length === 0) {
-    return null;
+  const currentTask = screenshotQueue.then(() =>
+    createLootScreenshotBufferInternal(lootItems, realmId),
+  );
+
+  screenshotQueue = currentTask.catch(() => undefined);
+  return currentTask;
+}
+
+function getPuppeteer() {
+  if (puppeteerModule) {
+    return puppeteerModule;
   }
 
-  let puppeteer;
   try {
-    puppeteer = require("puppeteer");
+    puppeteerModule = require("puppeteer");
+    return puppeteerModule;
   } catch (error) {
     logger.warn(`Puppeteer is not available: ${error.message}`);
     return null;
   }
+}
 
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: resolveChromiumExecutablePath(),
-  });
+async function getBrowser() {
+  if (browserPromise) {
+    return browserPromise;
+  }
+
+  const puppeteer = getPuppeteer();
+  if (!puppeteer) {
+    return null;
+  }
+
+  browserPromise = puppeteer
+    .launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: resolveChromiumExecutablePath(),
+    })
+    .then((browser) => {
+      browser.on("disconnected", () => {
+        browserPromise = null;
+      });
+      return browser;
+    })
+    .catch((error) => {
+      browserPromise = null;
+      throw error;
+    });
+
+  return browserPromise;
+}
+
+async function closeBrowser() {
+  if (!browserPromise) {
+    return;
+  }
 
   try {
-    const page = await browser.newPage();
+    const browser = await browserPromise;
+    await browser.close();
+  } catch (_) {
+    // ignore shutdown errors
+  } finally {
+    browserPromise = null;
+  }
+}
+
+process.on("exit", closeBrowser);
+process.on("SIGINT", closeBrowser);
+process.on("SIGTERM", closeBrowser);
+
+async function createLootScreenshotBufferInternal(lootItems, realmId) {
+  if (!lootItems || lootItems.length === 0) {
+    return null;
+  }
+
+  const browser = await getBrowser();
+  if (!browser) {
+    return null;
+  }
+
+  let page;
+
+  try {
+    page = await browser.newPage();
 
     const tooltips = [];
     let styles = [];
@@ -156,7 +225,9 @@ async function createLootScreenshotBuffer(lootItems, realmId) {
     logger.error(`Failed to render loot screenshot: ${error.message}`);
     return null;
   } finally {
-    await browser.close();
+    if (page) {
+      await page.close().catch(() => undefined);
+    }
   }
 }
 
