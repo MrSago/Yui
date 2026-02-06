@@ -7,7 +7,7 @@ const sirusApi = require("../api/sirusApi.js");
 let puppeteerModule = null;
 let browserPromise = null;
 let screenshotQueue = Promise.resolve();
-const stylesCacheByRealm = new Map();
+let cachedStyles = null;
 
 const TOOLTIP_SELECTOR = ".s-tooltip-detail";
 const TOOLTIP_RETRY_ATTEMPTS = 2;
@@ -81,9 +81,9 @@ async function getTooltipData(page, itemEntry, realmId) {
   return null;
 }
 
-async function getStylesForRealm(page, realmId, fallbackItemEntry) {
-  if (stylesCacheByRealm.has(realmId)) {
-    return stylesCacheByRealm.get(realmId);
+async function getStyles(page, realmId, fallbackItemEntry) {
+  if (cachedStyles && cachedStyles.length > 0) {
+    return cachedStyles;
   }
 
   if (!fallbackItemEntry) {
@@ -101,7 +101,7 @@ async function getStylesForRealm(page, realmId, fallbackItemEntry) {
   );
 
   if (styles.length > 0) {
-    stylesCacheByRealm.set(realmId, styles);
+    cachedStyles = styles;
   }
 
   return styles;
@@ -231,7 +231,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
   try {
     page = await browser.newPage();
 
-    let styles = await getStylesForRealm(page, numericRealmId, lootItems[0]?.entry);
+    let styles = await getStyles(page, numericRealmId, lootItems[0]?.entry);
     const tooltips = [];
 
     for (const item of lootItems) {
@@ -245,7 +245,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
       if (styles.length === 0 && data.styles?.length > 0) {
         styles = data.styles;
-        stylesCacheByRealm.set(numericRealmId, styles);
+        cachedStyles = styles;
       }
     }
 
