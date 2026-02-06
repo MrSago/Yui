@@ -297,11 +297,10 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     if (page) {
       await page.close().catch(() => undefined);
     }
-
-    await closeBrowser();
   }
 }
 
 module.exports = {
   createLootScreenshotBuffer,
+  closeLootScreenshotBrowser: closeBrowser,
 };
