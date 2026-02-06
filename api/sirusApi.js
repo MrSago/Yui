@@ -143,6 +143,24 @@ function getItemUrl(itemEntry, realmId) {
 }
 
 /**
+ * Build item URL for base tooltip page with realm suffix (e.g. x5)
+ * @param {number} itemEntry - Item entry ID
+ * @param {number} realmId - Realm ID
+ * @returns {string} Item tooltip URL
+ */
+function getItemTooltipUrl(itemEntry, realmId) {
+  const realmSuffixById = {
+    9: "x2",
+    22: "x3",
+    42: "x1",
+    57: "x5",
+  };
+
+  const realmSuffix = realmSuffixById[realmId] || `x${realmId}`;
+  return `${ITEM_URL}/${itemEntry}/${realmSuffix}`;
+}
+
+/**
  * Build guild URL
  * @param {number} realmId - Realm ID
  * @param {number} guildId - Guild ID
@@ -270,6 +288,7 @@ module.exports = {
   getLatestBossKills,
   getBossKillDetails,
   getItemUrl,
+  getItemTooltipUrl,
   getGuildUrl,
   getPveProgressUrl,
   getChangelogUrl,

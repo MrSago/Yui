@@ -5,6 +5,7 @@
     "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "mongodb": "^6.21.0",
-    "mongoose": "^8.22.0"
+    "mongoose": "^8.22.0",
+    "puppeteer": "^24.26.1"
   }
 }

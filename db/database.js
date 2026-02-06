@@ -4,6 +4,7 @@ const {
   changelogService,
   changelogDataService,
   lootService,
+  lootTooltipCacheService,
   recordsService,
   settingsService,
 } = require("./services/index.js");
@@ -43,6 +44,12 @@ module.exports = {
   toggleLootFilter: lootService.toggleLootFilter.bind(lootService),
   setLootFilterForMap: lootService.setLootFilterForMap.bind(lootService),
   clearLootFilters: lootService.clearLootFilters.bind(lootService),
+
+  // Loot tooltip cache operations
+  getLootTooltipCache:
+    lootTooltipCacheService.getTooltipCache.bind(lootTooltipCacheService),
+  saveLootTooltipCache:
+    lootTooltipCacheService.saveTooltipCache.bind(lootTooltipCacheService),
 
   // Records operations
   initRecords: recordsService.initRecords.bind(recordsService),

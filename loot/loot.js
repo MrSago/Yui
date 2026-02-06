@@ -4,7 +4,7 @@
  * @note Original code was taken from: https://github.com/JustJacob95/sirus_loot_discord_bot
  */
 
-const { ActivityType } = require("discord.js");
+const { ActivityType, AttachmentBuilder } = require("discord.js");
 
 const { loot: config } = require("../config/index.js");
 const { app } = require("../environment.js");
@@ -15,6 +15,7 @@ const {
 } = require("../discord/index.js");
 const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
+const { createLootScreenshotBuffer } = require("./lootScreenshot.js");
 const {
   parseDpsPlayers,
   parseHealPlayers,
@@ -235,7 +236,12 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
       throw new Error("Empty message received!");
     }
 
-    await sendToChannel(client, entry.channel_id, message.embeds);
+    await sendToChannel(
+      client,
+      entry.channel_id,
+      message.embeds,
+      message.files || [],
+    );
     logger.info(
       `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`,
     );
@@ -293,7 +299,15 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     lootItems: lootItems,
   });
 
-  return { embeds: [embeds] };
+  const screenshotBuffer = await createLootScreenshotBuffer(lootItems, realm_id);
+  const files = [];
+
+  if (screenshotBuffer) {
+    embeds.setImage("attachment://loot.png");
+    files.push(new AttachmentBuilder(screenshotBuffer, { name: "loot.png" }));
+  }
+
+  return { embeds: [embeds], files };
 }
 
 module.exports = {
