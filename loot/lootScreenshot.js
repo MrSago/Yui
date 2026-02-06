@@ -275,7 +275,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     await page.setViewport({
       width: size.width,
       height: size.height,
-      deviceScaleFactor: 2,
+      deviceScaleFactor: 1,
     });
 
     return await page.screenshot({
