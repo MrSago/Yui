@@ -8,6 +8,13 @@ let puppeteerModule = null;
 let browserPromise = null;
 let screenshotQueue = Promise.resolve();
 
+const TOOLTIP_SELECTOR = ".s-tooltip-detail";
+const TOOLTIP_RETRY_ATTEMPTS = 2;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function resolveChromiumExecutablePath() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -42,20 +49,38 @@ async function getTooltipData(page, itemEntry, realmId) {
   }
 
   const itemUrl = sirusApi.getItemTooltipUrl(itemEntry, realmId);
-  await page.goto(itemUrl, {
-    waitUntil: "networkidle2",
-    timeout: 15000,
-  });
 
-  const styles = await page.$$eval('link[rel="stylesheet"]', (links) =>
-    links.map((link) => link.href),
-  );
+  for (let attempt = 1; attempt <= TOOLTIP_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      await page.goto(itemUrl, {
+        waitUntil: "networkidle2",
+        timeout: 15000,
+      });
 
-  const tooltipHtml = await page.$eval(".s-tooltip-detail", (el) => el.outerHTML);
+      await page.waitForSelector(TOOLTIP_SELECTOR, { timeout: 6000 });
 
-  await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml, styles);
+      const styles = await page.$$eval('link[rel="stylesheet"]', (links) =>
+        links.map((link) => link.href),
+      );
 
-  return { tooltipHtml, styles };
+      const tooltipHtml = await page.$eval(TOOLTIP_SELECTOR, (el) => el.outerHTML);
+
+      await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml, styles);
+
+      return { tooltipHtml, styles };
+    } catch (error) {
+      if (attempt === TOOLTIP_RETRY_ATTEMPTS) {
+        logger.warn(
+          `Tooltip render data unavailable for item ${itemEntry} on realm ${realmId}: ${error.message}`,
+        );
+        return null;
+      }
+
+      await sleep(500 * attempt);
+    }
+  }
+
+  return null;
 }
 
 function buildTooltipGridHtml(tooltips, styles) {
@@ -186,11 +211,21 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
     for (const item of lootItems) {
       const data = await getTooltipData(page, item.entry, Number(realmId));
+
+      if (!data?.tooltipHtml) {
+        continue;
+      }
+
       tooltips.push(data.tooltipHtml);
 
       if (styles.length === 0 && data.styles.length > 0) {
         styles = data.styles;
       }
+    }
+
+    if (tooltips.length === 0) {
+      logger.warn("No tooltip blocks were rendered, skipping loot screenshot");
+      return null;
     }
 
     const html = buildTooltipGridHtml(tooltips, styles);
