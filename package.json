@@ -3,9 +3,9 @@
     "axios": "^1.13.4",
     "bottleneck": "^2.19.5",
     "discord.js": "^14.25.1",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.2.4",
     "mongodb": "^6.21.0",
-    "mongoose": "^8.22.0",
-    "puppeteer": "^24.26.1"
+    "mongoose": "^8.22.1",
+    "puppeteer": "^24.37.2"
   }
 }
