@@ -86,12 +86,6 @@ async function getStylesForRealm(page, realmId, fallbackItemEntry) {
     return stylesCacheByRealm.get(realmId);
   }
 
-  const styleDoc = await db.getLootTooltipStyles(realmId);
-  if (styleDoc?.styles?.length > 0) {
-    stylesCacheByRealm.set(realmId, styleDoc.styles);
-    return styleDoc.styles;
-  }
-
   if (!fallbackItemEntry) {
     return [];
   }
@@ -108,7 +102,6 @@ async function getStylesForRealm(page, realmId, fallbackItemEntry) {
 
   if (styles.length > 0) {
     stylesCacheByRealm.set(realmId, styles);
-    await db.saveLootTooltipStyles(realmId, styles);
   }
 
   return styles;
@@ -253,7 +246,6 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
       if (styles.length === 0 && data.styles?.length > 0) {
         styles = data.styles;
         stylesCacheByRealm.set(numericRealmId, styles);
-        await db.saveLootTooltipStyles(numericRealmId, styles);
       }
     }
 
