@@ -127,7 +127,10 @@ function addDpsSection(embed, rows, summaryDps) {
   embed.addFields(
     {
       name: "Общий DPS",
-      value: "```ansi\n" + `[2;31m${formatShortValue(summaryDps)}[0m\n` + "```",
+      value:
+        "```ansi\n" +
+        `[2;31m[1;31m${formatShortValue(summaryDps)}[0m[2;31m[0m` +
+        "\n```",
       inline: true,
     },
     {
@@ -157,7 +160,10 @@ function addHpsSection(embed, rows, summaryHps) {
   embed.addFields(
     {
       name: "Общий HPS",
-      value: "```ansi\n" + `[2;36m${formatShortValue(summaryHps)}[0m` + "```",
+      value:
+        "```ansi\n" +
+        `[2;32m[1;32m${formatShortValue(summaryHps)}[0m[2;32m[0m` +
+        "\n```",
       inline: true,
     },
     {
