@@ -78,7 +78,6 @@
 - `realm_id` (integer, required) - ID реалма (сервера)
   - Scourge x2 (9)
   - Neverest x3 (22)
-  - Algalon x4 (33)
   - Soulseeker x1 (42)
   - Sirus x5 (57)
 - `guild_sirus_id` (integer, required) - ID гильдии на Sirus.su
