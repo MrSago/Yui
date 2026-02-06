@@ -1,6 +1,32 @@
+const fs = require("fs");
+
 const db = require("../db/database.js");
 const logger = require("../logger.js");
 const sirusApi = require("../api/sirusApi.js");
+
+function resolveChromiumExecutablePath() {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+
+  const commonPaths = [
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+  ];
+
+  for (const path of commonPaths) {
+    try {
+      fs.accessSync(path);
+      return path;
+    } catch (_) {
+      continue;
+    }
+  }
+
+  return undefined;
+}
 
 async function getTooltipData(page, itemEntry, realmId) {
   const cached = await db.getLootTooltipCache(itemEntry, realmId);
@@ -80,6 +106,7 @@ async function createLootScreenshotBuffer(lootItems, realmId) {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: resolveChromiumExecutablePath(),
   });
 
   try {
