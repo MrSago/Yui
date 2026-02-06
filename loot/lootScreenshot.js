@@ -260,7 +260,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     await page.waitForSelector(".grid");
 
     await page
-      .waitForNetworkIdle({ idleTime: 500, timeout: 10000 })
+      .waitForNetworkIdle({ idleTime: 500, timeout: 30000 })
       .catch(() => undefined);
 
     const size = await page.evaluate(() => {
