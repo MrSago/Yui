@@ -5,6 +5,7 @@ const {
   changelogDataService,
   lootService,
   lootTooltipCacheService,
+  lootTooltipStyleService,
   recordsService,
   settingsService,
 } = require("./services/index.js");
@@ -50,6 +51,10 @@ module.exports = {
     lootTooltipCacheService.getTooltipCache.bind(lootTooltipCacheService),
   saveLootTooltipCache:
     lootTooltipCacheService.saveTooltipCache.bind(lootTooltipCacheService),
+  getLootTooltipStyles:
+    lootTooltipStyleService.getTooltipStyles.bind(lootTooltipStyleService),
+  saveLootTooltipStyles:
+    lootTooltipStyleService.saveTooltipStyles.bind(lootTooltipStyleService),
 
   // Records operations
   initRecords: recordsService.initRecords.bind(recordsService),

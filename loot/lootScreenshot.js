@@ -7,6 +7,7 @@ const sirusApi = require("../api/sirusApi.js");
 let puppeteerModule = null;
 let browserPromise = null;
 let screenshotQueue = Promise.resolve();
+const stylesCacheByRealm = new Map();
 
 const TOOLTIP_SELECTOR = ".s-tooltip-detail";
 const TOOLTIP_RETRY_ATTEMPTS = 2;
@@ -42,10 +43,7 @@ function resolveChromiumExecutablePath() {
 async function getTooltipData(page, itemEntry, realmId) {
   const cached = await db.getLootTooltipCache(itemEntry, realmId);
   if (cached?.tooltip_html) {
-    return {
-      tooltipHtml: cached.tooltip_html,
-      styles: cached.styles || [],
-    };
+    return { tooltipHtml: cached.tooltip_html, styles: null };
   }
 
   const itemUrl = sirusApi.getItemUrl(itemEntry, realmId);
@@ -65,7 +63,7 @@ async function getTooltipData(page, itemEntry, realmId) {
 
       const tooltipHtml = await page.$eval(TOOLTIP_SELECTOR, (el) => el.outerHTML);
 
-      await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml, styles);
+      await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml);
 
       return { tooltipHtml, styles };
     } catch (error) {
@@ -81,6 +79,39 @@ async function getTooltipData(page, itemEntry, realmId) {
   }
 
   return null;
+}
+
+async function getStylesForRealm(page, realmId, fallbackItemEntry) {
+  if (stylesCacheByRealm.has(realmId)) {
+    return stylesCacheByRealm.get(realmId);
+  }
+
+  const styleDoc = await db.getLootTooltipStyles(realmId);
+  if (styleDoc?.styles?.length > 0) {
+    stylesCacheByRealm.set(realmId, styleDoc.styles);
+    return styleDoc.styles;
+  }
+
+  if (!fallbackItemEntry) {
+    return [];
+  }
+
+  const itemUrl = sirusApi.getItemUrl(fallbackItemEntry, realmId);
+  await page.goto(itemUrl, {
+    waitUntil: "networkidle2",
+    timeout: 15000,
+  });
+
+  const styles = await page.$$eval('link[rel="stylesheet"]', (links) =>
+    links.map((link) => link.href),
+  );
+
+  if (styles.length > 0) {
+    stylesCacheByRealm.set(realmId, styles);
+    await db.saveLootTooltipStyles(realmId, styles);
+  }
+
+  return styles;
 }
 
 function buildTooltipGridHtml(tooltips, styles) {
@@ -202,15 +233,16 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
   }
 
   let page;
+  const numericRealmId = Number(realmId);
 
   try {
     page = await browser.newPage();
 
+    let styles = await getStylesForRealm(page, numericRealmId, lootItems[0]?.entry);
     const tooltips = [];
-    let styles = [];
 
     for (const item of lootItems) {
-      const data = await getTooltipData(page, item.entry, Number(realmId));
+      const data = await getTooltipData(page, item.entry, numericRealmId);
 
       if (!data?.tooltipHtml) {
         continue;
@@ -218,8 +250,10 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
       tooltips.push(data.tooltipHtml);
 
-      if (styles.length === 0 && data.styles.length > 0) {
+      if (styles.length === 0 && data.styles?.length > 0) {
         styles = data.styles;
+        stylesCacheByRealm.set(numericRealmId, styles);
+        await db.saveLootTooltipStyles(numericRealmId, styles);
       }
     }
 
@@ -263,6 +297,8 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     if (page) {
       await page.close().catch(() => undefined);
     }
+
+    await closeBrowser();
   }
 }
 

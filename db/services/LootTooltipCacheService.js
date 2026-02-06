@@ -13,13 +13,12 @@ class LootTooltipCacheService {
     }
   }
 
-  async saveTooltipCache(itemEntry, realmId, tooltipHtml, styles = []) {
+  async saveTooltipCache(itemEntry, realmId, tooltipHtml) {
     try {
       return await lootTooltipCacheRepository.upsertTooltipCache(
         itemEntry,
         realmId,
         tooltipHtml,
-        styles,
       );
     } catch (error) {
       logger.error(

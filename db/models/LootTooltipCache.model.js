@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 /**
  * Loot Tooltip Cache Schema
- * Stores rendered tooltip HTML and stylesheet links by item and realm IDs
+ * Stores rendered tooltip HTML by item and realm IDs
  */
 const lootTooltipCacheSchema = new mongoose.Schema(
   {
@@ -19,10 +19,6 @@ const lootTooltipCacheSchema = new mongoose.Schema(
     tooltip_html: {
       type: String,
       required: true,
-    },
-    styles: {
-      type: [String],
-      default: [],
     },
   },
   {
