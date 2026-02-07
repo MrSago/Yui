@@ -25,7 +25,7 @@ module.exports = {
     );
 
     try {
-      fetchGuild(guild);
+      await fetchGuild(guild);
       logger.debug(`Successfully fetched guild data for ${guild.name}`);
     } catch (e) {
       logger.error(`Error fetching guild data for ${guild.name}: ${e.message}`);

@@ -90,6 +90,44 @@ class ChangelogService {
   }
 
   /**
+   * Deletes changelog channel settings by channel ID
+   * @param {string} channelId - Discord channel ID
+   * @returns {Promise<void>}
+   */
+  async deleteChangelogChannelByChannelId(channelId) {
+    try {
+      const changelog = await changelogRepository.findByChannelId(channelId);
+      if (!changelog) {
+        logger.debug(
+          `No changelog settings found for channel ${channelId}, skip cleanup`,
+        );
+        return;
+      }
+
+      const settings = await settingsRepository.findOne({
+        changelog_id: changelog._id,
+      });
+
+      await changelogRepository.deleteById(changelog._id);
+
+      if (settings?.guild_id) {
+        await settingsRepository.upsertByGuildId(settings.guild_id, {
+          $unset: { changelog_id: 1 },
+        });
+      }
+
+      logger.info(
+        `Removed changelog settings for channel ${channelId} due to delivery restrictions`,
+      );
+    } catch (error) {
+      logger.error(
+        `Error deleting changelog settings by channel id ${channelId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Gets all changelog settings
    * @returns {Promise<Array|null>} Array of changelog settings or null
    */

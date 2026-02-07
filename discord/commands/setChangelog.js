@@ -10,7 +10,7 @@ const {
   MessageFlags,
 } = require("discord.js");
 
-const { setChangelogChannel } = require("../../db/database.js");
+const { setChangelogChannel, deleteChangelogChannelByChannelId } = require("../../db/database.js");
 const logger = require("../../logger.js");
 
 module.exports = {
@@ -56,6 +56,28 @@ module.exports = {
     if (!interaction.memberPermissions?.has(PermissionFlagsBits.BanMembers)) {
       return interaction.reply({
         content: "У вас нет прав на использование этой команды.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    if (!channel?.isTextBased?.()) {
+      return interaction.reply({
+        content:
+          "Выбранный канал не подходит для отправки сообщений. Укажите текстовый канал.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    const botPermissions = channel.permissionsFor(interaction.client.user);
+    const hasSendPermissions =
+      botPermissions?.has(PermissionFlagsBits.ViewChannel) &&
+      botPermissions?.has(PermissionFlagsBits.SendMessages) &&
+      botPermissions?.has(PermissionFlagsBits.EmbedLinks);
+
+    if (!hasSendPermissions) {
+      await deleteChangelogChannelByChannelId(channel.id);
+      return interaction.reply({
+        content:
+          "Я не могу отправлять сообщения в выбранный канал. Настройка для этого канала удалена, укажите другой канал.",
         flags: MessageFlags.Ephemeral,
       });
     }
