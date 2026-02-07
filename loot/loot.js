@@ -122,6 +122,25 @@ async function startRefreshingLoot() {
   }
 }
 
+
+/**
+ * Checks if loot settings are still configured for guild/channel
+ * @param {string} guild_id - Discord guild ID
+ * @param {string} channel_id - Discord channel ID
+ * @returns {Promise<boolean>}
+ */
+async function hasActiveLootSettings(guild_id, channel_id) {
+  try {
+    const settings = await db.getLootSettingsForGuild(guild_id);
+    return settings?.channel_id === channel_id;
+  } catch (error) {
+    logger.info(
+      `Loot settings are no longer active for guild ${guild_id}, interrupting processing`,
+    );
+    return false;
+  }
+}
+
 /**
  * Processes a single loot entry for a guild
  * Checks for new boss kill records and sends notifications to Discord
@@ -202,13 +221,22 @@ async function entryProcess(entry, guild_id) {
     return;
   }
 
-  const promises = new_records.map(({ record }) =>
-    getExtraInfoAndSend(entry, guild_id, record),
-  );
-  const record_ids = await Promise.allSettled(promises);
-  const sended_records = record_ids
-    .filter((r) => r.status === "fulfilled" && r.value)
-    .map((r) => r.value);
+  const sended_records = [];
+
+  for (const { record } of new_records) {
+    const settingsActive = await hasActiveLootSettings(guild_id, entry.channel_id);
+    if (!settingsActive) {
+      logger.info(
+        `Stopped loot processing for guild ${guild_id}: loot settings were cleared`,
+      );
+      break;
+    }
+
+    const recordId = await getExtraInfoAndSend(entry, guild_id, record);
+    if (recordId) {
+      sended_records.push(recordId);
+    }
+  }
 
   logger.debug(
     `Sent ${sended_records.length} new boss kill notifications for guild ${guild_id}`,
@@ -237,17 +265,39 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
       `Processing new boss kill record ${record.id} for guild ${guild_id}`,
     );
 
+    if (!(await hasActiveLootSettings(guild_id, entry.channel_id))) {
+      logger.info(
+        `Skipping record ${record.id} for guild ${guild_id}: loot settings were cleared`,
+      );
+      return null;
+    }
+
     const message = await getExtraInfo(guild_id, record.id, entry.realm_id);
     if (!message) {
       throw new Error("Empty message received!");
     }
 
-    await sendToChannel(
+    if (!(await hasActiveLootSettings(guild_id, entry.channel_id))) {
+      logger.info(
+        `Skipping send for record ${record.id} in guild ${guild_id}: loot settings were cleared`,
+      );
+      return null;
+    }
+
+    const delivered = await sendToChannel(
       client,
       entry.channel_id,
       message.embeds,
       message.files || [],
     );
+
+    if (!delivered) {
+      logger.info(
+        `Notification for record ${record.id} was not delivered to channel ${entry.channel_id}`,
+      );
+      return null;
+    }
+
     logger.info(
       `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`,
     );

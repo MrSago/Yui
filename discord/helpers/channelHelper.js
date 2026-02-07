@@ -65,7 +65,7 @@ function getSendPermissionIssue(client, channel) {
 /**
  * Removes any notification settings that point to a restricted channel
  * @param {string} channelId - Channel ID
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 async function cleanupRestrictedChannel(channelId) {
   try {
@@ -86,12 +86,12 @@ async function cleanupRestrictedChannel(channelId) {
  * @param {Array<{channel_id: string}>} settings - Channel settings
  * @param {import('discord.js').EmbedBuilder|Array<import('discord.js').EmbedBuilder>} embeds - Embed(s) to send
  * @param {Array<import('discord.js').AttachmentBuilder>} [files] - Optional files to attach
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} True when at least one message was sent
  */
 async function sendToChannels(client, settings, embeds, files = []) {
   if (!settings || settings.length === 0) {
     logger.warn("No channel settings provided");
-    return;
+    return false;
   }
 
   logger.debug(`Sending message to ${settings.length} channels`);
@@ -134,6 +134,8 @@ async function sendToChannels(client, settings, embeds, files = []) {
   logger.debug(
     `Message delivery complete: ${successCount} success, ${failCount} failed`,
   );
+
+  return successCount > 0;
 }
 
 /**
@@ -142,7 +144,7 @@ async function sendToChannels(client, settings, embeds, files = []) {
  * @param {string} channelId - Channel ID
  * @param {import('discord.js').EmbedBuilder|Array<import('discord.js').EmbedBuilder>} embeds - Embed(s) to send
  * @param {Array<import('discord.js').AttachmentBuilder>} [files] - Optional files to attach
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} True when message was sent
  */
 async function sendToChannel(client, channelId, embeds, files = []) {
   try {
@@ -161,18 +163,20 @@ async function sendToChannel(client, channelId, embeds, files = []) {
         `Can't send message to channel ${channelId}: ${permissionIssue}. Removing channel from settings.`,
       );
       await cleanupRestrictedChannel(channelId);
-      return;
+      return false;
     }
 
     const embedArray = Array.isArray(embeds) ? embeds : [embeds];
     await channel.send({ embeds: embedArray, files });
 
     logger.debug(`Successfully sent message to channel ${channelId}`);
+    return true;
   } catch (error) {
     logger.error(
       `Failed to send message to channel ${channelId}: ${error.message}`,
     );
     logger.warn(`Can't send message to channel ${channelId}`);
+    return false;
   }
 }
 
