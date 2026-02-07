@@ -179,7 +179,7 @@ async function entryProcess(entry, guild_id) {
   }
 
   const exists = await db.initRecords(guild_id);
-  if (!exists) {
+  if (!exists && app.nodeEnv === "production") {
     logger.info(
       `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`,
     );
