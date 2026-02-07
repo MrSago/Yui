@@ -11,6 +11,7 @@ let cachedStyles = null;
 
 const TOOLTIP_SELECTOR = ".s-tooltip-detail";
 const TOOLTIP_RETRY_ATTEMPTS = 2;
+const STYLE_SELECTOR = 'link[rel="stylesheet"]';
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,7 +33,7 @@ function resolveChromiumExecutablePath() {
     try {
       fs.accessSync(path);
       return path;
-    } catch (_) {
+    } catch {
       continue;
     }
   }
@@ -57,11 +58,14 @@ async function getTooltipData(page, itemEntry, realmId) {
 
       await page.waitForSelector(TOOLTIP_SELECTOR, { timeout: 6000 });
 
-      const styles = await page.$$eval('link[rel="stylesheet"]', (links) =>
+      const styles = await page.$$eval(STYLE_SELECTOR, (links) =>
         links.map((link) => link.href),
       );
 
-      const tooltipHtml = await page.$eval(TOOLTIP_SELECTOR, (el) => el.outerHTML);
+      const tooltipHtml = await page.$eval(
+        TOOLTIP_SELECTOR,
+        (el) => el.outerHTML,
+      );
 
       await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml);
 
@@ -204,7 +208,7 @@ async function closeBrowser() {
   try {
     const browser = await browserPromise;
     await browser.close();
-  } catch (_) {
+  } catch {
     // ignore shutdown errors
   } finally {
     browserPromise = null;
