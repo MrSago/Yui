@@ -122,6 +122,7 @@ async function startRefreshingLoot() {
   }
 }
 
+
 /**
  * Processes a single loot entry for a guild
  * Checks for new boss kill records and sends notifications to Discord
@@ -178,7 +179,7 @@ async function entryProcess(entry, guild_id) {
   }
 
   const exists = await db.initRecords(guild_id);
-  if (!exists) {
+  if (!exists && app.nodeEnv === "production") {
     logger.info(
       `First initialization for guild ${guild_id}, skipping notifications and saving record IDs`,
     );
@@ -205,6 +206,7 @@ async function entryProcess(entry, guild_id) {
   const promises = new_records.map(({ record }) =>
     getExtraInfoAndSend(entry, guild_id, record),
   );
+
   const record_ids = await Promise.allSettled(promises);
   const sended_records = record_ids
     .filter((r) => r.status === "fulfilled" && r.value)
@@ -242,12 +244,20 @@ async function getExtraInfoAndSend(entry, guild_id, record) {
       throw new Error("Empty message received!");
     }
 
-    await sendToChannel(
+    const delivered = await sendToChannel(
       client,
       entry.channel_id,
       message.embeds,
       message.files || [],
     );
+
+    if (!delivered) {
+      logger.info(
+        `Notification for record ${record.id} was not delivered to channel ${entry.channel_id}`,
+      );
+      return null;
+    }
+
     logger.info(
       `Boss kill notification sent: record ${record.id} to channel ${entry.channel_id} in guild ${guild_id}`,
     );

@@ -22,6 +22,8 @@ module.exports = {
     changelogService.setChangelogChannel.bind(changelogService),
   deleteChangelogChannel:
     changelogService.deleteChangelogChannel.bind(changelogService),
+  deleteChangelogChannelByChannelId:
+    changelogService.deleteChangelogChannelByChannelId.bind(changelogService),
   getChangelogSettings:
     changelogService.getChangelogSettings.bind(changelogService),
 
@@ -36,6 +38,8 @@ module.exports = {
   // Loot operations
   setLootChannel: lootService.setLootChannel.bind(lootService),
   deleteLootChannel: lootService.deleteLootChannel.bind(lootService),
+  deleteLootChannelByChannelId:
+    lootService.deleteLootChannelByChannelId.bind(lootService),
   getLootSettings: lootService.getLootSettings.bind(lootService),
   getLootSettingsForGuild:
     lootService.getLootSettingsForGuild.bind(lootService),

@@ -114,6 +114,43 @@ class LootService {
     }
   }
 
+
+  /**
+   * Deletes loot channel settings by channel ID
+   * @param {string} channelId - Discord channel ID
+   * @returns {Promise<void>}
+   */
+  async deleteLootChannelByChannelId(channelId) {
+    try {
+      const loot = await lootRepository.findByChannelId(channelId);
+      if (!loot) {
+        logger.debug(
+          `No loot settings found for channel ${channelId}, skip cleanup`,
+        );
+        return;
+      }
+
+      const settings = await settingsRepository.findOne({ loot_id: loot._id });
+
+      await lootRepository.deleteById(loot._id);
+
+      if (settings?.guild_id) {
+        await settingsRepository.upsertByGuildId(settings.guild_id, {
+          $unset: { loot_id: 1 },
+        });
+      }
+
+      logger.info(
+        `Removed loot settings for channel ${channelId} due to delivery restrictions`,
+      );
+    } catch (error) {
+      logger.error(
+        `Error deleting loot settings by channel id ${channelId}: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
   /**
    * Gets guild ID by loot ID
    * @param {string} lootId - Loot document ID
