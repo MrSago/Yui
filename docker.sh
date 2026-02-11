@@ -23,6 +23,7 @@ show_help() {
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
   clear       - Полностью удалить контейнеры, образы и volumes
+  clear-cache - Очистить кеш tooltip_html (loot_tooltip_cache)
   help        - Показать эту справку
 EOF
 }
@@ -80,6 +81,12 @@ enter_mongo_shell() {
     docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin
 }
 
+
+clear_loot_tooltip_cache() {
+    echo -e "${YELLOW}🧹 Очистка кеша tooltip_html (loot_tooltip_cache)...${NC}"
+    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval 'db.getCollection("loot_tooltip_cache").deleteMany({})'
+    echo -e "${GREEN}✅ Кеш tooltip_html очищен!${NC}"
+}
 clear_all() {
     echo -e "${RED}⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!${NC}"
     read -p "Вы уверены? Введите 'yes' для подтверждения: " confirmation
@@ -140,6 +147,9 @@ case "$1" in
         ;;
     clear)
         clear_all
+        ;;
+    clear-cache)
+        clear_loot_tooltip_cache
         ;;
     help|--help|-h|"")
         show_help

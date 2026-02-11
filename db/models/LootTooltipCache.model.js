@@ -2,16 +2,11 @@ const mongoose = require("mongoose");
 
 /**
  * Loot Tooltip Cache Schema
- * Stores rendered tooltip HTML by item and realm IDs
+ * Stores rendered tooltip HTML by item ID
  */
 const lootTooltipCacheSchema = new mongoose.Schema(
   {
     item_entry: {
-      type: Number,
-      required: true,
-      index: true,
-    },
-    realm_id: {
       type: Number,
       required: true,
       index: true,
@@ -27,7 +22,7 @@ const lootTooltipCacheSchema = new mongoose.Schema(
   },
 );
 
-lootTooltipCacheSchema.index({ item_entry: 1, realm_id: 1 }, { unique: true });
+lootTooltipCacheSchema.index({ item_entry: 1 }, { unique: true });
 
 const LootTooltipCache = mongoose.model(
   "LootTooltipCache",

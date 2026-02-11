@@ -18,6 +18,7 @@ function Show-Help {
   shell       - Войти в shell контейнера бота
   mongo-shell - Войти в MongoDB shell (mongosh)
   clear       - Полностью удалить контейнеры, образы и volumes
+  clear-cache - Очистить кеш tooltip_html (loot_tooltip_cache)
   help        - Показать эту справку
 "@
 }
@@ -83,6 +84,15 @@ function Enter-MongoShell {
     docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin
 }
 
+
+function Clear-LootTooltipCache {
+    Write-Host "🧹 Очистка кеша tooltip_html (loot_tooltip_cache)..." -ForegroundColor Yellow
+    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval 'db.getCollection("loot_tooltip_cache").deleteMany({})'
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "✅ Кеш tooltip_html очищен!" -ForegroundColor Green
+    }
+}
+
 function Clear-All {
     Write-Host "⚠️  ВНИМАНИЕ: Эта операция полностью удалит контейнеры, образы и все данные (volumes)!" -ForegroundColor Red
     $confirmation = Read-Host "Вы уверены? Введите 'yes' для подтверждения"
@@ -106,7 +116,7 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-$validCommands = @("start", "stop", "restart", "logs", "logs-mongo", "build", "status", "shell", "mongo-shell", "clear", "help")
+$validCommands = @("start", "stop", "restart", "logs", "logs-mongo", "build", "status", "shell", "mongo-shell", "clear", "clear-cache", "help")
 if ($Command -notin $validCommands) {
     Write-Host "❌ Неизвестная команда: $Command" -ForegroundColor Red
     Write-Host ""
@@ -132,5 +142,6 @@ switch ($Command) {
     "shell" { Enter-Shell }
     "mongo-shell" { Enter-MongoShell }
     "clear" { Clear-All }
+    "clear-cache" { Clear-LootTooltipCache }
     "help" { Show-Help }
 }
