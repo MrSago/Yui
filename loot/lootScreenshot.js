@@ -43,7 +43,7 @@ function resolveChromiumExecutablePath() {
 }
 
 async function getTooltipData(page, itemEntry, realmId) {
-  const cached = await db.getLootTooltipCache(itemEntry, realmId);
+  const cached = await db.getLootTooltipCache(itemEntry);
   if (cached?.tooltip_html) {
     return { tooltipHtml: cached.tooltip_html, styles: null };
   }
@@ -68,7 +68,7 @@ async function getTooltipData(page, itemEntry, realmId) {
         (el) => el.outerHTML,
       );
 
-      await db.saveLootTooltipCache(itemEntry, realmId, tooltipHtml);
+      await db.saveLootTooltipCache(itemEntry, tooltipHtml);
 
       return { tooltipHtml, styles };
     } catch (error) {
@@ -321,7 +321,19 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
   }
 }
 
+
+async function clearLootTooltipCache() {
+  cachedStyles = null;
+
+  try {
+    await db.clearLootTooltipCache();
+  } catch (error) {
+    logger.error(`Failed to clear loot tooltip cache: ${error.message}`);
+  }
+}
+
 module.exports = {
   createLootScreenshotBuffer,
+  clearLootTooltipCache,
   closeLootScreenshotBrowser: closeBrowser,
 };
