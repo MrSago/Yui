@@ -8,6 +8,7 @@ let puppeteerModule = null;
 let browserPromise = null;
 let screenshotQueue = Promise.resolve();
 let cachedStyles = null;
+let isBrowserClosing = false;
 
 const TOOLTIP_SELECTOR = ".s-tooltip-detail";
 const TOOLTIP_RETRY_ATTEMPTS = 2;
@@ -201,23 +202,47 @@ async function getBrowser() {
 }
 
 async function closeBrowser() {
-  if (!browserPromise) {
+  if (!browserPromise || isBrowserClosing) {
     return;
   }
 
+  isBrowserClosing = true;
+
   try {
     const browser = await browserPromise;
+    const browserProcess = browser.process?.();
+
     await browser.close();
+
+    if (browserProcess?.pid) {
+      try {
+        process.kill(browserProcess.pid, 0);
+        browserProcess.kill("SIGKILL");
+      } catch {
+        // process already exited
+      }
+    }
   } catch {
     // ignore shutdown errors
   } finally {
     browserPromise = null;
+    isBrowserClosing = false;
   }
 }
 
-process.on("exit", closeBrowser);
-process.on("SIGINT", closeBrowser);
-process.on("SIGTERM", closeBrowser);
+process.once("beforeExit", () => {
+  closeBrowser().catch(() => undefined);
+});
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, () => {
+    closeBrowser()
+      .catch(() => undefined)
+      .finally(() => {
+        process.exit(0);
+      });
+  });
+}
 
 async function createLootScreenshotBufferInternal(lootItems, realmId) {
   if (!lootItems || lootItems.length === 0) {
