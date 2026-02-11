@@ -1,15 +1,10 @@
-FROM node:lts-alpine3.23
+FROM node:lts-alpine
 
 WORKDIR /app
 
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ttf-freefont
+RUN apk add --no-cache chromium
 
 COPY package.json ./
 
