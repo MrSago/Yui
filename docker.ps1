@@ -86,8 +86,18 @@ function Enter-MongoShell {
 
 
 function Clear-LootTooltipCache {
-    Write-Host "🧹 Очистка кеша tooltip_html (loot_tooltip_cache)..." -ForegroundColor Yellow
-    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval 'db.getCollection("loot_tooltip_cache").deleteMany({})'
+    $mongoDb = "admin"
+
+    if (Test-Path .env) {
+        $dbLine = Get-Content .env | Where-Object { $_ -match '^DB_AUTH_SOURCE=' } | Select-Object -Last 1
+        if ($dbLine) {
+            $mongoDb = ($dbLine -split '=', 2)[1].Trim()
+        }
+    }
+
+    Write-Host "🧹 Очистка кеша tooltip_html (loot_tooltip_cache) в БД '$mongoDb'..." -ForegroundColor Yellow
+    $mongoEval = "db.getSiblingDB('${mongoDb}').getCollection('loot_tooltip_cache').deleteMany({})"
+    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval $mongoEval
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Кеш tooltip_html очищен!" -ForegroundColor Green
     }

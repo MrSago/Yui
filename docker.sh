@@ -83,8 +83,18 @@ enter_mongo_shell() {
 
 
 clear_loot_tooltip_cache() {
-    echo -e "${YELLOW}🧹 Очистка кеша tooltip_html (loot_tooltip_cache)...${NC}"
-    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval 'db.getCollection("loot_tooltip_cache").deleteMany({})'
+    local mongo_db="admin"
+
+    if [ -f .env ]; then
+        local env_db
+        env_db=$(grep -E '^DB_AUTH_SOURCE=' .env | tail -n1 | cut -d '=' -f2- | tr -d '\r' | xargs)
+        if [ -n "$env_db" ]; then
+            mongo_db="$env_db"
+        fi
+    fi
+
+    echo -e "${YELLOW}🧹 Очистка кеша tooltip_html (loot_tooltip_cache) в БД '${mongo_db}'...${NC}"
+    docker compose exec mongodb mongosh -u admin -p password --authenticationDatabase admin --quiet --eval "db.getSiblingDB('${mongo_db}').getCollection('loot_tooltip_cache').deleteMany({})"
     echo -e "${GREEN}✅ Кеш tooltip_html очищен!${NC}"
 }
 clear_all() {
