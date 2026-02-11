@@ -6,7 +6,7 @@
 module.exports = {
   dataPath: "./loot",
 
-  updateIntervalMs: 1000 * 60 * 5,
+  updateIntervalMs: 1000 * 60 * 10,
 
   files: {
     blacklist: "blacklist.json",
