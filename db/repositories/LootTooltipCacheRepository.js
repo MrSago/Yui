@@ -6,13 +6,13 @@ class LootTooltipCacheRepository extends BaseRepository {
     super(LootTooltipCache);
   }
 
-  async findByItemAndRealm(itemEntry, realmId) {
-    return this.findOne({ item_entry: itemEntry, realm_id: realmId });
+  async findByItem(itemEntry) {
+    return this.findOne({ item_entry: itemEntry });
   }
 
-  async upsertTooltipCache(itemEntry, realmId, tooltipHtml) {
+  async upsertTooltipCache(itemEntry, tooltipHtml) {
     return this.model.findOneAndUpdate(
-      { item_entry: itemEntry, realm_id: realmId },
+      { item_entry: itemEntry },
       {
         $set: {
           tooltip_html: tooltipHtml,
@@ -20,6 +20,10 @@ class LootTooltipCacheRepository extends BaseRepository {
       },
       { new: true, upsert: true, setDefaultsOnInsert: true },
     );
+  }
+
+  async clearTooltipCache() {
+    return this.model.deleteMany({});
   }
 }
 

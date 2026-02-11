@@ -2,28 +2,36 @@ const logger = require("../../logger.js");
 const { lootTooltipCacheRepository } = require("../repositories/index.js");
 
 class LootTooltipCacheService {
-  async getTooltipCache(itemEntry, realmId) {
+  async getTooltipCache(itemEntry) {
     try {
-      return await lootTooltipCacheRepository.findByItemAndRealm(itemEntry, realmId);
+      return await lootTooltipCacheRepository.findByItem(itemEntry);
     } catch (error) {
       logger.error(
-        `Error getting tooltip cache for item ${itemEntry} realm ${realmId}: ${error.message}`,
+        `Error getting tooltip cache for item ${itemEntry}: ${error.message}`,
       );
       return null;
     }
   }
 
-  async saveTooltipCache(itemEntry, realmId, tooltipHtml) {
+  async saveTooltipCache(itemEntry, tooltipHtml) {
     try {
       return await lootTooltipCacheRepository.upsertTooltipCache(
         itemEntry,
-        realmId,
         tooltipHtml,
       );
     } catch (error) {
       logger.error(
-        `Error saving tooltip cache for item ${itemEntry} realm ${realmId}: ${error.message}`,
+        `Error saving tooltip cache for item ${itemEntry}: ${error.message}`,
       );
+      return null;
+    }
+  }
+
+  async clearTooltipCache() {
+    try {
+      return await lootTooltipCacheRepository.clearTooltipCache();
+    } catch (error) {
+      logger.error(`Error clearing tooltip cache: ${error.message}`);
       return null;
     }
   }
