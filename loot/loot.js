@@ -100,7 +100,7 @@ async function startRefreshingLoot() {
     }
     logger.debug(`Processed ${results.length} loot entries`);
   } finally {
-    await closeLootScreenshotBrowser();
+    // await closeLootScreenshotBrowser();
 
     const activity =
       app.nodeEnv === "development"
