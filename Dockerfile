@@ -7,6 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV PUPPETEER_SKIP_DOWNLOAD=true \
   PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
+# hadolint ignore=DL3008
 RUN apt-get update && \
   apt-get upgrade && \
   apt-get install -y --no-install-recommends \
