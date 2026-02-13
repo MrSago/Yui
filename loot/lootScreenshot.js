@@ -24,8 +24,8 @@ function resolveChromiumExecutablePath() {
   }
 
   const commonPaths = [
-    "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
     "/usr/bin/google-chrome-stable",
     "/usr/bin/google-chrome",
   ];
@@ -43,8 +43,15 @@ function resolveChromiumExecutablePath() {
 }
 
 async function getTooltipData(page, itemEntry, realmId) {
+  logger.debug(
+    `Loot screenshot: loading tooltip data for item ${itemEntry} on realm ${realmId}`,
+  );
+
   const cached = await db.getLootTooltipCache(itemEntry);
   if (cached?.tooltip_html) {
+    logger.debug(
+      `Loot screenshot: cache hit for item ${itemEntry}, using stored tooltip html`,
+    );
     return { tooltipHtml: cached.tooltip_html, styles: null };
   }
 
@@ -52,6 +59,10 @@ async function getTooltipData(page, itemEntry, realmId) {
 
   for (let attempt = 1; attempt <= TOOLTIP_RETRY_ATTEMPTS; attempt += 1) {
     try {
+      logger.debug(
+        `Loot screenshot: opening item page (attempt ${attempt}/${TOOLTIP_RETRY_ATTEMPTS}) ${itemUrl}`,
+      );
+
       await page.goto(itemUrl, {
         waitUntil: "networkidle2",
         timeout: 15000,
@@ -69,6 +80,9 @@ async function getTooltipData(page, itemEntry, realmId) {
       );
 
       await db.saveLootTooltipCache(itemEntry, tooltipHtml);
+      logger.debug(
+        `Loot screenshot: tooltip captured and cached for item ${itemEntry}`,
+      );
 
       return { tooltipHtml, styles };
     } catch (error) {
@@ -88,6 +102,9 @@ async function getTooltipData(page, itemEntry, realmId) {
 
 async function getStyles(page, realmId, fallbackItemEntry) {
   if (cachedStyles && cachedStyles.length > 0) {
+    logger.debug(
+      `Loot screenshot: using ${cachedStyles.length} cached stylesheet links`,
+    );
     return cachedStyles;
   }
 
@@ -96,6 +113,9 @@ async function getStyles(page, realmId, fallbackItemEntry) {
   }
 
   const itemUrl = sirusApi.getItemUrl(fallbackItemEntry, realmId);
+  logger.debug(
+    `Loot screenshot: resolving styles from fallback item ${fallbackItemEntry} (${itemUrl})`,
+  );
   await page.goto(itemUrl, {
     waitUntil: "networkidle2",
     timeout: 15000,
@@ -107,6 +127,9 @@ async function getStyles(page, realmId, fallbackItemEntry) {
 
   if (styles.length > 0) {
     cachedStyles = styles;
+    logger.debug(
+      `Loot screenshot: cached ${styles.length} stylesheet links for subsequent renders`,
+    );
   }
 
   return styles;
@@ -149,6 +172,10 @@ ${tooltips.join("\n")}
 }
 
 async function createLootScreenshotBuffer(lootItems, realmId) {
+  logger.debug(
+    `Loot screenshot: queued render request (realm=${realmId}, items=${lootItems?.length ?? 0})`,
+  );
+
   const currentTask = screenshotQueue.then(() =>
     createLootScreenshotBufferInternal(lootItems, realmId),
   );
@@ -186,6 +213,9 @@ async function getBrowser() {
       headless: "new",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: resolveChromiumExecutablePath(),
+      handleSIGINT: false,
+      handleSIGTERM: false,
+      handleSIGHUP: false,
     })
     .then((browser) => {
       browser.on("disconnected", () => {
@@ -246,11 +276,17 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
 
 async function createLootScreenshotBufferInternal(lootItems, realmId) {
   if (!lootItems || lootItems.length === 0) {
+    logger.debug("Loot screenshot: no loot items to render");
     return null;
   }
 
+  logger.debug(
+    `Loot screenshot: starting render pipeline for ${lootItems.length} items on realm ${realmId}`,
+  );
+
   const browser = await getBrowser();
   if (!browser) {
+    logger.warn("Loot screenshot: browser is unavailable, render skipped");
     return null;
   }
 
@@ -259,11 +295,13 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
   try {
     page = await browser.newPage();
+    logger.debug("Loot screenshot: new page created");
 
     let styles = await getStyles(page, numericRealmId, lootItems[0]?.entry);
     const tooltips = [];
 
     for (const item of lootItems) {
+      logger.debug(`Loot screenshot: rendering tooltip for item ${item.entry}`);
       const data = await getTooltipData(page, item.entry, numericRealmId);
 
       if (!data?.tooltipHtml) {
@@ -271,6 +309,9 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
       }
 
       tooltips.push(data.tooltipHtml);
+      logger.debug(
+        `Loot screenshot: tooltip appended for item ${item.entry} (total=${tooltips.length})`,
+      );
 
       if (styles.length === 0 && data.styles?.length > 0) {
         styles = data.styles;
@@ -287,6 +328,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
     await page.setContent(html, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".grid");
+    logger.debug("Loot screenshot: HTML grid rendered in browser page");
 
     await page
       .waitForNetworkIdle({ idleTime: 500, timeout: 30000 })
@@ -307,15 +349,22 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
       deviceScaleFactor: 1,
     });
 
-    return await page.screenshot({
+    const screenshot = await page.screenshot({
       fullPage: true,
       type: "png",
     });
+
+    logger.debug(
+      `Loot screenshot: screenshot complete (${screenshot?.length ?? 0} bytes)`,
+    );
+
+    return screenshot;
   } catch (error) {
     logger.error(`Failed to render loot screenshot: ${error.message}`);
     return null;
   } finally {
     if (page) {
+      logger.debug("Loot screenshot: closing page");
       await page.close().catch(() => undefined);
     }
   }

@@ -97,6 +97,7 @@ async function sendToChannels(client, settings, embeds, files = []) {
   logger.debug(`Sending message to ${settings.length} channels`);
 
   const embedArray = Array.isArray(embeds) ? embeds : [embeds];
+  const fileArray = Array.isArray(files) ? files.filter(Boolean) : [];
   let successCount = 0;
   let failCount = 0;
 
@@ -119,7 +120,7 @@ async function sendToChannels(client, settings, embeds, files = []) {
         continue;
       }
 
-      await channel.send({ embeds: embedArray, files });
+      await channel.send({ embeds: embedArray, files: fileArray });
       successCount++;
       logger.debug(`Successfully sent message to channel ${entry.channel_id}`);
     } catch (error) {
@@ -167,7 +168,8 @@ async function sendToChannel(client, channelId, embeds, files = []) {
     }
 
     const embedArray = Array.isArray(embeds) ? embeds : [embeds];
-    await channel.send({ embeds: embedArray, files });
+    const fileArray = Array.isArray(files) ? files.filter(Boolean) : [];
+    await channel.send({ embeds: embedArray, files: fileArray });
 
     logger.debug(`Successfully sent message to channel ${channelId}`);
     return true;

@@ -7,15 +7,36 @@ const db = require("./db/database.js");
 const { initializeClient } = require("./discord/index.js");
 const { discord: env } = require("./environment.js");
 const logger = require("./logger.js");
+const { closeLootScreenshotBrowser } = require("./loot/lootScreenshot.js");
+
+let isShuttingDown = false;
+
+async function shutdownAndExit(code, label, error) {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+
+  if (label) {
+    console.error(label, error);
+  }
+
+  try {
+    await closeLootScreenshotBrowser();
+  } catch {
+    // ignore shutdown errors
+  } finally {
+    process.exit(code);
+  }
+}
 
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  process.exit(1);
+  void shutdownAndExit(1, "Uncaught Exception:", err);
 });
 
 process.on("unhandledRejection", (reason) => {
-  console.error("Unhandled Rejection:", reason);
-  process.exit(1);
+  void shutdownAndExit(1, "Unhandled Rejection:", reason);
 });
 
 process.on("warning", (e) => {
@@ -41,6 +62,6 @@ process.on("warning", (e) => {
   } catch (error) {
     logger.error("❌ Failed to start bot:");
     logger.error(error);
-    process.exit(1);
+    await shutdownAndExit(1);
   }
 })();

@@ -319,8 +319,25 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
   const files = [];
 
   if (screenshotBuffer) {
-    embeds.setImage("attachment://loot.png");
-    files.push(new AttachmentBuilder(screenshotBuffer, { name: "loot.png" }));
+    let attachmentBuffer = null;
+
+    if (Buffer.isBuffer(screenshotBuffer)) {
+      attachmentBuffer = screenshotBuffer;
+    } else if (
+      screenshotBuffer instanceof Uint8Array ||
+      screenshotBuffer instanceof ArrayBuffer
+    ) {
+      attachmentBuffer = Buffer.from(screenshotBuffer);
+    } else {
+      logger.warn(
+        `Loot screenshot returned unsupported payload type: ${typeof screenshotBuffer}`,
+      );
+    }
+
+    if (attachmentBuffer) {
+      embeds.setImage("attachment://loot.png");
+      files.push(new AttachmentBuilder(attachmentBuffer, { name: "loot.png" }));
+    }
   }
 
   return { embeds: [embeds], files };

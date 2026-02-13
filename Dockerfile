@@ -1,10 +1,18 @@
-FROM node:lts-alpine
+FROM node:25-slim
 
 WORKDIR /app
 
-ENV PUPPETEER_SKIP_DOWNLOAD=true
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apk add --no-cache chromium
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+  PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN apt-get update && \
+  apt-get upgrade && \
+  apt-get install -y --no-install-recommends \
+  tini \
+  chromium && \
+  rm -rf /var/lib/apt/lists/*
 
 COPY package.json ./
 
@@ -12,10 +20,12 @@ RUN npm install --omit=dev
 
 COPY . .
 
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app
+RUN groupadd --gid 1001 nodejs && \
+  useradd --uid 1001 --gid 1001 --create-home --shell /usr/sbin/nologin nodejs && \
+  chown -R nodejs:nodejs /app
 
 USER nodejs
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["node", "index.js"]
