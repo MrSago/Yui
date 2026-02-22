@@ -9,7 +9,7 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true \
 
 # hadolint ignore=DL3008
 RUN apt-get update && \
-  apt-get upgrade && \
+  apt-get upgrade -y && \
   apt-get install -y --no-install-recommends \
   tini \
   chromium && \
