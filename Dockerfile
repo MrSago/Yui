@@ -15,9 +15,9 @@ RUN apt-get update && \
   chromium && \
   rm -rf /var/lib/apt/lists/*
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 
 COPY . .
 
