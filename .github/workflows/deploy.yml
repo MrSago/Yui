@@ -34,6 +34,20 @@ jobs:
               exit 1
             fi
 
+            echo "Preparing logs directory permissions..."
+            if ! mkdir -p logs; then
+              echo "Failed to create logs directory"
+              exit 1
+            fi
+            if ! chown -R 1001:1001 logs; then
+              echo "Failed to set owner for logs directory"
+              exit 1
+            fi
+            if ! chmod -R u+rwX,g+rwX logs; then
+              echo "Failed to set permissions for logs directory"
+              exit 1
+            fi
+
             echo "Stopping containers..."
             if ! docker compose down; then
               echo "Failed to stop containers"
