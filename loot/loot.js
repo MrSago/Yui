@@ -72,10 +72,15 @@ async function startRefreshingLoot() {
       return;
     }
 
-    logger.debug({ count: settings.length }, "Processing loot settings entries");
+    logger.debug(
+      { count: settings.length },
+      "Processing loot settings entries",
+    );
 
     const guild_id_promises = settings.map((entry) =>
-      db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id })),
+      db
+        .getGuildIdByLootId(entry._id)
+        .then((guild_id) => ({ entry, guild_id })),
     );
 
     const guild_entries = await Promise.all(guild_id_promises);
@@ -83,7 +88,10 @@ async function startRefreshingLoot() {
     const entry_promises = guild_entries
       .filter(({ guild_id, entry }) => {
         if (!guild_id) {
-          logger.warn({ loot_entry_id: entry._id }, "Guild ID not found for loot entry");
+          logger.warn(
+            { loot_entry_id: entry._id },
+            "Guild ID not found for loot entry",
+          );
           return false;
         }
         return true;
@@ -121,7 +129,6 @@ async function startRefreshingLoot() {
     setTimeout(startRefreshingLoot, INTERVAL_UPDATE_MS);
   }
 }
-
 
 /**
  * Processes a single loot entry for a guild
@@ -315,7 +322,10 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     lootItems: lootItems,
   });
 
-  const screenshotBuffer = await createLootScreenshotBuffer(lootItems, realm_id);
+  const screenshotBuffer = await createLootScreenshotBuffer(
+    lootItems,
+    realm_id,
+  );
   const files = [];
 
   if (screenshotBuffer) {

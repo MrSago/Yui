@@ -11,7 +11,9 @@ const {
 } = require("discord.js");
 
 const { deleteLootChannel } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/commands/clearLoot" });
+const logger = require("../../logger.js").child({
+  module: "discord/commands/clearLoot",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()

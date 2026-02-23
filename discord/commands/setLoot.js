@@ -10,8 +10,13 @@ const {
   MessageFlags,
 } = require("discord.js");
 
-const { setLootChannel, deleteLootChannelByChannelId } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/commands/setLoot" });
+const {
+  setLootChannel,
+  deleteLootChannelByChannelId,
+} = require("../../db/database.js");
+const logger = require("../../logger.js").child({
+  module: "discord/commands/setLoot",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()

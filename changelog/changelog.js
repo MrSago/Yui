@@ -119,7 +119,10 @@ async function sendChangeLog(embeds) {
     return;
   }
 
-  logger.debug({ channels: settings.length }, "Sending changelog to configured channels");
+  logger.debug(
+    { channels: settings.length },
+    "Sending changelog to configured channels",
+  );
 
   await sendToChannels(client, settings, embeds);
 

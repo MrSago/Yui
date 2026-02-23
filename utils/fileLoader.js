@@ -13,11 +13,17 @@ function loadJsonFile(filePath, description = "data") {
 
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    logger.info({ description, file_path: filePath }, "JSON file loaded successfully");
+    logger.info(
+      { description, file_path: filePath },
+      "JSON file loaded successfully",
+    );
     return data;
   } catch (error) {
     logger.error(error);
-    logger.warn({ file_path: filePath, description }, "Failed to load JSON file");
+    logger.warn(
+      { file_path: filePath, description },
+      "Failed to load JSON file",
+    );
     return null;
   }
 }
@@ -50,11 +56,17 @@ function saveJsonFile(filePath, data, description = "data") {
 
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-    logger.info({ description, file_path: filePath }, "JSON file saved successfully");
+    logger.info(
+      { description, file_path: filePath },
+      "JSON file saved successfully",
+    );
     return true;
   } catch (error) {
     logger.error(error);
-    logger.warn({ description, file_path: filePath }, "Failed to save JSON file");
+    logger.warn(
+      { description, file_path: filePath },
+      "Failed to save JSON file",
+    );
     return false;
   }
 }

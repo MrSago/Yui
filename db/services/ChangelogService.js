@@ -1,4 +1,6 @@
-const logger = require("../../logger.js").child({ module: "db/services/ChangelogService" });
+const logger = require("../../logger.js").child({
+  module: "db/services/ChangelogService",
+});
 const {
   settingsRepository,
   changelogRepository,
@@ -30,7 +32,10 @@ class ChangelogService {
           guild_id: guildId,
           changelog_id: changelog._id,
         });
-        logger.info({ guild_id: guildId }, "Created new changelog settings for guild");
+        logger.info(
+          { guild_id: guildId },
+          "Created new changelog settings for guild",
+        );
         return;
       }
 
@@ -50,7 +55,10 @@ class ChangelogService {
         settings.changelog_id,
         channelId,
       );
-      logger.info({ guild_id: guildId }, "Updated existing changelog settings for guild");
+      logger.info(
+        { guild_id: guildId },
+        "Updated existing changelog settings for guild",
+      );
     } catch (error) {
       logger.error(
         `Error setting changelog channel for guild ${guildId}: ${error.message}`,
@@ -66,11 +74,17 @@ class ChangelogService {
    */
   async deleteChangelogChannel(guildId) {
     try {
-      logger.info({ guild_id: guildId }, "Deleting changelog channel for guild");
+      logger.info(
+        { guild_id: guildId },
+        "Deleting changelog channel for guild",
+      );
 
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.changelog_id) {
-        logger.debug({ guild_id: guildId }, "No changelog settings found for guild");
+        logger.debug(
+          { guild_id: guildId },
+          "No changelog settings found for guild",
+        );
         return;
       }
 

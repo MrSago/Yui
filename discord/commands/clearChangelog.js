@@ -11,7 +11,9 @@ const {
 } = require("discord.js");
 
 const { deleteChangelogChannel } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/commands/clearChangelog" });
+const logger = require("../../logger.js").child({
+  module: "discord/commands/clearChangelog",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()

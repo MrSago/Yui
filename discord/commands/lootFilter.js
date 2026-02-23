@@ -11,7 +11,9 @@ const {
 } = require("discord.js");
 
 const { buildLootFilterMessage } = require("../interactions/lootFilter.js");
-const logger = require("../../logger.js").child({ module: "discord/commands/lootFilter" });
+const logger = require("../../logger.js").child({
+  module: "discord/commands/lootFilter",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()

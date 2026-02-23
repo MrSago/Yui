@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 
 const { db: env } = require("../environment.js");
-const logger = require("../logger.js").child({ module: "db/mongoose.connection" });
+const logger = require("../logger.js").child({
+  module: "db/mongoose.connection",
+});
 
 const URI =
   `mongodb://${env.user}:${env.pwd}` +

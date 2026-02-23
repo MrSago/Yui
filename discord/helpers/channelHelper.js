@@ -9,7 +9,9 @@ const {
   deleteChangelogChannelByChannelId,
   deleteLootChannelByChannelId,
 } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/helpers/channelHelper" });
+const logger = require("../../logger.js").child({
+  module: "discord/helpers/channelHelper",
+});
 
 /**
  * Fetches channel from cache or API
@@ -122,13 +124,19 @@ async function sendToChannels(client, settings, embeds, files = []) {
 
       await channel.send({ embeds: embedArray, files: fileArray });
       successCount++;
-      logger.debug({ channel_id: entry.channel_id }, "Successfully sent message to channel");
+      logger.debug(
+        { channel_id: entry.channel_id },
+        "Successfully sent message to channel",
+      );
     } catch (error) {
       failCount++;
       logger.error(
         `Failed to send message to channel ${entry.channel_id}: ${error.message}`,
       );
-      logger.warn({ channel_id: entry.channel_id }, "Can't send message to channel");
+      logger.warn(
+        { channel_id: entry.channel_id },
+        "Can't send message to channel",
+      );
     }
   }
 
@@ -171,7 +179,10 @@ async function sendToChannel(client, channelId, embeds, files = []) {
     const fileArray = Array.isArray(files) ? files.filter(Boolean) : [];
     await channel.send({ embeds: embedArray, files: fileArray });
 
-    logger.debug({ channel_id: channelId }, "Successfully sent message to channel");
+    logger.debug(
+      { channel_id: channelId },
+      "Successfully sent message to channel",
+    );
     return true;
   } catch (error) {
     logger.error(
@@ -199,7 +210,10 @@ function getChannel(client, channelId) {
 
     return channel;
   } catch (error) {
-    logger.error({ channel_id: channelId, err: error }, "Error getting channel");
+    logger.error(
+      { channel_id: channelId, err: error },
+      "Error getting channel",
+    );
     return null;
   }
 }

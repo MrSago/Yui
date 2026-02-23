@@ -1,4 +1,6 @@
-const logger = require("../../logger.js").child({ module: "db/repositories/SettingsRepository" });
+const logger = require("../../logger.js").child({
+  module: "db/repositories/SettingsRepository",
+});
 
 const BaseRepository = require("./BaseRepository.js");
 const { Settings } = require("../models/index.js");

@@ -66,28 +66,31 @@ class DailyFileDestination {
 
 let client = null;
 const fileDestination = new DailyFileDestination();
-const coreLogger = pino({
-  level: getDefaultLogLevel(),
-  base: {
-    app: APP_NAME,
+const coreLogger = pino(
+  {
+    level: getDefaultLogLevel(),
+    base: {
+      app: APP_NAME,
+    },
+    timestamp: pino.stdTimeFunctions.isoTime,
+    redact: {
+      paths: [
+        "token",
+        "pwd",
+        "password",
+        "authorization",
+        "headers.authorization",
+        "discord.token",
+        "db.pwd",
+      ],
+      censor: "[Redacted]",
+    },
   },
-  timestamp: pino.stdTimeFunctions.isoTime,
-  redact: {
-    paths: [
-      "token",
-      "pwd",
-      "password",
-      "authorization",
-      "headers.authorization",
-      "discord.token",
-      "db.pwd",
-    ],
-    censor: "[Redacted]",
-  },
-}, pino.multistream([
-  { level: "trace", stream: process.stdout },
-  { level: "trace", stream: fileDestination },
-]));
+  pino.multistream([
+    { level: "trace", stream: process.stdout },
+    { level: "trace", stream: fileDestination },
+  ]),
+);
 
 /**
  * Determines the default log level based on environment

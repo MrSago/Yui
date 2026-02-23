@@ -5,7 +5,9 @@
 
 const { SlashCommandBuilder } = require("discord.js");
 
-const logger = require("../../logger.js").child({ module: "discord/commands/roll" });
+const logger = require("../../logger.js").child({
+  module: "discord/commands/roll",
+});
 const { randInt } = require("../../utils/index.js");
 
 module.exports = {

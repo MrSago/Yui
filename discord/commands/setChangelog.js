@@ -10,8 +10,13 @@ const {
   MessageFlags,
 } = require("discord.js");
 
-const { setChangelogChannel, deleteChangelogChannelByChannelId } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/commands/setChangelog" });
+const {
+  setChangelogChannel,
+  deleteChangelogChannelByChannelId,
+} = require("../../db/database.js");
+const logger = require("../../logger.js").child({
+  module: "discord/commands/setChangelog",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()

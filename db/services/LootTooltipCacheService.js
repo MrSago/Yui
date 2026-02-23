@@ -1,4 +1,6 @@
-const logger = require("../../logger.js").child({ module: "db/services/LootTooltipCacheService" });
+const logger = require("../../logger.js").child({
+  module: "db/services/LootTooltipCacheService",
+});
 const { lootTooltipCacheRepository } = require("../repositories/index.js");
 
 class LootTooltipCacheService {

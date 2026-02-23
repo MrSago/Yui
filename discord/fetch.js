@@ -16,7 +16,9 @@ async function fetchAll(client) {
     logger.info("Fetching all guilds...");
     await client.guilds.fetch();
     logger.info({ count: client.guilds.cache.size }, "Fetched guilds");
-    logger.info("Skipping eager channel fetch; channels will be loaded on demand");
+    logger.info(
+      "Skipping eager channel fetch; channels will be loaded on demand",
+    );
   } catch (error) {
     logger.error({ err: error }, "Error fetching guilds:");
     logger.error(error);
@@ -31,11 +33,20 @@ async function fetchAll(client) {
  */
 async function fetchGuild(guild) {
   try {
-    logger.debug({ guild_name: guild.name, guild_id: guild.id }, "Fetching guild");
+    logger.debug(
+      { guild_name: guild.name, guild_id: guild.id },
+      "Fetching guild",
+    );
     await guild.fetch();
-    logger.debug({ guild_name: guild.name, guild_id: guild.id }, "Fetched guild metadata");
+    logger.debug(
+      { guild_name: guild.name, guild_id: guild.id },
+      "Fetched guild metadata",
+    );
   } catch (error) {
-    logger.error({ guild_name: guild.name, guild_id: guild.id, err: error }, "Error fetching guild");
+    logger.error(
+      { guild_name: guild.name, guild_id: guild.id, err: error },
+      "Error fetching guild",
+    );
   }
 }
 

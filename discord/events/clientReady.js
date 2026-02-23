@@ -9,7 +9,9 @@ const {
   clearInactiveGuildsFromDb,
   getGuildsCount,
 } = require("../../db/database.js");
-const logger = require("../../logger.js").child({ module: "discord/events/clientReady" });
+const logger = require("../../logger.js").child({
+  module: "discord/events/clientReady",
+});
 
 module.exports = {
   name: Events.ClientReady,

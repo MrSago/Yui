@@ -301,7 +301,10 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     const tooltips = [];
 
     for (const item of lootItems) {
-      logger.debug({ item_entry: item.entry }, "Loot screenshot: rendering tooltip for item");
+      logger.debug(
+        { item_entry: item.entry },
+        "Loot screenshot: rendering tooltip for item",
+      );
       const data = await getTooltipData(page, item.entry, numericRealmId);
 
       if (!data?.tooltipHtml) {
@@ -369,7 +372,6 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     }
   }
 }
-
 
 async function clearLootTooltipCache() {
   cachedStyles = null;

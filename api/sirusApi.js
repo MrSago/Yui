@@ -242,7 +242,10 @@ async function makeGetRequest(url, options = {}) {
         );
         logger.error({ err: error }, "Error details:");
         if (error.response) {
-          logger.error({ status: error.response.status, url }, "Response status");
+          logger.error(
+            { status: error.response.status, url },
+            "Response status",
+          );
         }
         return null;
       }

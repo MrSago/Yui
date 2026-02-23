@@ -50,12 +50,15 @@ module.exports = {
   clearLootFilters: lootService.clearLootFilters.bind(lootService),
 
   // Loot tooltip cache operations
-  getLootTooltipCache:
-    lootTooltipCacheService.getTooltipCache.bind(lootTooltipCacheService),
-  saveLootTooltipCache:
-    lootTooltipCacheService.saveTooltipCache.bind(lootTooltipCacheService),
-  clearLootTooltipCache:
-    lootTooltipCacheService.clearTooltipCache.bind(lootTooltipCacheService),
+  getLootTooltipCache: lootTooltipCacheService.getTooltipCache.bind(
+    lootTooltipCacheService,
+  ),
+  saveLootTooltipCache: lootTooltipCacheService.saveTooltipCache.bind(
+    lootTooltipCacheService,
+  ),
+  clearLootTooltipCache: lootTooltipCacheService.clearTooltipCache.bind(
+    lootTooltipCacheService,
+  ),
 
   // Records operations
   initRecords: recordsService.initRecords.bind(recordsService),

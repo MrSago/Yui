@@ -5,7 +5,9 @@
 
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 
-const logger = require("../../logger.js").child({ module: "discord/commands/ping" });
+const logger = require("../../logger.js").child({
+  module: "discord/commands/ping",
+});
 
 module.exports = {
   data: new SlashCommandBuilder()
