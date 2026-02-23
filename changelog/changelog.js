@@ -9,7 +9,7 @@ const {
   createChangelogEmbeds,
   sendToChannels,
 } = require("../discord/index.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "changelog/changelog" });
 const sirusApi = require("../api/sirusApi.js");
 
 var client;
@@ -45,7 +45,7 @@ async function startUpdatingChangelog() {
       logger.warn("Failed to retrieve changelog data from API");
     }
   } catch (error) {
-    logger.error(`Error updating changelog: ${error.message}`);
+    logger.error({ err: error }, "Error updating changelog:");
     logger.error(error);
   }
 
@@ -66,7 +66,7 @@ async function sendData(data) {
     return;
   }
 
-  logger.info(`Found ${cnt} new changelog entries`);
+  logger.info({ cnt: cnt }, "Found  new changelog entries");
 
   const newMessages = [];
   for (let i = cnt - 1; i >= 0; --i) {
@@ -119,11 +119,11 @@ async function sendChangeLog(embeds) {
     return;
   }
 
-  logger.debug(`Sending changelog to ${settings.length} configured channels`);
+  logger.debug({ channels: settings.length }, "Sending changelog to configured channels");
 
   await sendToChannels(client, settings, embeds);
 
-  logger.info(`Changelog notifications sent to ${settings.length} channels`);
+  logger.info({ channels: settings.length }, "Changelog notifications sent");
 }
 
 module.exports = {

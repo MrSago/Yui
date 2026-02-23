@@ -9,7 +9,7 @@ const {
   deleteChangelogChannelByChannelId,
   deleteLootChannelByChannelId,
 } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/helpers/channelHelper" });
 
 /**
  * Fetches channel from cache or API
@@ -26,7 +26,7 @@ async function fetchChannel(client, channelId) {
   try {
     return await client.channels.fetch(channelId);
   } catch (error) {
-    logger.warn(`Channel with id ${channelId} not found: ${error.message}`);
+    logger.warn({ channel_id: channelId, err: error }, "Channel not found");
     return null;
   }
 }
@@ -94,7 +94,7 @@ async function sendToChannels(client, settings, embeds, files = []) {
     return false;
   }
 
-  logger.debug(`Sending message to ${settings.length} channels`);
+  logger.debug({ channels: settings.length }, "Sending message to channels");
 
   const embedArray = Array.isArray(embeds) ? embeds : [embeds];
   const fileArray = Array.isArray(files) ? files.filter(Boolean) : [];
@@ -122,13 +122,13 @@ async function sendToChannels(client, settings, embeds, files = []) {
 
       await channel.send({ embeds: embedArray, files: fileArray });
       successCount++;
-      logger.debug(`Successfully sent message to channel ${entry.channel_id}`);
+      logger.debug({ channel_id: entry.channel_id }, "Successfully sent message to channel");
     } catch (error) {
       failCount++;
       logger.error(
         `Failed to send message to channel ${entry.channel_id}: ${error.message}`,
       );
-      logger.warn(`Can't send message to channel ${entry.channel_id}`);
+      logger.warn({ channel_id: entry.channel_id }, "Can't send message to channel");
     }
   }
 
@@ -149,7 +149,7 @@ async function sendToChannels(client, settings, embeds, files = []) {
  */
 async function sendToChannel(client, channelId, embeds, files = []) {
   try {
-    logger.debug(`Sending message to channel ${channelId}`);
+    logger.debug({ channel_id: channelId }, "Sending message to channel");
 
     const channel = await fetchChannel(client, channelId);
 
@@ -171,13 +171,13 @@ async function sendToChannel(client, channelId, embeds, files = []) {
     const fileArray = Array.isArray(files) ? files.filter(Boolean) : [];
     await channel.send({ embeds: embedArray, files: fileArray });
 
-    logger.debug(`Successfully sent message to channel ${channelId}`);
+    logger.debug({ channel_id: channelId }, "Successfully sent message to channel");
     return true;
   } catch (error) {
     logger.error(
       `Failed to send message to channel ${channelId}: ${error.message}`,
     );
-    logger.warn(`Can't send message to channel ${channelId}`);
+    logger.warn({ channel_id: channelId }, "Can't send message to channel");
     return false;
   }
 }
@@ -193,13 +193,13 @@ function getChannel(client, channelId) {
     const channel = client.channels.cache.get(channelId);
 
     if (!channel) {
-      logger.warn(`Channel with id ${channelId} not found`);
+      logger.warn({ channel_id: channelId }, "Channel with id  not found");
       return null;
     }
 
     return channel;
   } catch (error) {
-    logger.error(`Error getting channel ${channelId}: ${error.message}`);
+    logger.error({ channel_id: channelId, err: error }, "Error getting channel");
     return null;
   }
 }

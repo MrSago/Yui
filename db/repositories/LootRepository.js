@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/LootRepository" });
 
 const BaseRepository = require("./BaseRepository.js");
 const { Loot } = require("../models/index.js");
@@ -25,7 +25,7 @@ class LootRepository extends BaseRepository {
     try {
       return await this.findOne({ channel_id: channelId });
     } catch (error) {
-      logger.error(`Error finding loot by channel id: ${error.message}`);
+      logger.error({ err: error }, "Error finding loot by channel id:");
       throw error;
     }
   }
@@ -45,7 +45,7 @@ class LootRepository extends BaseRepository {
         guild_sirus_id: guildSirusId,
       });
     } catch (error) {
-      logger.error(`Error creating loot: ${error.message}`);
+      logger.error({ err: error }, "Error creating loot:");
       throw error;
     }
   }
@@ -66,7 +66,7 @@ class LootRepository extends BaseRepository {
         guild_sirus_id: guildSirusId,
       });
     } catch (error) {
-      logger.error(`Error updating loot: ${error.message}`);
+      logger.error({ err: error }, "Error updating loot:");
       throw error;
     }
   }
@@ -99,7 +99,7 @@ class LootRepository extends BaseRepository {
       await loot.save();
       return loot;
     } catch (error) {
-      logger.error(`Error setting dungeon filter: ${error.message}`);
+      logger.error({ err: error }, "Error setting dungeon filter:");
       throw error;
     }
   }
@@ -145,7 +145,7 @@ class LootRepository extends BaseRepository {
       await loot.save();
       return loot;
     } catch (error) {
-      logger.error(`Error toggling dungeon filter: ${error.message}`);
+      logger.error({ err: error }, "Error toggling dungeon filter:");
       throw error;
     }
   }
@@ -177,7 +177,7 @@ class LootRepository extends BaseRepository {
       await loot.save();
       return loot;
     } catch (error) {
-      logger.error(`Error setting dungeon filter map: ${error.message}`);
+      logger.error({ err: error }, "Error setting dungeon filter map:");
       throw error;
     }
   }
@@ -193,7 +193,7 @@ class LootRepository extends BaseRepository {
         filter: {},
       });
     } catch (error) {
-      logger.error(`Error clearing filters: ${error.message}`);
+      logger.error({ err: error }, "Error clearing filters:");
       throw error;
     }
   }

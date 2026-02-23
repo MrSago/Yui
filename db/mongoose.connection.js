@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const { db: env } = require("../environment.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "db/mongoose.connection" });
 
 const URI =
   `mongodb://${env.user}:${env.pwd}` +
@@ -17,7 +17,7 @@ const RETRY_DELAY = 5000;
  */
 async function init() {
   mongoose.connection.on("error", (error) => {
-    logger.error(`MongoDB connection error: ${error.message}`);
+    logger.error({ err: error }, "MongoDB connection error:");
   });
 
   mongoose.connection.on("disconnected", () => {

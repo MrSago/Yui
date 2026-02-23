@@ -5,7 +5,7 @@
 
 const { Events, MessageFlags } = require("discord.js");
 
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/events/interactionCreate" });
 const {
   handleLootFilterInteraction,
   isLootFilterInteraction,
@@ -38,7 +38,7 @@ module.exports = {
     const command = interaction.client.commands.get(interaction.commandName);
 
     if (!command) {
-      logger.warn(`No command matching ${interaction.commandName} was found.`);
+      logger.warn({ command_name: interaction.commandName }, "No matching command found");
       return;
     }
 
@@ -77,7 +77,7 @@ module.exports = {
           flags: MessageFlags.Ephemeral,
         });
       } catch (replyError) {
-        logger.error(`Failed to send error reply: ${replyError.message}`);
+        logger.error({ err: replyError }, "Failed to send error reply:");
         logger.error(replyError);
       }
     }

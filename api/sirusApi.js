@@ -2,7 +2,7 @@ const axios = require("axios");
 const bottleneck = require("bottleneck");
 
 const { sirus: config } = require("../config/index.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "api/sirusApi" });
 
 // Realm names mapping
 const REALM_NAMES = {
@@ -73,7 +73,7 @@ const apiLimiter = new bottleneck({
  * @returns {Promise<Object|null>} Changelog data or null on error
  */
 async function getChangelog() {
-  logger.info(`Fetching changelog from ${CHANGELOG_API_URL}`);
+  logger.info({ url: CHANGELOG_API_URL }, "Fetching changelog");
   const data = await makeGetRequest(CHANGELOG_API_URL);
 
   if (!data) {
@@ -212,16 +212,16 @@ async function makeGetRequest(url, options = {}) {
   const cacheKey = url;
   const cachedResponse = getCachedResponse(cacheKey);
   if (cachedResponse) {
-    logger.debug(`Using cached API response: ${url}`);
+    logger.debug({ url: url }, "Using cached API response:");
     return cachedResponse;
   }
 
   let attempt = 0;
   while (attempt <= config.axios.maxRetries) {
     try {
-      logger.debug(`Making API request to: ${url} (attempt ${attempt + 1})`);
+      logger.debug({ url, attempt: attempt + 1 }, "Making API request");
       const response = await limitedGet(url, axiosOptions);
-      logger.debug(`API request successful: ${url}`);
+      logger.debug({ url: url }, "API request successful:");
       setCachedResponse(cacheKey, response.data);
       return response.data;
     } catch (error) {
@@ -240,9 +240,9 @@ async function makeGetRequest(url, options = {}) {
         logger.error(
           `Sirus API request failed: ${url} after ${attempt} attempts`,
         );
-        logger.error(`Error details: ${error.message}`);
+        logger.error({ err: error }, "Error details:");
         if (error.response) {
-          logger.error(`Response status: ${error.response.status}`);
+          logger.error({ status: error.response.status, url }, "Response status");
         }
         return null;
       }
@@ -254,7 +254,7 @@ async function makeGetRequest(url, options = {}) {
       const jitter = Math.floor(Math.random() * backoff);
       const waitMs = backoff + jitter;
 
-      logger.warn(`Transient error on request to ${url} (status: ${status}).`);
+      logger.warn({ url, status }, "Transient error on request");
       logger.warn(
         `Retrying in ${waitMs} ms (attempt ${attempt} of ${config.axios.maxRetries})`,
       );

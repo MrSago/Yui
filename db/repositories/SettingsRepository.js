@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/SettingsRepository" });
 
 const BaseRepository = require("./BaseRepository.js");
 const { Settings } = require("../models/index.js");
@@ -21,7 +21,7 @@ class SettingsRepository extends BaseRepository {
     try {
       return await this.findOne({ guild_id: guildId });
     } catch (error) {
-      logger.error(`Error finding settings by guild id: ${error.message}`);
+      logger.error({ err: error }, "Error finding settings by guild id:");
       throw error;
     }
   }
@@ -40,7 +40,7 @@ class SettingsRepository extends BaseRepository {
         runValidators: true,
       });
     } catch (error) {
-      logger.error(`Error upserting settings by guild id: ${error.message}`);
+      logger.error({ err: error }, "Error upserting settings by guild id:");
       throw error;
     }
   }
@@ -54,7 +54,7 @@ class SettingsRepository extends BaseRepository {
     try {
       return await this.deleteOne({ guild_id: guildId });
     } catch (error) {
-      logger.error(`Error deleting settings by guild id: ${error.message}`);
+      logger.error({ err: error }, "Error deleting settings by guild id:");
       throw error;
     }
   }
@@ -68,7 +68,7 @@ class SettingsRepository extends BaseRepository {
       const settings = await this.findAll({}, { guild_id: 1 });
       return settings.map((s) => s.guild_id);
     } catch (error) {
-      logger.error(`Error getting all guild ids: ${error.message}`);
+      logger.error({ err: error }, "Error getting all guild ids:");
       throw error;
     }
   }

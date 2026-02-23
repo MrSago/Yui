@@ -3,7 +3,7 @@
  * @description Helper functions for fetching Discord guild metadata
  */
 
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "discord/fetch" });
 
 /**
  * Fetches all guilds for the client
@@ -15,10 +15,10 @@ async function fetchAll(client) {
   try {
     logger.info("Fetching all guilds...");
     await client.guilds.fetch();
-    logger.info(`Fetched ${client.guilds.cache.size} guilds`);
+    logger.info({ count: client.guilds.cache.size }, "Fetched guilds");
     logger.info("Skipping eager channel fetch; channels will be loaded on demand");
   } catch (error) {
-    logger.error(`Error fetching guilds: ${error.message}`);
+    logger.error({ err: error }, "Error fetching guilds:");
     logger.error(error);
   }
 }
@@ -31,12 +31,11 @@ async function fetchAll(client) {
  */
 async function fetchGuild(guild) {
   try {
-    logger.debug(`Fetching guild ${guild.name}...`);
+    logger.debug({ guild_name: guild.name, guild_id: guild.id }, "Fetching guild");
     await guild.fetch();
-    logger.debug(`Fetched guild metadata for ${guild.name}`);
+    logger.debug({ guild_name: guild.name, guild_id: guild.id }, "Fetched guild metadata");
   } catch (error) {
-    logger.error(`Error fetching guild ${guild.name}: ${error.message}`);
-    logger.error(error);
+    logger.error({ guild_name: guild.name, guild_id: guild.id, err: error }, "Error fetching guild");
   }
 }
 

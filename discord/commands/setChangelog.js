@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 const { setChangelogChannel, deleteChangelogChannelByChannelId } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/commands/setChangelog" });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -89,7 +89,7 @@ module.exports = {
         `Канал ${channel} для списка изменений Sirus.su установлен.`,
       );
     } catch (error) {
-      logger.error(`Error setting changelog channel: ${error.message}`);
+      logger.error({ err: error }, "Error setting changelog channel:");
 
       return interaction.reply({
         content: `Произошла внутренняя ошибка при установке настроек об изменениях Sirus.su.`,

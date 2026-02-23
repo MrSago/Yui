@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/services/RecordsService" });
 const { recordsRepository } = require("../repositories/index.js");
 
 /**
@@ -16,7 +16,7 @@ class RecordsService {
       const result = await recordsRepository.initializeForGuild(guildId);
       return !result.isNew;
     } catch (error) {
-      logger.error(`Error initializing records: ${error.message}`);
+      logger.error({ err: error }, "Error initializing records:");
       throw error;
     }
   }
@@ -30,7 +30,7 @@ class RecordsService {
     try {
       await recordsRepository.deleteByGuildId(guildId);
     } catch (error) {
-      logger.error(`Error deleting records: ${error.message}`);
+      logger.error({ err: error }, "Error deleting records:");
       throw error;
     }
   }
@@ -45,7 +45,7 @@ class RecordsService {
     try {
       await recordsRepository.addRecord(guildId, record);
     } catch (error) {
-      logger.error(`Error pushing record: ${error.message}`);
+      logger.error({ err: error }, "Error pushing record:");
       throw error;
     }
   }
@@ -60,7 +60,7 @@ class RecordsService {
     try {
       return await recordsRepository.hasRecord(guildId, record);
     } catch (error) {
-      logger.error(`Error checking record: ${error.message}`);
+      logger.error({ err: error }, "Error checking record:");
       return false;
     }
   }

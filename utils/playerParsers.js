@@ -1,6 +1,6 @@
 const { formatShortValue } = require("./formatters.js");
 const classEmoji = require("../config/classEmoji.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "utils/playerParsers" });
 
 /**
  * Gets emoji for a player
@@ -15,7 +15,7 @@ function getPlayerEmoji(player, client) {
     return client.emojis.cache.get(spec.emoji_id);
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't get emoji for ${player.name}`);
+    logger.warn({ player_name: player.name }, "Can't get emoji for player");
     return null;
   }
 }

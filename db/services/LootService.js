@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/services/LootService" });
 const {
   settingsRepository,
   lootRepository,
@@ -38,7 +38,7 @@ class LootService {
           guild_id: guildId,
           loot_id: loot._id,
         });
-        logger.info(`Created new loot settings for guild ${guildId}`);
+        logger.info({ guild_id: guildId }, "Created new loot settings for guild");
         return;
       }
 
@@ -64,7 +64,7 @@ class LootService {
         guildSirusId,
       );
       await lootRepository.clearFilters(settings.loot_id);
-      logger.info(`Updated existing loot settings for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Updated existing loot settings for guild");
     } catch (error) {
       logger.error(
         `Error setting loot channel for guild ${guildId}: ${error.message}`,
@@ -80,11 +80,11 @@ class LootService {
    */
   async deleteLootChannel(guildId) {
     try {
-      logger.info(`Deleting loot channel for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Deleting loot channel for guild");
 
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.loot_id) {
-        logger.debug(`No loot settings found for guild ${guildId}`);
+        logger.debug({ guild_id: guildId }, "No loot settings found for guild");
         return;
       }
 
@@ -92,7 +92,7 @@ class LootService {
       await settingsRepository.upsertByGuildId(guildId, {
         $unset: { loot_id: 1 },
       });
-      logger.info(`Successfully deleted loot settings for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Successfully deleted loot settings for guild");
     } catch (error) {
       logger.error(
         `Error deleting loot channel for guild ${guildId}: ${error.message}`,
@@ -109,7 +109,7 @@ class LootService {
     try {
       return await lootRepository.findAll();
     } catch (error) {
-      logger.error(`Error getting loot settings: ${error.message}`);
+      logger.error({ err: error }, "Error getting loot settings:");
       return null;
     }
   }
@@ -161,7 +161,7 @@ class LootService {
       const settings = await settingsRepository.findOne({ loot_id: lootId });
       return settings ? settings.guild_id : null;
     } catch (error) {
-      logger.error(`Error getting guild ID by loot ID: ${error.message}`);
+      logger.error({ err: error }, "Error getting guild ID by loot ID:");
       return null;
     }
   }
@@ -189,7 +189,7 @@ class LootService {
         settings.loot_id,
         filters,
       );
-      logger.info(`Successfully set dungeon filter for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Successfully set dungeon filter for guild");
       return updatedLootSettings;
     } catch (error) {
       logger.error(
@@ -281,7 +281,7 @@ class LootService {
    */
   async clearLootFilters(guildId) {
     try {
-      logger.info(`Clearing filters for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Clearing filters for guild");
 
       const settings = await settingsRepository.findByGuildId(guildId);
       if (!settings || !settings.loot_id) {
@@ -289,7 +289,7 @@ class LootService {
       }
 
       await lootRepository.clearFilters(settings.loot_id);
-      logger.info(`Successfully cleared filters for guild ${guildId}`);
+      logger.info({ guild_id: guildId }, "Successfully cleared filters for guild");
     } catch (error) {
       logger.error(
         `Error clearing filters for guild ${guildId}: ${error.message}`,

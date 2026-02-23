@@ -9,7 +9,7 @@ const {
   clearInactiveGuildsFromDb,
   getGuildsCount,
 } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/events/clientReady" });
 
 module.exports = {
   name: Events.ClientReady,
@@ -21,10 +21,10 @@ module.exports = {
    */
   async execute(client) {
     logger.info("Initializing logger with Discord client...");
-    require("../../logger.js").init(client);
+    logger.init(client);
 
     logger.info("Discord client ready event triggered");
-    logger.info(`Logged in as ${client.user.tag}`);
+    logger.info({ user_tag: client.user.tag }, "Logged in");
 
     logger.info("Fetching Discord data...");
     await require("../fetch.js").fetchAll(client);

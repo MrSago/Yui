@@ -15,7 +15,7 @@ const {
   Partials,
 } = require("discord.js");
 
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "discord/client" });
 
 /**
  * Initializes and configures Discord client
@@ -44,7 +44,7 @@ async function initializeClient(config) {
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith(".js"));
 
-  logger.info(`Loading ${commandFiles.length} commands...`);
+  logger.info({ count: commandFiles.length }, "Loading commands");
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
@@ -59,7 +59,7 @@ async function initializeClient(config) {
 
     commands.push(command.data.toJSON());
     client.commands.set(command.data.name, command);
-    logger.info(`✓ Loaded command: ${command.data.name} (${file})`);
+    logger.info({ command: command.data.name, file }, "Loaded command");
   }
 
   const eventsPath = path.join(__dirname, "events");
@@ -67,7 +67,7 @@ async function initializeClient(config) {
     .readdirSync(eventsPath)
     .filter((file) => file.endsWith(".js"));
 
-  logger.info(`Loading ${eventFiles.length} event handlers...`);
+  logger.info({ count: eventFiles.length }, "Loading event handlers");
 
   for (const file of eventFiles) {
     const filePath = path.join(eventsPath, file);
@@ -85,7 +85,7 @@ async function initializeClient(config) {
     } else {
       client.on(event.name, (...args) => event.execute(...args));
     }
-    logger.info(`✓ Loaded event: ${event.name} (${file})`);
+    logger.info({ event: event.name, file }, "Loaded event");
   }
 
   try {

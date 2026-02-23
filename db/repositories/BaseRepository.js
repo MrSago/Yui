@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/BaseRepository" });
 
 /**
  * Base Repository Class
@@ -69,7 +69,7 @@ class BaseRepository {
     try {
       return await this.model.create(data);
     } catch (error) {
-      logger.error(`Error creating ${this.model.modelName}: ${error.message}`);
+      logger.error({ model_name: this.model.modelName, err: error }, "Error creating model");
       throw error;
     }
   }
@@ -155,7 +155,7 @@ class BaseRepository {
     try {
       return await this.model.countDocuments(query);
     } catch (error) {
-      logger.error(`Error counting ${this.model.modelName}: ${error.message}`);
+      logger.error({ model_name: this.model.modelName, err: error }, "Error counting model");
       throw error;
     }
   }

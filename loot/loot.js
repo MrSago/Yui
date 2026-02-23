@@ -13,7 +13,7 @@ const {
   createCompleteBossKillEmbed,
   sendToChannel,
 } = require("../discord/index.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "loot/loot" });
 const sirusApi = require("../api/sirusApi.js");
 const {
   createLootScreenshotBuffer,
@@ -43,7 +43,7 @@ function init(discord) {
   logger.info("Initializing loot tracking module");
 
   blacklist = loadJsonFileWithDefault(BLACKLIST_FILE, [], "loot blacklist");
-  logger.debug(`Loaded ${blacklist.length} blacklist entries`);
+  logger.debug({ count: blacklist.length }, "Loaded blacklist entries");
 
   logger.info("Loot tracking module initialized successfully");
   startRefreshingLoot();
@@ -72,7 +72,7 @@ async function startRefreshingLoot() {
       return;
     }
 
-    logger.debug(`Processing ${settings.length} loot settings entries`);
+    logger.debug({ count: settings.length }, "Processing loot settings entries");
 
     const guild_id_promises = settings.map((entry) =>
       db.getGuildIdByLootId(entry._id).then((guild_id) => ({ entry, guild_id })),
@@ -83,7 +83,7 @@ async function startRefreshingLoot() {
     const entry_promises = guild_entries
       .filter(({ guild_id, entry }) => {
         if (!guild_id) {
-          logger.warn(`Guild ID not found for loot entry ${entry._id}`);
+          logger.warn({ loot_entry_id: entry._id }, "Guild ID not found for loot entry");
           return false;
         }
         return true;
@@ -98,7 +98,7 @@ async function startRefreshingLoot() {
         `${failed.length} loot entries failed to process, ${successful.length} succeeded`,
       );
     }
-    logger.debug(`Processed ${results.length} loot entries`);
+    logger.debug({ count: results.length }, "Processed loot entries");
   } finally {
     await closeLootScreenshotBrowser();
 
@@ -155,10 +155,10 @@ async function entryProcess(entry, guild_id) {
     `Retrieved ${records.length} boss kill records for guild ${guild_id}`,
   );
 
-  logger.debug(`Entry filters: ${JSON.stringify(entry.filter)}`);
+  logger.debug({ filters: entry.filter }, "Entry filters");
 
   if (entry.filter && entry.filter.size > 0) {
-    logger.debug(`Applying filters for guild ${guild_id}`);
+    logger.debug({ guild_id: guild_id }, "Applying filters for guild");
     records = records.filter((record) => {
       logger.debug(
         `Evaluating record ${record.id} with mapId ${record.mapId} and encounter_id ${record.encounter_id}`,
@@ -230,7 +230,7 @@ async function entryProcess(entry, guild_id) {
  */
 async function getExtraInfoAndSend(entry, guild_id, record) {
   if (!client.guilds.cache.get(guild_id)) {
-    logger.warn(`Guild ${guild_id} not found in cache`);
+    logger.warn({ guild_id }, "Guild not found in cache");
     return null;
   }
 

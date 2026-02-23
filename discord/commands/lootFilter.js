@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 const { buildLootFilterMessage } = require("../interactions/lootFilter.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/commands/lootFilter" });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -62,7 +62,7 @@ module.exports = {
         flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
-      logger.error(`Error preparing loot filter UI: ${error.message}`);
+      logger.error({ err: error }, "Error preparing loot filter UI:");
 
       if (error.name === "LootSettingsNotFoundError") {
         return interaction.reply({

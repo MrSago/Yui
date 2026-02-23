@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 const { deleteChangelogChannel } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/commands/clearChangelog" });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -58,7 +58,7 @@ module.exports = {
         "Настройки оповещений об изменениях Sirus.su успешно сброшены!",
       );
     } catch (error) {
-      logger.error(`Error clearing changelog settings: ${error.message}`);
+      logger.error({ err: error }, "Error clearing changelog settings:");
 
       return interaction.reply({
         content:

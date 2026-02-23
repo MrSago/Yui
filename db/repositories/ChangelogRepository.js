@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/ChangelogRepository" });
 
 const BaseRepository = require("./BaseRepository.js");
 const { Changelog } = require("../models/index.js");
@@ -21,7 +21,7 @@ class ChangelogRepository extends BaseRepository {
     try {
       return await this.findOne({ channel_id: channelId });
     } catch (error) {
-      logger.error(`Error finding changelog by channel id: ${error.message}`);
+      logger.error({ err: error }, "Error finding changelog by channel id:");
       throw error;
     }
   }
@@ -35,7 +35,7 @@ class ChangelogRepository extends BaseRepository {
     try {
       return await this.create({ channel_id: channelId });
     } catch (error) {
-      logger.error(`Error creating changelog: ${error.message}`);
+      logger.error({ err: error }, "Error creating changelog:");
       throw error;
     }
   }
@@ -50,7 +50,7 @@ class ChangelogRepository extends BaseRepository {
     try {
       return await this.updateById(id, { channel_id: channelId });
     } catch (error) {
-      logger.error(`Error updating changelog channel id: ${error.message}`);
+      logger.error({ err: error }, "Error updating changelog channel id:");
       throw error;
     }
   }

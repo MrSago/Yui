@@ -6,7 +6,7 @@
 const db = require("./db/database.js");
 const { initializeClient } = require("./discord/index.js");
 const { discord: env } = require("./environment.js");
-const logger = require("./logger.js");
+const logger = require("./logger.js").child({ module: "index" });
 const { closeLootScreenshotBrowser } = require("./loot/lootScreenshot.js");
 
 let isShuttingDown = false;
@@ -19,7 +19,11 @@ async function shutdownAndExit(code, label, error) {
   isShuttingDown = true;
 
   if (label) {
-    console.error(label, error);
+    logger.error(label);
+  }
+
+  if (error) {
+    logger.error(error);
   }
 
   try {
@@ -27,6 +31,7 @@ async function shutdownAndExit(code, label, error) {
   } catch {
     // ignore shutdown errors
   } finally {
+    logger.shutdown();
     process.exit(code);
   }
 }
@@ -40,7 +45,7 @@ process.on("unhandledRejection", (reason) => {
 });
 
 process.on("warning", (e) => {
-  console.warn("Warning:", e.name, e.message, e.stack);
+  logger.warn({ name: e.name, message: e.message, stack: e.stack });
 });
 
 (async () => {

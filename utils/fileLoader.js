@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "utils/fileLoader" });
 
 /**
  * Loads a JSON file
@@ -9,15 +9,15 @@ const logger = require("../logger.js");
  * @returns {Object|Array|null} Loaded data or null on error
  */
 function loadJsonFile(filePath, description = "data") {
-  logger.info(`Loading ${description} from ${filePath}`);
+  logger.info({ description, file_path: filePath }, "Loading JSON file");
 
   try {
     const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    logger.info(`${description} successfully loaded from ${filePath}`);
+    logger.info({ description, file_path: filePath }, "JSON file loaded successfully");
     return data;
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't load ${filePath}`);
+    logger.warn({ file_path: filePath, description }, "Failed to load JSON file");
     return null;
   }
 }
@@ -46,15 +46,15 @@ function loadJsonFileWithDefault(
  * @returns {boolean} true on success, false on error
  */
 function saveJsonFile(filePath, data, description = "data") {
-  logger.info(`Saving ${description} to ${filePath}`);
+  logger.info({ description, file_path: filePath }, "Saving JSON file");
 
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
-    logger.info(`${description} successfully saved to ${filePath}`);
+    logger.info({ description, file_path: filePath }, "JSON file saved successfully");
     return true;
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't save ${description} to ${filePath}`);
+    logger.warn({ description, file_path: filePath }, "Failed to save JSON file");
     return false;
   }
 }
@@ -77,12 +77,12 @@ function ensureDirectoryExists(dirPath) {
   try {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
-      logger.info(`Directory created: ${dirPath}`);
+      logger.info({ dir_path: dirPath }, "Directory created");
     }
     return true;
   } catch (error) {
     logger.error(error);
-    logger.warn(`Can't create directory: ${dirPath}`);
+    logger.warn({ dir_path: dirPath }, "Failed to create directory");
     return false;
   }
 }

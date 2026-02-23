@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/services/LootTooltipCacheService" });
 const { lootTooltipCacheRepository } = require("../repositories/index.js");
 
 class LootTooltipCacheService {
@@ -31,7 +31,7 @@ class LootTooltipCacheService {
     try {
       return await lootTooltipCacheRepository.clearTooltipCache();
     } catch (error) {
-      logger.error(`Error clearing tooltip cache: ${error.message}`);
+      logger.error({ err: error }, "Error clearing tooltip cache:");
       return null;
     }
   }

@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/RecordsRepository" });
 
 const BaseRepository = require("./BaseRepository.js");
 const { Records } = require("../models/index.js");
@@ -21,7 +21,7 @@ class RecordsRepository extends BaseRepository {
     try {
       return await this.findOne({ guild_id: guildId });
     } catch (error) {
-      logger.error(`Error finding records by guild id: ${error.message}`);
+      logger.error({ err: error }, "Error finding records by guild id:");
       throw error;
     }
   }
@@ -40,7 +40,7 @@ class RecordsRepository extends BaseRepository {
       const newDoc = await this.create({ guild_id: guildId, records: [] });
       return { document: newDoc, isNew: true };
     } catch (error) {
-      logger.error(`Error initializing records: ${error.message}`);
+      logger.error({ err: error }, "Error initializing records:");
       throw error;
     }
   }
@@ -59,7 +59,7 @@ class RecordsRepository extends BaseRepository {
         { new: true, upsert: true, runValidators: true },
       );
     } catch (error) {
-      logger.error(`Error adding record: ${error.message}`);
+      logger.error({ err: error }, "Error adding record:");
       throw error;
     }
   }
@@ -78,7 +78,7 @@ class RecordsRepository extends BaseRepository {
       });
       return result !== null;
     } catch (error) {
-      logger.error(`Error checking record: ${error.message}`);
+      logger.error({ err: error }, "Error checking record:");
       throw error;
     }
   }
@@ -92,7 +92,7 @@ class RecordsRepository extends BaseRepository {
     try {
       return await this.deleteOne({ guild_id: guildId });
     } catch (error) {
-      logger.error(`Error deleting records by guild id: ${error.message}`);
+      logger.error({ err: error }, "Error deleting records by guild id:");
       throw error;
     }
   }

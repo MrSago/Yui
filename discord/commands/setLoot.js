@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 const { setLootChannel, deleteLootChannelByChannelId } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/commands/setLoot" });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -109,7 +109,7 @@ module.exports = {
         `Канал ${channel} для вывода информации лута установлен.`,
       );
     } catch (error) {
-      logger.error(`Error setting loot channel: ${error.message}`);
+      logger.error({ err: error }, "Error setting loot channel:");
 
       return interaction.reply({
         content: `Произошла внутренняя ошибка при установке настроек вывода лута.`,

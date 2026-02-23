@@ -20,7 +20,7 @@ const {
   toggleLootFilter,
   setLootFilterForMap,
 } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/interactions/lootFilter" });
 
 const LOOTFILTER_DUNGEON_SELECT_ID = "lootfilter:dungeon";
 const LOOTFILTER_BOSS_SELECT_ID = "lootfilter:boss";
@@ -299,7 +299,7 @@ async function handleLootFilterInteraction(interaction) {
       return true;
     }
   } catch (error) {
-    logger.error(`Loot filter interaction failed: ${error.message}`);
+    logger.error({ err: error }, "Loot filter interaction failed:");
     if (error.name === "LootSettingsNotFoundError") {
       await interaction.reply({
         content:
@@ -315,7 +315,7 @@ async function handleLootFilterInteraction(interaction) {
     return true;
   }
 
-  logger.warn(`Unhandled loot filter interaction: ${interaction.customId}`);
+  logger.warn({ custom_id: interaction.customId }, "Unhandled loot filter interaction");
   return false;
 }
 

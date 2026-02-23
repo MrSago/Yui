@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/repositories/ChangelogDataRepository" });
 
 const BaseRepository = require("./BaseRepository.js");
 const { ChangelogData } = require("../models/index.js");
@@ -21,7 +21,7 @@ class ChangelogDataRepository extends BaseRepository {
       const data = await this.findAll();
       return data.length > 0 ? data[0].data : null;
     } catch (error) {
-      logger.error(`Error getting changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error getting changelog data:");
       throw error;
     }
   }
@@ -36,7 +36,7 @@ class ChangelogDataRepository extends BaseRepository {
       await ChangelogData.deleteMany({});
       return await this.create({ data });
     } catch (error) {
-      logger.error(`Error saving changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error saving changelog data:");
       throw error;
     }
   }
@@ -66,7 +66,7 @@ class ChangelogDataRepository extends BaseRepository {
 
       return await this.updateById(existing[0]._id, { data: mergedData });
     } catch (error) {
-      logger.error(`Error appending changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error appending changelog data:");
       throw error;
     }
   }

@@ -6,7 +6,7 @@
 const { Events } = require("discord.js");
 
 const { fetchGuild } = require("../fetch.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/events/guildCreate" });
 
 module.exports = {
   name: Events.GuildCreate,
@@ -17,8 +17,8 @@ module.exports = {
    * @param {import('discord.js').Guild} guild - Discord guild object
    */
   async execute(guild) {
-    logger.info(`Bot joined new Discord server: ${guild.name} (${guild.id})`);
-    logger.info(`Server members: ${guild.memberCount}`);
+    logger.info({ guild_name: guild.name, guild_id: guild.id }, "Bot joined Discord server");
+    logger.info({ member_count: guild.memberCount }, "Server members");
 
     await logger.discord(
       `➕ Joined server: **${guild.name}** (${guild.id}) | Members: ${guild.memberCount}`,
@@ -26,10 +26,9 @@ module.exports = {
 
     try {
       await fetchGuild(guild);
-      logger.debug(`Successfully fetched guild data for ${guild.name}`);
+      logger.debug({ guild_name: guild.name, guild_id: guild.id }, "Successfully fetched guild data");
     } catch (e) {
-      logger.error(`Error fetching guild data for ${guild.name}: ${e.message}`);
-      logger.error(e);
+      logger.error({ guild_name: guild.name, guild_id: guild.id, err: e }, "Error fetching guild data");
     }
   },
 };

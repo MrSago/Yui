@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/services/ChangelogDataService" });
 const { changelogDataRepository } = require("../repositories/index.js");
 
 /**
@@ -14,7 +14,7 @@ class ChangelogDataService {
     try {
       return await changelogDataRepository.getData();
     } catch (error) {
-      logger.error(`Error getting changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error getting changelog data:");
       return null;
     }
   }
@@ -28,7 +28,7 @@ class ChangelogDataService {
     try {
       await changelogDataRepository.saveData(data);
     } catch (error) {
-      logger.error(`Error saving changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error saving changelog data:");
       throw error;
     }
   }
@@ -42,7 +42,7 @@ class ChangelogDataService {
     try {
       await changelogDataRepository.appendData(newData);
     } catch (error) {
-      logger.error(`Error appending changelog data: ${error.message}`);
+      logger.error({ err: error }, "Error appending changelog data:");
       throw error;
     }
   }

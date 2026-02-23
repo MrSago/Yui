@@ -11,7 +11,7 @@ const {
 } = require("discord.js");
 
 const { deleteLootChannel } = require("../../db/database.js");
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "discord/commands/clearLoot" });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -56,7 +56,7 @@ module.exports = {
 
       return interaction.reply("Настройки вывода лута успешно сброшены!");
     } catch (error) {
-      logger.error(`Error clearing loot settings: ${error.message}`);
+      logger.error({ err: error }, "Error clearing loot settings:");
 
       return interaction.reply({
         content:

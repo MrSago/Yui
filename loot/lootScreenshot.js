@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const db = require("../db/database.js");
-const logger = require("../logger.js");
+const logger = require("../logger.js").child({ module: "loot/lootScreenshot" });
 const sirusApi = require("../api/sirusApi.js");
 
 let puppeteerModule = null;
@@ -193,7 +193,7 @@ function getPuppeteer() {
     puppeteerModule = require("puppeteer");
     return puppeteerModule;
   } catch (error) {
-    logger.warn(`Puppeteer is not available: ${error.message}`);
+    logger.warn({ err: error }, "Puppeteer is not available:");
     return null;
   }
 }
@@ -301,7 +301,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
     const tooltips = [];
 
     for (const item of lootItems) {
-      logger.debug(`Loot screenshot: rendering tooltip for item ${item.entry}`);
+      logger.debug({ item_entry: item.entry }, "Loot screenshot: rendering tooltip for item");
       const data = await getTooltipData(page, item.entry, numericRealmId);
 
       if (!data?.tooltipHtml) {
@@ -360,7 +360,7 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
 
     return screenshot;
   } catch (error) {
-    logger.error(`Failed to render loot screenshot: ${error.message}`);
+    logger.error({ err: error }, "Failed to render loot screenshot:");
     return null;
   } finally {
     if (page) {
@@ -377,7 +377,7 @@ async function clearLootTooltipCache() {
   try {
     await db.clearLootTooltipCache();
   } catch (error) {
-    logger.error(`Failed to clear loot tooltip cache: ${error.message}`);
+    logger.error({ err: error }, "Failed to clear loot tooltip cache:");
   }
 }
 

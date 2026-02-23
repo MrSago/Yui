@@ -1,4 +1,4 @@
-const logger = require("../../logger.js");
+const logger = require("../../logger.js").child({ module: "db/services/SettingsService" });
 const { settingsRepository } = require("../repositories/index.js");
 
 /**
@@ -14,7 +14,7 @@ class SettingsService {
     try {
       return await settingsRepository.findAll();
     } catch (error) {
-      logger.error(`Error getting settings array: ${error.message}`);
+      logger.error({ err: error }, "Error getting settings array:");
       return [];
     }
   }
@@ -40,7 +40,7 @@ class SettingsService {
 
       return removedGuildIds.length;
     } catch (error) {
-      logger.error(`Error clearing inactive guilds: ${error.message}`);
+      logger.error({ err: error }, "Error clearing inactive guilds:");
       return 0;
     }
   }
@@ -65,7 +65,7 @@ class SettingsService {
       await recordsService.deleteRecords(guildId);
       await settingsRepository.deleteByGuildId(guildId);
     } catch (error) {
-      logger.error(`Error clearing guild settings: ${error.message}`);
+      logger.error({ err: error }, "Error clearing guild settings:");
       throw error;
     }
   }
@@ -78,7 +78,7 @@ class SettingsService {
     try {
       return await settingsRepository.count();
     } catch (error) {
-      logger.error(`Error getting guilds count: ${error.message}`);
+      logger.error({ err: error }, "Error getting guilds count:");
       return 0;
     }
   }
