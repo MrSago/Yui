@@ -10,7 +10,6 @@ const settingsSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     changelog_id: {
       type: mongoose.Schema.Types.ObjectId,

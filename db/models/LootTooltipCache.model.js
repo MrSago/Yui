@@ -9,7 +9,6 @@ const lootTooltipCacheSchema = new mongoose.Schema(
     item_entry: {
       type: Number,
       required: true,
-      index: true,
     },
     tooltip_html: {
       type: String,

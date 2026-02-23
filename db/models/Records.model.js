@@ -10,7 +10,6 @@ const recordsSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     records: {
       type: [String],
