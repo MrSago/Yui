@@ -171,6 +171,43 @@ ${tooltips.join("\n")}
 </html>`;
 }
 
+async function renderTooltipGrid(page, html) {
+  await page.setContent(html, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".grid");
+  logger.debug("Loot screenshot: HTML grid rendered in browser page");
+
+  await page
+    .waitForNetworkIdle({ idleTime: 500, timeout: 30000 })
+    .catch(() => undefined);
+}
+
+async function areStylesApplied(page) {
+  return page.evaluate((tooltipSelector) => {
+    const tooltip = document.querySelector(tooltipSelector);
+    if (!tooltip) {
+      return {
+        applied: false,
+        reason: "tooltip_not_found",
+      };
+    }
+
+    const links = Array.from(
+      document.querySelectorAll('link[rel="stylesheet"]'),
+    );
+    const loadedLinks = links.filter((link) => Boolean(link.sheet)).length;
+    const textColor = window.getComputedStyle(tooltip).color;
+    const applied = links.length > 0 && loadedLinks > 0 && textColor !== "rgb(0, 0, 0)";
+
+    return {
+      applied,
+      reason: applied ? null : "style_check_failed",
+      textColor,
+      stylesTotal: links.length,
+      stylesLoaded: loadedLinks,
+    };
+  }, TOOLTIP_SELECTOR);
+}
+
 async function createLootScreenshotBuffer(lootItems, realmId) {
   logger.debug(
     `Loot screenshot: queued render request (realm=${realmId}, items=${lootItems?.length ?? 0})`,
@@ -256,6 +293,7 @@ async function closeBrowser() {
     // ignore shutdown errors
   } finally {
     browserPromise = null;
+    cachedStyles = null;
     isBrowserClosing = false;
   }
 }
@@ -327,15 +365,38 @@ async function createLootScreenshotBufferInternal(lootItems, realmId) {
       return null;
     }
 
-    const html = buildTooltipGridHtml(tooltips, styles);
+    let html = buildTooltipGridHtml(tooltips, styles);
+    await renderTooltipGrid(page, html);
 
-    await page.setContent(html, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".grid");
-    logger.debug("Loot screenshot: HTML grid rendered in browser page");
+    let styleCheck = await areStylesApplied(page);
+    if (!styleCheck.applied) {
+      logger.warn(
+        { style_check: styleCheck },
+        "Loot screenshot: styles look unapplied, refreshing stylesheet links and retrying once",
+      );
 
-    await page
-      .waitForNetworkIdle({ idleTime: 500, timeout: 30000 })
-      .catch(() => undefined);
+      cachedStyles = null;
+      styles = await getStyles(page, numericRealmId, lootItems[0]?.entry);
+
+      if (!styles || styles.length === 0) {
+        logger.warn(
+          "Loot screenshot: no styles available after refresh, sending message without screenshot",
+        );
+        return null;
+      }
+
+      html = buildTooltipGridHtml(tooltips, styles);
+      await renderTooltipGrid(page, html);
+
+      styleCheck = await areStylesApplied(page);
+      if (!styleCheck.applied) {
+        logger.warn(
+          { style_check: styleCheck },
+          "Loot screenshot: styles are still not applied, sending message without screenshot",
+        );
+        return null;
+      }
+    }
 
     const size = await page.evaluate(() => {
       const el = document.querySelector(".grid");
