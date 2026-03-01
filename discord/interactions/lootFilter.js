@@ -324,8 +324,15 @@ async function handleLootFilterInteraction(interaction) {
   return false;
 }
 
+const lootFilterInteractionHandler = {
+  name: "lootFilter",
+  canHandle: isLootFilterInteraction,
+  handle: handleLootFilterInteraction,
+};
+
 module.exports = {
   buildLootFilterMessage,
   handleLootFilterInteraction,
   isLootFilterInteraction,
+  lootFilterInteractionHandler,
 };

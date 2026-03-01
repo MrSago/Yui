@@ -8,10 +8,7 @@ const { Events, MessageFlags } = require("discord.js");
 const logger = require("../../logger.js").child({
   module: "discord/events/interactionCreate",
 });
-const {
-  handleLootFilterInteraction,
-  isLootFilterInteraction,
-} = require("../interactions/lootFilter.js");
+const { routeInteraction } = require("../interactions/router.js");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -22,14 +19,8 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction - Discord interaction object
    */
   async execute(interaction) {
-    if (isLootFilterInteraction(interaction)) {
-      try {
-        await handleLootFilterInteraction(interaction);
-      } catch (error) {
-        logger.error(
-          `Error handling loot filter interaction: ${error.message}`,
-        );
-      }
+    const interactionHandled = await routeInteraction(interaction);
+    if (interactionHandled) {
       return;
     }
 
