@@ -5,15 +5,53 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.image_vars.outputs.image_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
+      - name: Compute image name
+        id: image_vars
+        shell: bash
+        run: |
+          owner_lc="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "image_name=ghcr.io/${owner_lc}/yui" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image (with GitHub Actions cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image_vars.outputs.image_name }}:latest
+            ${{ steps.image_vars.outputs.image_name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
@@ -39,7 +77,7 @@ jobs:
               echo "Failed to create logs directory"
               exit 1
             fi
-            if ! chown -R 1001:1001 logs; then
+            if ! chown -R 1000:1000 logs; then
               echo "Failed to set owner for logs directory"
               exit 1
             fi
@@ -48,21 +86,23 @@ jobs:
               exit 1
             fi
 
-            echo "Stopping containers..."
-            if ! docker compose down; then
-              echo "Failed to stop containers"
+            echo "Logging into GHCR..."
+            if ! echo '${{ secrets.GHCR_TOKEN }}' | docker login ghcr.io -u '${{ secrets.GHCR_USERNAME }}' --password-stdin; then
+              echo "Failed to login to GHCR"
               exit 1
             fi
 
-            echo "Clearing build cache..."
-            if ! docker builder prune -a -f; then
-              echo "Failed to clear build cache"
+            export DISCORD_BOT_IMAGE=${{ needs.build.outputs.image_name }}:${{ github.sha }}
+
+            echo "Pulling latest app image..."
+            if ! docker compose pull discord-bot; then
+              echo "Failed to pull app image"
               exit 1
             fi
 
-            echo "Building and starting containers..."
-            if ! docker compose up -d --build; then
-              echo "Failed to build and start containers"
+            echo "Starting containers..."
+            if ! docker compose up -d --no-build; then
+              echo "Failed to start containers"
               exit 1
             fi
 

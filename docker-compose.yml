@@ -1,6 +1,8 @@
 services:
   discord-bot:
-    build: .
+    image: ${DISCORD_BOT_IMAGE:-yui-discord-bot:local}
+    build:
+      context: .
     container_name: yui-discord-bot
     restart: always
     env_file:
@@ -20,9 +22,9 @@ services:
     container_name: yui-mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: admin
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-admin}
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
