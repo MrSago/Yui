@@ -1,7 +1,6 @@
 FROM node:25-slim AS deps
 
 WORKDIR /app
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV PUPPETEER_SKIP_DOWNLOAD=true
@@ -14,7 +13,6 @@ RUN --mount=type=cache,target=/root/.npm \
 FROM node:25-slim AS runner
 
 WORKDIR /app
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ENV NODE_ENV=production \
@@ -25,14 +23,10 @@ ENV NODE_ENV=production \
 RUN --mount=type=cache,target=/var/cache/apt \
   --mount=type=cache,target=/var/lib/apt/lists \
   apt-get update && \
-  apt-get install -y --no-install-recommends tini chromium && \
-  rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends chromium
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --chown=node:node . .
 
 USER node
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
-
 CMD ["node", "index.js"]

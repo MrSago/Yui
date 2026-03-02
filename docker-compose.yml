@@ -4,6 +4,7 @@ services:
     build:
       context: .
     container_name: yui-discord-bot
+    init: true
     restart: always
     env_file:
       - .env
