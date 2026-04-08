@@ -18,7 +18,11 @@ class LootTooltipCacheRepository extends BaseRepository {
           tooltip_html: tooltipHtml,
         },
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      {
+        returnDocument: "after",
+        upsert: true,
+        setDefaultsOnInsert: true,
+      },
     );
   }
 

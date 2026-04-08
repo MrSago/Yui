@@ -37,7 +37,7 @@ class SettingsRepository extends BaseRepository {
   async upsertByGuildId(guildId, data) {
     try {
       return await Settings.findOneAndUpdate({ guild_id: guildId }, data, {
-        new: true,
+        returnDocument: "after",
         upsert: true,
         runValidators: true,
       });
