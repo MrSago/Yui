@@ -322,10 +322,11 @@ async function getExtraInfo(guild_id, record_id, realm_id) {
     lootItems: lootItems,
   });
 
-  const screenshotBuffer = await createLootScreenshotBuffer(
-    lootItems,
-    realm_id,
-  );
+  // const screenshotBuffer = await createLootScreenshotBuffer(
+  //   lootItems,
+  //   realm_id,
+  // );
+  const screenshotBuffer = null;
   const files = [];
 
   if (screenshotBuffer) {
