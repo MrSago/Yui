@@ -86,6 +86,12 @@ jobs:
               exit 1
             fi
 
+            echo "Logging into GHCR..."
+            if ! echo '${{ secrets.GHCR_TOKEN }}' | docker login ghcr.io -u '${{ secrets.GHCR_USERNAME }}' --password-stdin; then
+              echo "Failed to login to GHCR"
+              exit 1
+            fi
+
             export DISCORD_BOT_IMAGE=${{ needs.build.outputs.image_name }}:${{ github.sha }}
 
             echo "Pulling latest app image..."
