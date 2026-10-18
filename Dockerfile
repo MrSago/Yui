@@ -1,4 +1,4 @@
-FROM node:25-slim AS deps
+FROM node:26-slim AS deps
 
 WORKDIR /app
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
   npm ci --omit=dev --no-audit --no-fund
 
-FROM node:25-slim AS runner
+FROM node:26-slim AS runner
 
 WORKDIR /app
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
