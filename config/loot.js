@@ -25,7 +25,7 @@ module.exports = {
       status: "dnd",
     },
     idleStatus: {
-      name: "С возвращением!",
+      name: "🔴База данных вайпнулась, настройте бота заново🐼",
       type: "Custom",
       status: "online",
     },
